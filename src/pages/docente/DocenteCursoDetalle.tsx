@@ -6,7 +6,6 @@ import { FileUpload } from '../../components/FileUpload';
 import { Modal } from '../../components/Modal';
 import {
   BookOpenIcon,
-  LogOutIcon,
   AlertTriangleIcon,
   FileTextIcon,
   SaveIcon,
@@ -24,12 +23,6 @@ const sidebarLinks = [
   to: '/docente/historial',
   icon: BookOpenIcon,
   label: 'Historial de cursos'
-},
-{
-  to: '/login',
-  icon: LogOutIcon,
-  label: 'Cerrar sesión',
-  dividerAfter: true
 }];
 
 const mockStudents = [

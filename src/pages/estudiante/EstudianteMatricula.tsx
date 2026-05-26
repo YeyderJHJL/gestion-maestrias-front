@@ -6,7 +6,6 @@ import {
   FileTextIcon,
   ReceiptIcon,
   FolderIcon,
-  LogOutIcon,
   CalendarIcon,
   UserIcon,
   FileIcon } from
@@ -32,12 +31,6 @@ const sidebarLinks = [
   to: '/estudiante/historial',
   icon: FolderIcon,
   label: 'Historial Académico'
-},
-{
-  to: '/login',
-  icon: LogOutIcon,
-  label: 'Cerrar sesión',
-  dividerAfter: true
 }];
 
 const enrolledCourses = [

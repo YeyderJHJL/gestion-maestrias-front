@@ -4,7 +4,6 @@ import { DashboardLayout } from '../../components/DashboardLayout';
 import { StatusBadge } from '../../components/StatusBadge';
 import {
   BookOpenIcon,
-  LogOutIcon,
   CalendarIcon,
   AlertTriangleIcon } from
 'lucide-react';
@@ -19,12 +18,6 @@ const sidebarLinks = [
   to: '/docente/historial',
   icon: BookOpenIcon,
   label: 'Historial de cursos'
-},
-{
-  to: '/login',
-  icon: LogOutIcon,
-  label: 'Cerrar sesión',
-  dividerAfter: true
 }];
 
 const mockCourses = [

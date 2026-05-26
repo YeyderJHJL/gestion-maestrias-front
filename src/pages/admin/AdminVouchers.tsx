@@ -8,7 +8,6 @@ import {
   ClipboardListIcon,
   ReceiptIcon,
   FileTextIcon,
-  LogOutIcon,
   EyeIcon,
   XIcon,
   CheckIcon,
@@ -45,12 +44,6 @@ const sidebarLinks = [
   to: '/admin/reportes',
   icon: FileTextIcon,
   label: 'Reportes'
-},
-{
-  to: '/login',
-  icon: LogOutIcon,
-  label: 'Cerrar sesión',
-  dividerAfter: true
 }];
 
 const mockVouchers = [

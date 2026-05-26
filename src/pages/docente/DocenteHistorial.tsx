@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { DashboardLayout } from '../../components/DashboardLayout';
 import { StatusBadge } from '../../components/StatusBadge';
-import { BookOpenIcon, LogOutIcon, ChevronDownIcon } from 'lucide-react';
+import { BookOpenIcon, ChevronDownIcon } from 'lucide-react';
 const sidebarLinks = [
 {
   to: '/docente/dashboard',
@@ -12,12 +12,6 @@ const sidebarLinks = [
   to: '/docente/historial',
   icon: BookOpenIcon,
   label: 'Historial de cursos'
-},
-{
-  to: '/login',
-  icon: LogOutIcon,
-  label: 'Cerrar sesión',
-  dividerAfter: true
 }];
 
 const mockHistorial = [

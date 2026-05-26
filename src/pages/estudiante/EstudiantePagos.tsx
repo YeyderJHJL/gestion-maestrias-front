@@ -7,7 +7,6 @@ import {
   FileTextIcon,
   ReceiptIcon,
   FolderIcon,
-  LogOutIcon,
   ChevronDownIcon,
   CheckCircleIcon } from
 'lucide-react';
@@ -31,12 +30,6 @@ const sidebarLinks = [
   to: '/estudiante/historial',
   icon: FolderIcon,
   label: 'Historial Académico'
-},
-{
-  to: '/login',
-  icon: LogOutIcon,
-  label: 'Cerrar sesión',
-  dividerAfter: true
 }];
 
 const mockPayments = [

@@ -6,8 +6,7 @@ import {
   BookOpenIcon,
   ClipboardListIcon,
   ReceiptIcon,
-  FileTextIcon,
-  LogOutIcon } from
+  FileTextIcon } from
 'lucide-react';
 import { motion } from 'framer-motion';
 const sidebarLinks = [
@@ -40,12 +39,6 @@ const sidebarLinks = [
   to: '/admin/reportes',
   icon: FileTextIcon,
   label: 'Reportes'
-},
-{
-  to: '/login',
-  icon: LogOutIcon,
-  label: 'Cerrar sesión',
-  dividerAfter: true
 }];
 
 const stats = [

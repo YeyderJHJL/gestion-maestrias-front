@@ -9,7 +9,6 @@ import {
   ClipboardListIcon,
   ReceiptIcon,
   FileTextIcon,
-  LogOutIcon,
   SearchIcon,
   PlusIcon,
   EditIcon,
@@ -45,12 +44,6 @@ const sidebarLinks = [
   to: '/admin/reportes',
   icon: FileTextIcon,
   label: 'Reportes'
-},
-{
-  to: '/login',
-  icon: LogOutIcon,
-  label: 'Cerrar sesión',
-  dividerAfter: true
 }];
 
 const mockUsers = [
