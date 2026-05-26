@@ -1,7 +1,6 @@
-import React from 'react';
-import { BoxIcon } from 'lucide-react';
+import { LucideIcon } from 'lucide-react';
 interface EmptyStateProps {
-  icon: BoxIcon;
+  icon: LucideIcon;
   title: string;
   subtitle?: string;
   action?: {

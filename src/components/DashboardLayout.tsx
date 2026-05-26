@@ -1,10 +1,10 @@
 import React from 'react';
 import { Navbar } from './Navbar';
 import { Sidebar } from './Sidebar';
-import { BoxIcon } from 'lucide-react';
+import { LucideIcon } from 'lucide-react';
 interface SidebarLink {
   to: string;
-  icon: BoxIcon;
+  icon: LucideIcon;
   label: string;
   dividerAfter?: boolean;
 }

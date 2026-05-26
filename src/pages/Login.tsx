@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 export function Login() {
   const navigate = useNavigate();
-  const [showError, setShowError] = useState(false);
+  const showError = false;
   const handleGoogleLogin = () => {
     navigate('/admin/dashboard');
   };

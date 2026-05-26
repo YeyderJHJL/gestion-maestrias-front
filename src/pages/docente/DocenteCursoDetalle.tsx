@@ -58,8 +58,8 @@ const mockAuditHistory = [
 }];
 
 export function DocenteCursoDetalle() {
-  const { id } = useParams();
-  const [activeTab, setActiveTab] = useState<
+  useParams();
+const [activeTab, setActiveTab] = useState<
     'silabo' | 'estudiantes' | 'notas'>(
     'silabo');
   const [notasTab, setNotasTab] = useState<'parciales' | 'final'>('parciales');

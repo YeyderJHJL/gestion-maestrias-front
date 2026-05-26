@@ -1,9 +1,9 @@
-import React, { Fragment } from 'react';
+import { Fragment } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { BoxIcon } from 'lucide-react';
+import { LucideIcon } from 'lucide-react';
 interface SidebarLink {
   to: string;
-  icon: BoxIcon;
+  icon: LucideIcon;
   label: string;
   dividerAfter?: boolean;
 }
@@ -15,7 +15,7 @@ export function Sidebar({ links }: SidebarProps) {
   return (
     <aside className="bg-[#1A2F5A] text-white w-60 h-full flex flex-col">
       <nav className="py-4">
-        {links.map((link, index) => {
+        {links.map((link) => {
           const Icon = link.icon;
           const isActive = location.pathname === link.to;
           return (
