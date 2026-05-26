@@ -1,45 +1,12 @@
 import React from 'react';
-import { DashboardLayout } from '../../components/DashboardLayout';
+import { AdminLayout } from '../../layouts/AdminLayout';
 import {
-  LayoutDashboardIcon,
   UsersIcon,
   BookOpenIcon,
-  ClipboardListIcon,
   ReceiptIcon,
   FileTextIcon } from
 'lucide-react';
 import { motion } from 'framer-motion';
-const sidebarLinks = [
-{
-  to: '/admin/dashboard',
-  icon: LayoutDashboardIcon,
-  label: 'Dashboard'
-},
-{
-  to: '/admin/usuarios',
-  icon: UsersIcon,
-  label: 'Usuarios'
-},
-{
-  to: '/admin/cursos',
-  icon: BookOpenIcon,
-  label: 'Promociones y Cursos'
-},
-{
-  to: '/admin/matriculas',
-  icon: ClipboardListIcon,
-  label: 'Matrículas'
-},
-{
-  to: '/admin/vouchers',
-  icon: ReceiptIcon,
-  label: 'Vouchers'
-},
-{
-  to: '/admin/reportes',
-  icon: FileTextIcon,
-  label: 'Reportes'
-}];
 
 const stats = [
 {
@@ -115,10 +82,7 @@ export function AdminDashboard() {
     day: 'numeric'
   });
   return (
-    <DashboardLayout
-      userName="Admin Principal"
-      userRole="Administrador"
-      sidebarLinks={sidebarLinks}>
+    <AdminLayout>
       
       <div className="space-y-8">
         {/* Greeting */}
@@ -252,6 +216,6 @@ export function AdminDashboard() {
           </div>
         </motion.div>
       </div>
-    </DashboardLayout>);
+    </AdminLayout>);
 
 }

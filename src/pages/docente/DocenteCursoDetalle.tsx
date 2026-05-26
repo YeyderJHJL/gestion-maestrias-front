@@ -1,29 +1,16 @@
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { DashboardLayout } from '../../components/DashboardLayout';
+import { DocenteLayout } from '../../layouts/DocenteLayout';
 import { StatusBadge } from '../../components/StatusBadge';
 import { FileUpload } from '../../components/FileUpload';
 import { Modal } from '../../components/Modal';
 import {
-  BookOpenIcon,
   AlertTriangleIcon,
   FileTextIcon,
-  SaveIcon,
   LockIcon,
   EditIcon,
   ChevronDownIcon } from
 'lucide-react';
-const sidebarLinks = [
-{
-  to: '/docente/dashboard',
-  icon: BookOpenIcon,
-  label: 'Mis Cursos'
-},
-{
-  to: '/docente/historial',
-  icon: BookOpenIcon,
-  label: 'Historial de cursos'
-}];
 
 const mockStudents = [
 {
@@ -94,10 +81,7 @@ export function DocenteCursoDetalle() {
   }];
 
   return (
-    <DashboardLayout
-      userName="Dr. Carlos Mendoza"
-      userRole="Docente"
-      sidebarLinks={sidebarLinks}>
+    <DocenteLayout>
       
       <div className="space-y-6">
         {/* Breadcrumb */}
@@ -596,6 +580,6 @@ export function DocenteCursoDetalle() {
           </div>
         </form>
       </Modal>
-    </DashboardLayout>);
+    </DocenteLayout>);
 
 }

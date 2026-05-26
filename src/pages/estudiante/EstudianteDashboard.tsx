@@ -1,38 +1,13 @@
 import React from 'react';
-import { DashboardLayout } from '../../components/DashboardLayout';
+import { EstudianteLayout } from '../../layouts/EstudianteLayout';
 import { StatusBadge } from '../../components/StatusBadge';
 import {
   ClipboardListIcon,
-  FileTextIcon,
   ReceiptIcon,
-  FolderIcon,
-  UsersIcon,
   AlertTriangleIcon,
-  CreditCardIcon,
   AwardIcon } from
 'lucide-react';
 import { motion } from 'framer-motion';
-const sidebarLinks = [
-{
-  to: '/estudiante/dashboard',
-  icon: ClipboardListIcon,
-  label: 'Mi Matrícula'
-},
-{
-  to: '/estudiante/notas',
-  icon: FileTextIcon,
-  label: 'Mis Notas'
-},
-{
-  to: '/estudiante/pagos',
-  icon: ReceiptIcon,
-  label: 'Pagos y Vouchers'
-},
-{
-  to: '/estudiante/historial',
-  icon: FolderIcon,
-  label: 'Historial Académico'
-}];
 
 const stats = [
 {
@@ -92,10 +67,7 @@ const currentCourses = [
 
 export function EstudianteDashboard() {
   return (
-    <DashboardLayout
-      userName="Juan Carlos Pérez"
-      userRole="Estudiante de Maestría"
-      sidebarLinks={sidebarLinks}>
+    <EstudianteLayout>
       
       <div className="space-y-8">
         {/* Welcome Banner */}
@@ -252,6 +224,6 @@ export function EstudianteDashboard() {
           </div>
         </motion.div>
       </div>
-    </DashboardLayout>);
+    </EstudianteLayout>);
 
 }

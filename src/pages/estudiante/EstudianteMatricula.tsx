@@ -1,37 +1,12 @@
 import React from 'react';
-import { DashboardLayout } from '../../components/DashboardLayout';
+import { EstudianteLayout } from '../../layouts/EstudianteLayout';
 import { StatusBadge } from '../../components/StatusBadge';
 import {
-  ClipboardListIcon,
-  FileTextIcon,
-  ReceiptIcon,
-  FolderIcon,
   CalendarIcon,
   UserIcon,
   FileIcon } from
 'lucide-react';
 import { motion } from 'framer-motion';
-const sidebarLinks = [
-{
-  to: '/estudiante/matricula',
-  icon: ClipboardListIcon,
-  label: 'Mi Matrícula'
-},
-{
-  to: '/estudiante/notas',
-  icon: FileTextIcon,
-  label: 'Mis Notas'
-},
-{
-  to: '/estudiante/pagos',
-  icon: ReceiptIcon,
-  label: 'Pagos y Vouchers'
-},
-{
-  to: '/estudiante/historial',
-  icon: FolderIcon,
-  label: 'Historial Académico'
-}];
 
 const enrolledCourses = [
 {
@@ -73,10 +48,7 @@ const enrolledCourses = [
 
 export function EstudianteMatricula() {
   return (
-    <DashboardLayout
-      userName="Juan Carlos Pérez"
-      userRole="Estudiante de Maestría"
-      sidebarLinks={sidebarLinks}>
+    <EstudianteLayout>
       
       <div className="space-y-6">
         <h1 className="text-3xl font-serif font-bold text-text">
@@ -184,7 +156,7 @@ export function EstudianteMatricula() {
           )}
         </div>
       </div>
-    </DashboardLayout>);
+    </EstudianteLayout>);
 
 }
 function AwardIcon({ className }: {className?: string;}) {

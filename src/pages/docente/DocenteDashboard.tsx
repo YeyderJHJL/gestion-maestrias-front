@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { DashboardLayout } from '../../components/DashboardLayout';
+import { DocenteLayout } from '../../layouts/DocenteLayout';
 import { StatusBadge } from '../../components/StatusBadge';
 import {
   BookOpenIcon,
@@ -8,17 +8,6 @@ import {
   AlertTriangleIcon } from
 'lucide-react';
 import { motion } from 'framer-motion';
-const sidebarLinks = [
-{
-  to: '/docente/dashboard',
-  icon: BookOpenIcon,
-  label: 'Mis Cursos'
-},
-{
-  to: '/docente/historial',
-  icon: BookOpenIcon,
-  label: 'Historial de cursos'
-}];
 
 const mockCourses = [
 {
@@ -60,10 +49,7 @@ const mockCourses = [
 
 export function DocenteDashboard() {
   return (
-    <DashboardLayout
-      userName="Dr. Carlos Mendoza"
-      userRole="Docente"
-      sidebarLinks={sidebarLinks}>
+    <DocenteLayout>
       
       <div className="space-y-6">
         <div className="bg-primary text-white rounded-lg p-6">
@@ -197,6 +183,6 @@ export function DocenteDashboard() {
           </div>
         }
       </div>
-    </DashboardLayout>);
+    </DocenteLayout>);
 
 }

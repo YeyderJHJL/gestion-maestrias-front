@@ -1,36 +1,11 @@
 import React, { useState, Fragment } from 'react';
-import { DashboardLayout } from '../../components/DashboardLayout';
+import { EstudianteLayout } from '../../layouts/EstudianteLayout';
 import { StatusBadge } from '../../components/StatusBadge';
 import { FileUpload } from '../../components/FileUpload';
 import {
-  ClipboardListIcon,
-  FileTextIcon,
-  ReceiptIcon,
-  FolderIcon,
   ChevronDownIcon,
   CheckCircleIcon } from
 'lucide-react';
-const sidebarLinks = [
-{
-  to: '/estudiante/matricula',
-  icon: ClipboardListIcon,
-  label: 'Mi Matrícula'
-},
-{
-  to: '/estudiante/notas',
-  icon: FileTextIcon,
-  label: 'Mis Notas'
-},
-{
-  to: '/estudiante/pagos',
-  icon: ReceiptIcon,
-  label: 'Pagos y Vouchers'
-},
-{
-  to: '/estudiante/historial',
-  icon: FolderIcon,
-  label: 'Historial Académico'
-}];
 
 const mockPayments = [
 {
@@ -68,10 +43,7 @@ export function EstudiantePagos() {
   const [expandedRow, setExpandedRow] = useState<number | null>(null);
   const [voucherSubmitted, setVoucherSubmitted] = useState(false);
   return (
-    <DashboardLayout
-      userName="Juan Carlos Pérez"
-      userRole="Estudiante de Maestría"
-      sidebarLinks={sidebarLinks}>
+    <EstudianteLayout>
       
       <div className="space-y-6">
         <h1 className="text-3xl font-serif font-bold text-text">
@@ -277,6 +249,6 @@ export function EstudiantePagos() {
           </div>
         </div>
       </div>
-    </DashboardLayout>);
+    </EstudianteLayout>);
 
 }

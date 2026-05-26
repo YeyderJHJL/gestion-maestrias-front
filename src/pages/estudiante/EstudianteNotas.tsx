@@ -1,34 +1,7 @@
 import React, { useState } from 'react';
-import { DashboardLayout } from '../../components/DashboardLayout';
+import { EstudianteLayout } from '../../layouts/EstudianteLayout';
 import { StatusBadge } from '../../components/StatusBadge';
-import {
-  ClipboardListIcon,
-  FileTextIcon,
-  ReceiptIcon,
-  FolderIcon,
-  InfoIcon } from
-'lucide-react';
-const sidebarLinks = [
-{
-  to: '/estudiante/matricula',
-  icon: ClipboardListIcon,
-  label: 'Mi Matrícula'
-},
-{
-  to: '/estudiante/notas',
-  icon: FileTextIcon,
-  label: 'Mis Notas'
-},
-{
-  to: '/estudiante/pagos',
-  icon: ReceiptIcon,
-  label: 'Pagos y Vouchers'
-},
-{
-  to: '/estudiante/historial',
-  icon: FolderIcon,
-  label: 'Historial Académico'
-}];
+import { InfoIcon } from 'lucide-react';
 
 const mockGrades = [
 {
@@ -75,10 +48,7 @@ export function EstudianteNotas() {
   toFixed(2) :
   null;
   return (
-    <DashboardLayout
-      userName="Juan Carlos Pérez"
-      userRole="Estudiante de Maestría"
-      sidebarLinks={sidebarLinks}>
+    <EstudianteLayout>
       
       <div className="space-y-6">
         <h1 className="text-3xl font-serif font-bold text-text">Mis Notas</h1>
@@ -209,6 +179,6 @@ export function EstudianteNotas() {
           </div>
         }
       </div>
-    </DashboardLayout>);
+    </EstudianteLayout>);
 
 }

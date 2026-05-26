@@ -1,48 +1,8 @@
 import React, { useState } from 'react';
-import { DashboardLayout } from '../../components/DashboardLayout';
+import { AdminLayout } from '../../layouts/AdminLayout';
 import { Modal } from '../../components/Modal';
 import { StatusBadge } from '../../components/StatusBadge';
-import {
-  LayoutDashboardIcon,
-  UsersIcon,
-  BookOpenIcon,
-  ClipboardListIcon,
-  ReceiptIcon,
-  FileTextIcon,
-  PlusIcon,
-  EditIcon } from
-'lucide-react';
-const sidebarLinks = [
-{
-  to: '/admin/dashboard',
-  icon: LayoutDashboardIcon,
-  label: 'Dashboard'
-},
-{
-  to: '/admin/usuarios',
-  icon: UsersIcon,
-  label: 'Usuarios'
-},
-{
-  to: '/admin/cursos',
-  icon: BookOpenIcon,
-  label: 'Promociones y Cursos'
-},
-{
-  to: '/admin/matriculas',
-  icon: ClipboardListIcon,
-  label: 'Matrículas'
-},
-{
-  to: '/admin/vouchers',
-  icon: ReceiptIcon,
-  label: 'Vouchers'
-},
-{
-  to: '/admin/reportes',
-  icon: FileTextIcon,
-  label: 'Reportes'
-}];
+import { PlusIcon, EditIcon } from 'lucide-react';
 
 const mockPromociones = [
 {
@@ -110,10 +70,7 @@ export function AdminCursos() {
   const [isCourseModalOpen, setIsCourseModalOpen] = useState(false);
   const [courseType, setCourseType] = useState('Regular');
   return (
-    <DashboardLayout
-      userName="Admin Principal"
-      userRole="Administrador"
-      sidebarLinks={sidebarLinks}>
+    <AdminLayout>
       
       <div className="space-y-6">
         <h1 className="text-3xl font-serif font-bold text-text">
@@ -436,6 +393,6 @@ export function AdminCursos() {
           </div>
         </form>
       </Modal>
-    </DashboardLayout>);
+    </AdminLayout>);
 
 }

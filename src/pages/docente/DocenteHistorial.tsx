@@ -1,18 +1,7 @@
 import React, { useState } from 'react';
-import { DashboardLayout } from '../../components/DashboardLayout';
+import { DocenteLayout } from '../../layouts/DocenteLayout';
 import { StatusBadge } from '../../components/StatusBadge';
-import { BookOpenIcon, ChevronDownIcon } from 'lucide-react';
-const sidebarLinks = [
-{
-  to: '/docente/dashboard',
-  icon: BookOpenIcon,
-  label: 'Mis Cursos'
-},
-{
-  to: '/docente/historial',
-  icon: BookOpenIcon,
-  label: 'Historial de cursos'
-}];
+import { ChevronDownIcon } from 'lucide-react';
 
 const mockHistorial = [
 {
@@ -100,10 +89,7 @@ export function DocenteHistorial() {
     0
   );
   return (
-    <DashboardLayout
-      userName="Dr. Carlos Mendoza"
-      userRole="Docente"
-      sidebarLinks={sidebarLinks}>
+    <DocenteLayout>
       
       <div className="space-y-6">
         <h1 className="text-3xl font-serif font-bold text-gray-900">
@@ -231,6 +217,6 @@ export function DocenteHistorial() {
           )}
         </div>
       </div>
-    </DashboardLayout>);
+    </DocenteLayout>);
 
 }

@@ -1,50 +1,13 @@
 import React, { useState } from 'react';
-import { DashboardLayout } from '../../components/DashboardLayout';
+import { AdminLayout } from '../../layouts/AdminLayout';
 import { Modal } from '../../components/Modal';
 import { StatusBadge } from '../../components/StatusBadge';
 import {
-  LayoutDashboardIcon,
-  UsersIcon,
-  BookOpenIcon,
-  ClipboardListIcon,
-  ReceiptIcon,
-  FileTextIcon,
   SearchIcon,
   PlusIcon,
   EditIcon,
   XIcon } from
 'lucide-react';
-const sidebarLinks = [
-{
-  to: '/admin/dashboard',
-  icon: LayoutDashboardIcon,
-  label: 'Dashboard'
-},
-{
-  to: '/admin/usuarios',
-  icon: UsersIcon,
-  label: 'Usuarios'
-},
-{
-  to: '/admin/cursos',
-  icon: BookOpenIcon,
-  label: 'Promociones y Cursos'
-},
-{
-  to: '/admin/matriculas',
-  icon: ClipboardListIcon,
-  label: 'Matrículas'
-},
-{
-  to: '/admin/vouchers',
-  icon: ReceiptIcon,
-  label: 'Vouchers'
-},
-{
-  to: '/admin/reportes',
-  icon: FileTextIcon,
-  label: 'Reportes'
-}];
 
 const mockUsers = [
 {
@@ -97,10 +60,7 @@ export function AdminUsuarios() {
     'interno'
   );
   return (
-    <DashboardLayout
-      userName="Admin Principal"
-      userRole="Administrador"
-      sidebarLinks={sidebarLinks}>
+    <AdminLayout>
       
       <div className="space-y-6">
         <div className="flex items-center justify-between">
@@ -536,6 +496,6 @@ export function AdminUsuarios() {
           </div>
         </form>
       </Modal>
-    </DashboardLayout>);
+    </AdminLayout>);
 
 }
