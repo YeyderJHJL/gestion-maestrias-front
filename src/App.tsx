@@ -9,7 +9,6 @@ import { AdminVouchers } from './pages/admin/AdminVouchers';
 import { AdminReportes } from './pages/admin/AdminReportes';
 import { DocenteDashboard } from './pages/docente/DocenteDashboard';
 import { DocenteCursoDetalle } from './pages/docente/DocenteCursoDetalle';
-import { DocenteHistorial } from './pages/docente/DocenteHistorial';
 import { EstudianteDashboard } from './pages/estudiante/EstudianteDashboard';
 import { EstudianteMatricula } from './pages/estudiante/EstudianteMatricula';
 import { EstudianteNotas } from './pages/estudiante/EstudianteNotas';
@@ -28,7 +27,6 @@ export function App() {
         <Route path="/admin/reportes" element={<AdminReportes />} />
         <Route path="/docente/dashboard" element={<DocenteDashboard />} />
         <Route path="/docente/cursos/:id" element={<DocenteCursoDetalle />} />
-        <Route path="/docente/historial" element={<DocenteHistorial />} />
         <Route path="/estudiante/dashboard" element={<EstudianteDashboard />} />
         <Route path="/estudiante/matricula" element={<EstudianteMatricula />} />
         <Route path="/estudiante/notas" element={<EstudianteNotas />} />

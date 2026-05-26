@@ -1,11 +1,5 @@
 import React from 'react';
-import { DashboardLayout } from '../components/DashboardLayout';
-import { BookOpenIcon } from 'lucide-react';
-
-const sidebarLinks = [
-  { to: '/docente/dashboard', icon: BookOpenIcon, label: 'Mis Cursos' },
-  { to: '/docente/historial', icon: BookOpenIcon, label: 'Historial de cursos' },
-];
+import { Navbar } from '../components/Navbar';
 
 interface DocenteLayoutProps {
   children: React.ReactNode;
@@ -13,11 +7,11 @@ interface DocenteLayoutProps {
 
 export function DocenteLayout({ children }: DocenteLayoutProps) {
   return (
-    <DashboardLayout
-      userName="Dr. Carlos Mendoza"
-      userRole="Docente"
-      sidebarLinks={sidebarLinks}>
-      {children}
-    </DashboardLayout>
+    <div className="h-full flex flex-col bg-[#F4F3F0]">
+      <Navbar userName="Dr. Carlos Mendoza" userRole="Docente" />
+      <main className="flex-1 overflow-auto p-6">
+        <div className="max-w-7xl mx-auto">{children}</div>
+      </main>
+    </div>
   );
 }
