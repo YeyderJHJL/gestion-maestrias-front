@@ -19,9 +19,6 @@ const mockStudents = [
   codigo: '2024001',
   dni: '72345678',
   estado: 'matriculado',
-  parcial1: 16,
-  parcial2: 18,
-  parcial3: 17,
   notaFinal: 17
 },
 {
@@ -30,9 +27,6 @@ const mockStudents = [
   codigo: '2024002',
   dni: '73456789',
   estado: 'matriculado',
-  parcial1: 18,
-  parcial2: 19,
-  parcial3: 18,
   notaFinal: 18
 },
 {
@@ -41,9 +35,6 @@ const mockStudents = [
   codigo: '2024003',
   dni: '74567890',
   estado: 'matriculado',
-  parcial1: 14,
-  parcial2: 15,
-  parcial3: 16,
   notaFinal: 15
 }];
 
@@ -62,7 +53,6 @@ export function DocenteCursoDetalle() {
 const [activeTab, setActiveTab] = useState<
     'silabo' | 'estudiantes' | 'notas'>(
     'silabo');
-  const [notasTab, setNotasTab] = useState<'parciales' | 'final'>('parciales');
   const [silaboUploaded, setSilaboUploaded] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [showAuditHistory, setShowAuditHistory] = useState(false);
@@ -231,282 +221,127 @@ const [activeTab, setActiveTab] = useState<
             {/* Notas Tab */}
             {activeTab === 'notas' &&
             <div className="space-y-6">
-                {/* Sub-tabs */}
-                <div className="flex gap-4 border-b border-border">
-                  <button
-                  onClick={() => setNotasTab('parciales')}
-                  className={`pb-2 px-2 font-medium transition-colors ${notasTab === 'parciales' ? 'text-accent border-b-2 border-accent' : 'text-text-muted hover:text-text'}`}>
-                  
-                    Notas parciales
-                  </button>
-                  <button
-                  onClick={() => setNotasTab('final')}
-                  className={`pb-2 px-2 font-medium transition-colors ${notasTab === 'final' ? 'text-accent border-b-2 border-accent' : 'text-text-muted hover:text-text'}`}>
-                  
-                    Nota final
-                  </button>
-                </div>
-
-                {notasTab === 'parciales' &&
-              <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead className="bg-surface-alt">
-                        <tr>
-                          <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">
-                            Estudiante
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">
-                            Parcial 1
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">
-                            Parcial 2
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">
-                            Parcial 3
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">
-                            Promedio
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-border">
-                        {mockStudents.map((student, index) => {
-                      const promedio = (
-                      (student.parcial1 +
-                      student.parcial2 +
-                      student.parcial3) /
-                      3).
-                      toFixed(1);
-                      return (
-                        <tr
-                          key={student.id}
-                          className={
-                          index % 2 === 0 ?
-                          'bg-surface' :
-                          'bg-surface-alt'
-                          }>
-                          
-                              <td className="px-6 py-4 text-sm text-text font-medium">
-                                {student.nombre}
-                              </td>
-                              <td className="px-6 py-4">
-                                <input
-                              type="number"
-                              min="0"
-                              max="20"
-                              defaultValue={student.parcial1}
-                              className="w-20 px-3 py-1 border border-border rounded focus:outline-none focus:ring-2 focus:ring-primary" />
-                            
-                              </td>
-                              <td className="px-6 py-4">
-                                <input
-                              type="number"
-                              min="0"
-                              max="20"
-                              defaultValue={student.parcial2}
-                              className="w-20 px-3 py-1 border border-border rounded focus:outline-none focus:ring-2 focus:ring-primary" />
-                            
-                              </td>
-                              <td className="px-6 py-4">
-                                <input
-                              type="number"
-                              min="0"
-                              max="20"
-                              defaultValue={student.parcial3}
-                              className="w-20 px-3 py-1 border border-border rounded focus:outline-none focus:ring-2 focus:ring-primary" />
-                            
-                              </td>
-                              <td className="px-6 py-4">
-                                <span className="inline-flex items-center px-3 py-1 bg-surface-alt rounded font-semibold text-text">
-                                  {promedio}
-                                </span>
-                              </td>
-                            </tr>);
-
-                    })}
-                      </tbody>
-                    </table>
-                  </div>
-              }
-
-                {notasTab === 'final' &&
-              <>
-                    <div className="overflow-x-auto">
-                      <table className="w-full">
-                        <thead className="bg-surface-alt">
-                          <tr>
-                            <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">
-                              Estudiante
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">
-                              Prom. parciales
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">
-                              Nota final
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">
-                              Estado
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">
-                              Acciones
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-border">
-                          {mockStudents.map((student, index) => {
-                        const promedio = (
-                        (student.parcial1 +
-                        student.parcial2 +
-                        student.parcial3) /
-                        3).
-                        toFixed(1);
+                {/* Grades table */}
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-surface-alt">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">
+                          Estudiante
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">
+                          Código
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">
+                          Nota final
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">
+                          Estado
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">
+                          Acciones
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border">
+                      {mockStudents.map((student, index) => {
                         const aprobado = student.notaFinal >= 11;
                         return (
                           <tr
                             key={student.id}
-                            className={
-                            index % 2 === 0 ?
-                            'bg-surface' :
-                            'bg-surface-alt'
-                            }>
-                            
-                                <td className="px-6 py-4 text-sm text-text font-medium">
-                                  {student.nombre}
-                                </td>
-                                <td className="px-6 py-4 text-sm text-text-muted">
-                                  {promedio}
-                                </td>
-                                <td className="px-6 py-4">
-                                  <div className="flex items-center gap-2">
-                                    <LockIcon className="w-4 h-4 text-text-muted" />
-                                    <span className="font-semibold text-text">
-                                      {student.notaFinal}
-                                    </span>
-                                  </div>
-                                </td>
-                                <td className="px-6 py-4">
-                                  <StatusBadge
-                                variant={
-                                aprobado ? 'aprobado' : 'desaprobado'
-                                }>
-                                
-                                    {aprobado ? 'Aprobado' : 'Desaprobado'}
-                                  </StatusBadge>
-                                </td>
-                                <td className="px-6 py-4">
-                                  <button
+                            className={index % 2 === 0 ? 'bg-surface' : 'bg-surface-alt'}>
+                            <td className="px-6 py-4 text-sm text-text font-medium">
+                              {student.nombre}
+                            </td>
+                            <td className="px-6 py-4 text-sm text-text-muted">
+                              {student.codigo}
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="flex items-center gap-2">
+                                <LockIcon className="w-4 h-4 text-text-muted" />
+                                <span className="font-semibold text-text">
+                                  {student.notaFinal}
+                                </span>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4">
+                              <StatusBadge variant={aprobado ? 'aprobado' : 'desaprobado'}>
+                                {aprobado ? 'Aprobado' : 'Desaprobado'}
+                              </StatusBadge>
+                            </td>
+                            <td className="px-6 py-4">
+                              <button
                                 onClick={() => setIsEditModalOpen(true)}
                                 className="flex items-center gap-1 text-sm text-primary hover:text-primary-light transition-colors">
-                                
-                                    <EditIcon className="w-4 h-4" />
-                                    Editar
-                                  </button>
-                                </td>
-                              </tr>);
-
+                                <EditIcon className="w-4 h-4" />
+                                Editar
+                              </button>
+                            </td>
+                          </tr>
+                        );
                       })}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Audit History */}
+                <div className="border border-border rounded-lg overflow-hidden">
+                  <button
+                    onClick={() => setShowAuditHistory(!showAuditHistory)}
+                    className="w-full flex items-center justify-between px-6 py-3 bg-surface-alt hover:bg-surface transition-colors">
+                    <span className="font-medium text-text">Historial de modificaciones</span>
+                    <ChevronDownIcon
+                      className={`w-5 h-5 text-text-muted transition-transform ${showAuditHistory ? 'rotate-180' : ''}`} />
+                  </button>
+
+                  {showAuditHistory &&
+                  <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead className="bg-surface-alt">
+                          <tr>
+                            <th className="px-4 py-2 text-left text-xs font-semibold text-text-muted uppercase">Estudiante</th>
+                            <th className="px-4 py-2 text-left text-xs font-semibold text-text-muted uppercase">Nota anterior</th>
+                            <th className="px-4 py-2 text-left text-xs font-semibold text-text-muted uppercase">Nota nueva</th>
+                            <th className="px-4 py-2 text-left text-xs font-semibold text-text-muted uppercase">Motivo</th>
+                            <th className="px-4 py-2 text-left text-xs font-semibold text-text-muted uppercase">Modificado por</th>
+                            <th className="px-4 py-2 text-left text-xs font-semibold text-text-muted uppercase">Fecha y hora</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-border">
+                          {mockAuditHistory.length === 0 ?
+                          <tr>
+                              <td colSpan={6} className="px-4 py-8 text-center text-text-muted">
+                                Sin modificaciones registradas para este curso
+                              </td>
+                            </tr> :
+                          mockAuditHistory.map((entry, index) =>
+                          <tr
+                            key={index}
+                            className={index % 2 === 0 ? 'bg-surface' : 'bg-surface-alt'}>
+                            <td className="px-4 py-3 text-text">{entry.estudiante}</td>
+                            <td className="px-4 py-3 text-text-muted">{entry.notaAnterior}</td>
+                            <td className="px-4 py-3 text-text font-semibold">{entry.notaNueva}</td>
+                            <td className="px-4 py-3 text-text-muted">{entry.motivo}</td>
+                            <td className="px-4 py-3 text-text-muted">{entry.modificadoPor}</td>
+                            <td className="px-4 py-3 text-text-muted font-mono text-xs">{entry.fecha}</td>
+                          </tr>
+                          )
+                          }
                         </tbody>
                       </table>
                     </div>
-
-                    {/* Audit History */}
-                    <div className="border border-border rounded-lg overflow-hidden">
-                      <button
-                    onClick={() => setShowAuditHistory(!showAuditHistory)}
-                    className="w-full flex items-center justify-between px-6 py-3 bg-surface-alt hover:bg-surface transition-colors">
-                    
-                        <span className="font-medium text-text">
-                          Historial de modificaciones
-                        </span>
-                        <ChevronDownIcon
-                      className={`w-5 h-5 text-text-muted transition-transform ${showAuditHistory ? 'rotate-180' : ''}`} />
-                    
-                      </button>
-
-                      {showAuditHistory &&
-                  <div className="overflow-x-auto">
-                          <table className="w-full text-sm">
-                            <thead className="bg-surface-alt">
-                              <tr>
-                                <th className="px-4 py-2 text-left text-xs font-semibold text-text-muted uppercase">
-                                  Estudiante
-                                </th>
-                                <th className="px-4 py-2 text-left text-xs font-semibold text-text-muted uppercase">
-                                  Nota anterior
-                                </th>
-                                <th className="px-4 py-2 text-left text-xs font-semibold text-text-muted uppercase">
-                                  Nota nueva
-                                </th>
-                                <th className="px-4 py-2 text-left text-xs font-semibold text-text-muted uppercase">
-                                  Motivo
-                                </th>
-                                <th className="px-4 py-2 text-left text-xs font-semibold text-text-muted uppercase">
-                                  Modificado por
-                                </th>
-                                <th className="px-4 py-2 text-left text-xs font-semibold text-text-muted uppercase">
-                                  Fecha y hora
-                                </th>
-                              </tr>
-                            </thead>
-                            <tbody className="divide-y divide-border">
-                              {mockAuditHistory.length === 0 ?
-                        <tr>
-                                  <td
-                            colSpan={6}
-                            className="px-4 py-8 text-center text-text-muted">
-                            
-                                    Sin modificaciones registradas para este
-                                    curso
-                                  </td>
-                                </tr> :
-
-                        mockAuditHistory.map((entry, index) =>
-                        <tr
-                          key={index}
-                          className={
-                          index % 2 === 0 ?
-                          'bg-surface' :
-                          'bg-surface-alt'
-                          }>
-                          
-                                    <td className="px-4 py-3 text-text">
-                                      {entry.estudiante}
-                                    </td>
-                                    <td className="px-4 py-3 text-text-muted">
-                                      {entry.notaAnterior}
-                                    </td>
-                                    <td className="px-4 py-3 text-text font-semibold">
-                                      {entry.notaNueva}
-                                    </td>
-                                    <td className="px-4 py-3 text-text-muted">
-                                      {entry.motivo}
-                                    </td>
-                                    <td className="px-4 py-3 text-text-muted">
-                                      {entry.modificadoPor}
-                                    </td>
-                                    <td className="px-4 py-3 text-text-muted font-mono text-xs">
-                                      {entry.fecha}
-                                    </td>
-                                  </tr>
-                        )
-                        }
-                            </tbody>
-                          </table>
-                        </div>
                   }
-                    </div>
+                </div>
 
-                    {/* Bottom Action Bar */}
-                    <div className="sticky bottom-0 bg-surface border-t border-border p-4 flex items-center justify-between">
-                      <p className="text-sm text-text-muted">
-                        3 de 3 estudiantes con nota final registrada
-                      </p>
-                      <button className="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary-light transition-colors">
-                        Marcar curso como Notas completas
-                      </button>
-                    </div>
-                  </>
-              }
+                {/* Bottom Action Bar */}
+                <div className="sticky bottom-0 bg-surface border-t border-border p-4 flex items-center justify-between">
+                  <p className="text-sm text-text-muted">
+                    3 de 3 estudiantes con nota final registrada
+                  </p>
+                  <button className="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary-light transition-colors">
+                    Marcar curso como Notas completas
+                  </button>
+                </div>
               </div>
             }
           </div>
