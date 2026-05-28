@@ -20,10 +20,7 @@ interface EstudianteLayoutProps {
 
 export function EstudianteLayout({ children }: EstudianteLayoutProps) {
   return (
-    <DashboardLayout
-      userName="Juan Carlos Pérez"
-      userRole="Estudiante de Maestría"
-      sidebarLinks={sidebarLinks}>
+    <DashboardLayout sidebarLinks={sidebarLinks}>
       {children}
     </DashboardLayout>
   );

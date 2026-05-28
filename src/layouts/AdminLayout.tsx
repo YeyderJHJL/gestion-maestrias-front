@@ -24,10 +24,7 @@ interface AdminLayoutProps {
 
 export function AdminLayout({ children }: AdminLayoutProps) {
   return (
-    <DashboardLayout
-      userName="Admin Principal"
-      userRole="Administrador"
-      sidebarLinks={sidebarLinks}>
+    <DashboardLayout sidebarLinks={sidebarLinks}>
       {children}
     </DashboardLayout>
   );
