@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { GoogleLogin, CredentialResponse } from '@react-oauth/google';
+import { GoogleLogin } from '@react-oauth/google';
 import { useAuth } from '../context/AuthContext';
 import { ApiError } from '../services/api';
 import { UserRole } from '../types/auth';
@@ -20,19 +20,17 @@ export function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Si ya tiene sesión activa → redirige directo
   useEffect(() => {
     if (!loading && user) {
       navigate(dashboardFor(user.role), { replace: true });
     }
   }, [user, loading, navigate]);
 
-  async function handleSuccess(response: CredentialResponse) {
-    if (!response.credential) return;
+  async function handleSuccess(credential: string) {
     setError(null);
     setIsLoading(true);
     try {
-      const role = await login(response.credential);
+      const role = await login(credential);
       navigate(dashboardFor(role), { replace: true });
     } catch (err) {
       if (err instanceof ApiError && err.status === 401) {
@@ -82,7 +80,7 @@ export function Login() {
           <p className="text-sm text-gray-500">Maestrías, Grados y Títulos</p>
         </div>
 
-        {/* Botón Google + errores */}
+        {/* Botón Google */}
         <div className="space-y-4">
           {isLoading ? (
             <div className="w-full flex items-center justify-center gap-3 bg-[#1A2F5A]/10 text-[#1A2F5A] px-4 py-3 rounded-xl text-sm font-semibold">
@@ -92,12 +90,14 @@ export function Login() {
           ) : (
             <div className="flex justify-center">
               <GoogleLogin
-                onSuccess={handleSuccess}
-                onError={() => setError('Error al conectar con Google. Intenta nuevamente.')}
-                text="continue_with"
-                shape="rectangular"
+                onSuccess={(res) => {
+                  if (res.credential) handleSuccess(res.credential);
+                }}
+                onError={() => setError('Error al iniciar sesión con Google.')}
+                theme="outline"
                 size="large"
-                theme="filled_blue"
+                text="signin_with"
+                shape="rectangular"
                 width={280}
               />
             </div>

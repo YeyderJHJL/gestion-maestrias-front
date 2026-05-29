@@ -1,6 +1,17 @@
 import { apiFetch } from './api';
 import { AuthUser, UserRole } from '../types/auth';
 
+const ROLE_MAP: Record<string, UserRole> = {
+  ADMIN: 'ADMIN', Administrador: 'ADMIN',
+  TEACHER: 'TEACHER', Docente: 'TEACHER',
+  STUDENT: 'STUDENT', Estudiante: 'STUDENT',
+  COORDINATOR: 'COORDINATOR', Coordinador: 'COORDINATOR',
+};
+
+function normalizeRole(raw: string): UserRole {
+  return ROLE_MAP[raw] ?? (raw as UserRole);
+}
+
 interface UserResponse {
   id: string;
   email: string;
@@ -40,7 +51,7 @@ export async function buildAuthUser(token: string): Promise<AuthUser> {
     email: user.email,
     firstName: user.firstName,
     lastName: user.lastName,
-    role: user.role,
+    role: normalizeRole(user.role),
     active: user.active,
   };
 
