@@ -4,6 +4,7 @@ import { Modal } from '../../components/Modal';
 import { StatusBadge } from '../../components/StatusBadge';
 import { FileUpload } from '../../components/FileUpload';
 import { SearchIcon, XIcon } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 
 const mockStudent = {
   nombre: 'Juan Carlos Pérez López',
@@ -40,6 +41,9 @@ const availableCourses = [
 }];
 
 export function AdminMatriculas() {
+  const { user } = useAuth();
+  const isCoordinator = user?.role === 'COORDINATOR';
+
   const [searchTerm, setSearchTerm] = useState('');
   const [showStudent, setShowStudent] = useState(false);
   const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
@@ -123,9 +127,10 @@ export function AdminMatriculas() {
                   </div>
                 </div>
                 <button
-                onClick={() => setIsStatusModalOpen(true)}
-                className="px-4 py-2 border border-primary text-primary rounded-lg hover:bg-primary/5 transition-colors text-sm">
-                
+                  disabled={isCoordinator}
+                  onClick={() => setIsStatusModalOpen(true)}
+                  className={`px-4 py-2 border rounded-lg transition-colors text-sm ${isCoordinator ? 'border-gray-200 text-gray-400 opacity-50 cursor-not-allowed' : 'border-primary text-primary hover:bg-primary/5'}`}
+                >
                   Actualizar estado
                 </button>
               </div>
@@ -140,15 +145,17 @@ export function AdminMatriculas() {
                 </h3>
                 <div className="space-y-3">
                   {availableCourses.map((course) =>
-                <label
-                  key={course.id}
-                  className="flex items-start gap-3 p-3 border border-border rounded-lg hover:bg-surface-alt cursor-pointer transition-colors">
-                  
+                    <label
+                      key={course.id}
+                      className={`flex items-start gap-3 p-3 border border-border rounded-lg transition-colors ${isCoordinator ? 'opacity-60 cursor-not-allowed' : 'hover:bg-surface-alt cursor-pointer'}`}
+                    >
                       <input
-                    type="checkbox"
-                    checked={enrolledCourses.includes(course.id)}
-                    onChange={() => toggleCourse(course.id)}
-                    className="mt-1 text-primary focus:ring-primary" />
+                        type="checkbox"
+                        disabled={isCoordinator}
+                        checked={enrolledCourses.includes(course.id)}
+                        onChange={() => toggleCourse(course.id)}
+                        className={`mt-1 text-primary focus:ring-primary ${isCoordinator ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      />
                   
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
@@ -213,9 +220,10 @@ export function AdminMatriculas() {
                             </p>
                           </div>
                           <button
-                        onClick={() => toggleCourse(course.id)}
-                        className="text-accent hover:text-accent-light transition-colors">
-                        
+                            disabled={isCoordinator}
+                            onClick={() => toggleCourse(course.id)}
+                            className={`text-accent transition-colors ${isCoordinator ? 'opacity-50 cursor-not-allowed' : 'hover:text-accent-light'}`}
+                          >
                             <XIcon className="w-5 h-5" />
                           </button>
                         </div>);
@@ -228,10 +236,16 @@ export function AdminMatriculas() {
 
             {/* Actions */}
             <div className="flex gap-3 justify-end">
-              <button className="px-6 py-2 border border-primary text-primary rounded-lg hover:bg-primary/5 transition-colors">
+              <button
+                disabled={isCoordinator}
+                className={`px-6 py-2 border rounded-lg transition-colors ${isCoordinator ? 'border-gray-200 text-gray-400 opacity-50 cursor-not-allowed' : 'border-primary text-primary hover:bg-primary/5'}`}
+              >
                 Cancelar
               </button>
-              <button className="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary-light transition-colors">
+              <button
+                disabled={isCoordinator}
+                className={`px-6 py-2 rounded-lg transition-colors ${isCoordinator ? 'bg-gray-300 text-gray-500 opacity-50 cursor-not-allowed' : 'bg-primary text-white hover:bg-primary-light'}`}
+              >
                 Guardar matrícula
               </button>
             </div>

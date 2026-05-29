@@ -65,13 +65,17 @@ const mockCursos = [
   estado: 'activo'
 }];
 
+import { useAuth } from '../../context/AuthContext';
+
 export function AdminCursos() {
+  const { user } = useAuth();
+  const isCoordinator = user?.role === 'COORDINATOR';
+
   const [selectedPromocion, setSelectedPromocion] = useState(mockPromociones[0]);
   const [isCourseModalOpen, setIsCourseModalOpen] = useState(false);
   const [courseType, setCourseType] = useState('Regular');
   return (
     <AdminLayout>
-      
       <div className="space-y-6">
         <h1 className="text-3xl font-serif font-bold text-text">
           Promociones y Cursos
@@ -82,7 +86,10 @@ export function AdminCursos() {
           <div className="col-span-3 bg-surface-alt rounded-lg p-4 space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="font-serif font-bold text-text">Promociones</h2>
-              <button className="p-1 text-primary hover:text-primary-light transition-colors">
+              <button
+                disabled={isCoordinator}
+                className={`p-1 text-primary transition-colors ${isCoordinator ? 'opacity-50 cursor-not-allowed' : 'hover:text-primary-light'}`}
+              >
                 <PlusIcon className="w-5 h-5" />
               </button>
             </div>
@@ -142,16 +149,20 @@ export function AdminCursos() {
                     'Cerrado'}
                   </StatusBadge>
                 </div>
-                <button className="p-2 text-primary hover:text-primary-light transition-colors">
+                <button
+                  disabled={isCoordinator}
+                  className={`p-2 text-primary transition-colors ${isCoordinator ? 'opacity-50 cursor-not-allowed' : 'hover:text-primary-light'}`}
+                >
                   <EditIcon className="w-5 h-5" />
                 </button>
               </div>
 
               <div className="flex justify-end mb-4">
                 <button
+                  disabled={isCoordinator}
                   onClick={() => setIsCourseModalOpen(true)}
-                  className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-light transition-colors">
-                  
+                  className={`flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg transition-colors ${isCoordinator ? 'opacity-50 cursor-not-allowed' : 'hover:bg-primary-light'}`}
+                >
                   <PlusIcon className="w-5 h-5" />
                   Agregar curso
                 </button>
@@ -233,7 +244,10 @@ export function AdminCursos() {
                           <StatusBadge variant="activo">Activo</StatusBadge>
                         </td>
                         <td className="px-4 py-3">
-                          <button className="p-1 text-primary hover:text-primary-light transition-colors">
+                          <button
+                            disabled={isCoordinator}
+                            className={`p-1 text-primary transition-colors ${isCoordinator ? 'opacity-50 cursor-not-allowed' : 'hover:text-primary-light'}`}
+                          >
                             <EditIcon className="w-4 h-4" />
                           </button>
                         </td>

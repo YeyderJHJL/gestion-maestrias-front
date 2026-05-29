@@ -7,6 +7,7 @@ import {
   CheckIcon,
   AlertTriangleIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useAuth } from '../../context/AuthContext';
 
 const mockVouchers = [
 {
@@ -43,6 +44,9 @@ const mockVouchers = [
 }];
 
 export function AdminVouchers() {
+  const { user } = useAuth();
+  const isCoordinator = user?.role === 'COORDINATOR';
+
   const [activeTab, setActiveTab] = useState<
     'pendientes' | 'validados' | 'observados' | 'rechazados'>(
     'pendientes');
@@ -297,51 +301,55 @@ export function AdminVouchers() {
 
                   <div className="space-y-3">
                     <button
-                    onClick={() => setDecision('validar')}
-                    className={`w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg transition-colors ${decision === 'validar' ? 'bg-success text-white' : 'border border-success text-success hover:bg-success/10'}`}>
-                    
+                      disabled={isCoordinator}
+                      onClick={() => setDecision('validar')}
+                      className={`w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg transition-colors ${isCoordinator ? 'opacity-50 cursor-not-allowed border border-border text-text-muted bg-surface-alt' : decision === 'validar' ? 'bg-success text-white' : 'border border-success text-success hover:bg-success/10'}`}
+                    >
                       <CheckIcon className="w-5 h-5" />
                       Validar
                     </button>
                     <button
-                    onClick={() => setDecision('observar')}
-                    className={`w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg transition-colors ${decision === 'observar' ? 'bg-warning text-white' : 'border border-warning text-warning hover:bg-warning/10'}`}>
-                    
+                      disabled={isCoordinator}
+                      onClick={() => setDecision('observar')}
+                      className={`w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg transition-colors ${isCoordinator ? 'opacity-50 cursor-not-allowed border border-border text-text-muted bg-surface-alt' : decision === 'observar' ? 'bg-warning text-white' : 'border border-warning text-warning hover:bg-warning/10'}`}
+                    >
                       <AlertTriangleIcon className="w-5 h-5" />
                       Observar
                     </button>
                     <button
-                    onClick={() => setDecision('rechazar')}
-                    className={`w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg transition-colors ${decision === 'rechazar' ? 'bg-accent text-white' : 'border border-accent text-accent hover:bg-accent/10'}`}>
-                    
+                      disabled={isCoordinator}
+                      onClick={() => setDecision('rechazar')}
+                      className={`w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg transition-colors ${isCoordinator ? 'opacity-50 cursor-not-allowed border border-border text-text-muted bg-surface-alt' : decision === 'rechazar' ? 'bg-accent text-white' : 'border border-accent text-accent hover:bg-accent/10'}`}
+                    >
                       <XIcon className="w-5 h-5" />
                       Rechazar
                     </button>
                   </div>
 
                   {(decision === 'observar' || decision === 'rechazar') &&
-                <div className="mt-4 space-y-2">
+                    <div className="mt-4 space-y-2">
                       <label className="block text-sm font-medium text-text">
                         Motivo <span className="text-accent">*</span>
                       </label>
                       <textarea
-                    value={motivo}
-                    onChange={(e) => setMotivo(e.target.value)}
-                    placeholder="Describe el motivo de observación o rechazo"
-                    rows={4}
-                    className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" />
-                  
+                        disabled={isCoordinator}
+                        value={motivo}
+                        onChange={(e) => setMotivo(e.target.value)}
+                        placeholder="Describe el motivo de observación o rechazo"
+                        rows={4}
+                        className={`w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary ${isCoordinator ? 'bg-surface-alt text-text-muted cursor-not-allowed' : ''}`}
+                      />
                     </div>
-                }
+                  }
 
                   <button
-                  disabled={
-                  !decision ||
-                  (decision === 'observar' || decision === 'rechazar') &&
-                  !motivo
-                  }
-                  className="w-full mt-6 px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-                  
+                    disabled={
+                      isCoordinator ||
+                      !decision ||
+                      ((decision === 'observar' || decision === 'rechazar') && !motivo)
+                    }
+                    className="w-full mt-6 px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
                     Confirmar decisión
                   </button>
 

@@ -51,7 +51,12 @@ const mockUsers = [
   estado: 'activo'
 }];
 
+import { useAuth } from '../../context/AuthContext';
+
 export function AdminUsuarios() {
+  const { user: authUser } = useAuth();
+  const isCoordinator = authUser?.role === 'COORDINATOR';
+
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRole, setFilterRole] = useState('Todos');
   const [isStudentModalOpen, setIsStudentModalOpen] = useState(false);
@@ -61,28 +66,29 @@ export function AdminUsuarios() {
   );
   return (
     <AdminLayout>
-      
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-serif font-bold text-text">
             Gestión de Usuarios
           </h1>
-          <div className="flex gap-3">
-            <button
-              onClick={() => setIsStudentModalOpen(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-light transition-colors">
-              
-              <PlusIcon className="w-5 h-5" />
-              Nuevo Estudiante
-            </button>
-            <button
-              onClick={() => setIsTeacherModalOpen(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-light transition-colors">
-              
-              <PlusIcon className="w-5 h-5" />
-              Nuevo Docente
-            </button>
-          </div>
+          {!isCoordinator && (
+            <div className="flex gap-3">
+              <button
+                onClick={() => setIsStudentModalOpen(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-light transition-colors"
+              >
+                <PlusIcon className="w-5 h-5" />
+                Nuevo Estudiante
+              </button>
+              <button
+                onClick={() => setIsTeacherModalOpen(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-light transition-colors"
+              >
+                <PlusIcon className="w-5 h-5" />
+                Nuevo Docente
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Filters */}
@@ -130,9 +136,11 @@ export function AdminUsuarios() {
                   <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">
                     Estado
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">
-                    Acciones
-                  </th>
+                  {!isCoordinator && (
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">
+                      Acciones
+                    </th>
+                  )}
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -168,16 +176,18 @@ export function AdminUsuarios() {
                         {user.estado === 'activo' ? 'Activo' : 'Inactivo'}
                       </StatusBadge>
                     </td>
-                    <td className="px-6 py-4">
-                      <div className="flex gap-2">
-                        <button className="p-1 text-primary hover:text-primary-light transition-colors">
-                          <EditIcon className="w-5 h-5" />
-                        </button>
-                        <button className="p-1 text-accent hover:text-accent-light transition-colors">
-                          <XIcon className="w-5 h-5" />
-                        </button>
-                      </div>
-                    </td>
+                    {!isCoordinator && (
+                      <td className="px-6 py-4">
+                        <div className="flex gap-2">
+                          <button className="p-1 text-primary hover:text-primary-light transition-colors">
+                            <EditIcon className="w-5 h-5" />
+                          </button>
+                          <button className="p-1 text-accent hover:text-accent-light transition-colors">
+                            <XIcon className="w-5 h-5" />
+                          </button>
+                        </div>
+                      </td>
+                    )}
                   </tr>
                 )}
               </tbody>
