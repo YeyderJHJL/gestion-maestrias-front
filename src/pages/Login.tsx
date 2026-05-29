@@ -1,104 +1,119 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { GoogleLogin } from '@react-oauth/google';
+import { useAuth } from '../context/AuthContext';
+import { ApiError } from '../services/api';
+import { UserRole } from '../types/auth';
+
+function dashboardFor(role: UserRole): string {
+  switch (role) {
+    case 'ADMIN':       return '/admin/dashboard';
+    case 'TEACHER':     return '/docente/dashboard';
+    case 'STUDENT':     return '/estudiante/dashboard';
+    case 'COORDINATOR': return '/admin/dashboard';
+  }
+}
+
 export function Login() {
   const navigate = useNavigate();
-  const showError = false;
-  const handleGoogleLogin = () => {
-    navigate('/admin/dashboard');
-  };
-  return (
-    <div className="h-full flex bg-[#F4F3F0]">
-      {/* Left Half - Branding */}
-      <div className="w-1/2 bg-[#1A2F5A] flex flex-col items-center justify-center p-12 text-white text-center">
-        <div className="max-w-md space-y-6">
-          {/* Logo container with background circle */}
-          <div className="mb-4">
-            <div className="w-32 h-32 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-white/5 shadow-2xl backdrop-blur-sm">
-              <img 
-                src="/img/escudoUNSA.webp" 
-                alt="Logo UNSA" 
-                className="w-[90%] h-[90%] object-contain"
-              />
-            </div>
-            <p className="text-sm font-serif uppercase tracking-widest text-white/80">
-              Universidad Nacional de San Agustín
-            </p>
-          </div>
+  const { login, user, loading } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-          <h1 className="text-5xl font-serif font-bold leading-tight">
+  useEffect(() => {
+    if (!loading && user) {
+      navigate(dashboardFor(user.role), { replace: true });
+    }
+  }, [user, loading, navigate]);
+
+  async function handleSuccess(credential: string) {
+    setError(null);
+    setIsLoading(true);
+    try {
+      const role = await login(credential);
+      navigate(dashboardFor(role), { replace: true });
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 401) {
+        setError('Tu cuenta no está registrada en el sistema o fue desactivada.\nContacta a Administración.');
+      } else {
+        setError('Error al iniciar sesión. Intenta nuevamente.');
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="h-full flex items-center justify-center bg-[#1A2F5A]">
+        <div className="w-10 h-10 border-4 border-white border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="h-full flex items-center justify-center bg-[#1A2F5A]">
+      <div className="bg-white rounded-2xl shadow-2xl p-10 w-full max-w-sm mx-4 space-y-8 text-center">
+
+        {/* Logo */}
+        <div className="flex flex-col items-center space-y-3">
+          <div
+            className="w-52 h-52 bg-white rounded-full overflow-hidden flex items-center justify-center border-4 border-[#1A2F5A]/10 shadow-lg"
+            style={{ isolation: 'isolate' }}>
+            <img
+              src="/img/posgrado_LOGO.webp"
+              alt="Posgrado 360° UNSA"
+              className="w-full h-full object-contain p-3"
+              style={{ mixBlendMode: 'multiply' }}
+            />
+          </div>
+          <p className="text-xs font-serif uppercase tracking-widest text-[#1A2F5A]/60">
+            Universidad Nacional de San Agustín
+          </p>
+        </div>
+
+        {/* Título */}
+        <div className="space-y-1">
+          <h1 className="text-2xl font-serif font-bold text-[#1A2F5A]">
             Sistema de Gestión Académica
           </h1>
+          <p className="text-sm text-gray-500">Maestrías, Grados y Títulos</p>
+        </div>
 
-          <p className="text-xl text-white/90">
-            Maestría en Informática · UNSA
-          </p>
+        {/* Botón Google */}
+        <div className="space-y-4">
+          {isLoading ? (
+            <div className="w-full flex items-center justify-center gap-3 bg-[#1A2F5A]/10 text-[#1A2F5A] px-4 py-3 rounded-xl text-sm font-semibold">
+              <div className="w-5 h-5 border-2 border-[#1A2F5A] border-t-transparent rounded-full animate-spin" />
+              Verificando cuenta...
+            </div>
+          ) : (
+            <div className="flex justify-center">
+              <GoogleLogin
+                onSuccess={(res) => {
+                  if (res.credential) handleSuccess(res.credential);
+                }}
+                onError={() => setError('Error al iniciar sesión con Google.')}
+                theme="outline"
+                size="large"
+                text="signin_with"
+                shape="rectangular"
+                width={280}
+              />
+            </div>
+          )}
 
-          <p className="text-white/80 text-lg">
-            Gestión académica centralizada para docentes, estudiantes y
-            administración.
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg text-sm text-left whitespace-pre-line">
+              {error}
+            </div>
+          )}
+
+          <p className="text-xs text-gray-400">
+            Requiere cuenta institucional @unsa.edu.pe provista por la OTI
           </p>
         </div>
       </div>
-
-      {/* Right Half - Login Form */}
-      <div className="w-1/2 bg-[#F4F3F0] flex items-center justify-center p-12">
-        <div className="w-full max-w-md">
-          <div className="bg-white rounded-lg border border-[#D5D2CC] shadow-sm p-6 space-y-6">
-            <div className="space-y-2">
-              <h2 className="text-2xl font-serif font-bold text-gray-900">
-                Iniciar sesión
-              </h2>
-              <p className="text-gray-600">Usa tu correo institucional UNSA</p>
-            </div>
-
-            <button
-              onClick={handleGoogleLogin}
-              className="w-full flex items-center justify-center gap-3 bg-[#1A2F5A] text-white px-4 py-2 rounded-md hover:bg-[#2E5FA3] transition-colors font-semibold">
-              
-              <svg className="w-5 h-5" viewBox="0 0 24 24">
-                <path
-                  fill="currentColor"
-                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                
-                <path
-                  fill="currentColor"
-                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                
-                <path
-                  fill="currentColor"
-                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
-                
-                <path
-                  fill="currentColor"
-                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
-                
-              </svg>
-              Continuar con Google
-            </button>
-
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-[#D5D2CC]"></div>
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">o</span>
-              </div>
-            </div>
-
-            <p className="text-sm text-gray-600 text-center">
-              El acceso requiere una cuenta Google institucional (@unsa.edu.pe)
-              provista por la OTI.
-            </p>
-
-            {showError &&
-            <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-md text-sm">
-                Tu cuenta no está registrada en el sistema o fue desactivada.
-                Contacta a Administración.
-              </div>
-            }
-          </div>
-        </div>
-      </div>
-    </div>);
-
+    </div>
+  );
 }
