@@ -5,11 +5,19 @@ export interface AuthUser {
   email: string;
   firstName: string;
   lastName: string;
+  dni?: string;
   role: UserRole;
   active: boolean;
-  // Solo presente si role === 'STUDENT'
+  // Presente si role === 'STUDENT'
   studentId?: string;
   cui?: string;
   paymentCode?: string;
   promotionName?: string;
+  // Presente si role === 'TEACHER'
+  teacherId?: string;
+  teacherCode?: string;
+  specialty?: string;
+  phone?: string;
+  hireDate?: string;
+  teacherStatus?: string;
 }
