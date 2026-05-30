@@ -21,11 +21,12 @@ interface StudentData {
 
 interface TeacherData {
   id: string;
-  code: string;
+  category: string;
+  regime: string;
+  academicDegree: string;
   specialty: string;
+  type: string;
   phone: string;
-  hireDate: string;
-  status: string;
 }
 
 interface UserResponse {
@@ -77,11 +78,12 @@ export async function buildAuthUser(token: string): Promise<AuthUser> {
     return {
       ...base,
       teacherId: user.teacher.id,
-      teacherCode: user.teacher.code,
+      teacherCategory: user.teacher.category,
+      teacherRegime: user.teacher.regime,
+      academicDegree: user.teacher.academicDegree,
+      teacherType: user.teacher.type,
       specialty: user.teacher.specialty,
       phone: user.teacher.phone,
-      hireDate: user.teacher.hireDate,
-      teacherStatus: user.teacher.status,
     };
   }
 
