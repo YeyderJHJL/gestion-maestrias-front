@@ -15,9 +15,10 @@ export interface AuthUser {
   promotionName?: string;
   // Presente si role === 'TEACHER'
   teacherId?: string;
-  teacherCode?: string;
+  teacherCategory?: string;
+  teacherRegime?: string;
+  academicDegree?: string;
+  teacherType?: string;
   specialty?: string;
   phone?: string;
-  hireDate?: string;
-  teacherStatus?: string;
 }
