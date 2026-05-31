@@ -15,10 +15,15 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Configure Git
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+
       - name: Push main and tags to GitLab
         env:
           GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
         run: |
-          git remote add gitlab https://oauth2:${GITLAB_TOKEN}@gitlab.com/Pisw2026-Maestria-Unsa/gestion-maestrias-front.git
-          git push gitlab main
+          git remote add gitlab https://oauth2:${GITLAB_TOKEN}@gitlab.com/pisw2026-mestria/gestion-maestrias-front.git
+          git push gitlab HEAD:main
           git push gitlab --tags
