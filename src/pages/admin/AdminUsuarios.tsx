@@ -1,69 +1,58 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { AdminLayout } from '../../layouts/AdminLayout';
 import { Modal } from '../../components/Modal';
 import { StatusBadge } from '../../components/StatusBadge';
+import { EmptyState } from '../../components/EmptyState';
 import {
   SearchIcon,
   PlusIcon,
   EditIcon,
-  XIcon } from
-'lucide-react';
-
-const mockUsers = [
-{
-  id: 1,
-  nombre: 'Juan Carlos Pérez López',
-  correo: 'jperez@unsa.edu.pe',
-  rol: 'Estudiante',
-  tipo: 'Interno UNSA',
-  estado: 'activo'
-},
-{
-  id: 2,
-  nombre: 'María González Quispe',
-  correo: 'mgonzalez@unsa.edu.pe',
-  rol: 'Estudiante',
-  tipo: 'Interno UNSA',
-  estado: 'activo'
-},
-{
-  id: 3,
-  nombre: 'Dr. Carlos Mendoza Silva',
-  correo: 'cmendoza@unsa.edu.pe',
-  rol: 'Docente',
-  tipo: 'Interno UNSA',
-  estado: 'activo'
-},
-{
-  id: 4,
-  nombre: 'Dra. Ana Rodríguez Flores',
-  correo: 'arodriguez@unsa.edu.pe',
-  rol: 'Docente',
-  tipo: 'Externo',
-  estado: 'activo'
-},
-{
-  id: 5,
-  nombre: 'Admin Principal',
-  correo: 'admin@unsa.edu.pe',
-  rol: 'Administrador',
-  tipo: 'Interno UNSA',
-  estado: 'activo'
-}];
-
+  XIcon,
+  UsersIcon,
+  Loader2Icon,
+} from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { User, listUsers } from '../../services/usersApiService';
+
+const ROLE_LABELS: Record<string, string> = {
+  ADMIN: 'Administrador',
+  TEACHER: 'Docente',
+  STUDENT: 'Estudiante',
+  COORDINATOR: 'Coordinador',
+};
 
 export function AdminUsuarios() {
-  const { user: authUser } = useAuth();
+  const { user: authUser, token } = useAuth();
   const isCoordinator = authUser?.role === 'COORDINATOR';
 
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterRole, setFilterRole] = useState('Todos');
+  const [filterRole, setFilterRole] = useState('');
   const [isStudentModalOpen, setIsStudentModalOpen] = useState(false);
   const [isTeacherModalOpen, setIsTeacherModalOpen] = useState(false);
-  const [teacherType, setTeacherType] = useState<'interno' | 'externo'>(
-    'interno'
-  );
+  const [teacherType, setTeacherType] = useState<'interno' | 'externo'>('interno');
+
+  useEffect(() => {
+    if (!token) return;
+    setLoading(true);
+    listUsers(token)
+      .then(setUsers)
+      .catch((e: Error) => setError(e.message))
+      .finally(() => setLoading(false));
+  }, [token]);
+
+  const filteredUsers = users.filter((u) => {
+    const fullName = `${u.firstName} ${u.lastName}`.toLowerCase();
+    const matchesSearch =
+      !searchTerm ||
+      fullName.includes(searchTerm.toLowerCase()) ||
+      u.email.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesRole = !filterRole || u.role === filterRole;
+    return matchesSearch && matchesRole;
+  });
+
   return (
     <AdminLayout>
       <div className="space-y-6">
@@ -100,99 +89,105 @@ export function AdminUsuarios() {
               placeholder="Buscar por nombre o correo..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" />
-            
+              className="w-full pl-10 pr-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+            />
           </div>
           <select
             value={filterRole}
             onChange={(e) => setFilterRole(e.target.value)}
-            className="px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
-            
-            <option>Todos</option>
-            <option>Administrador</option>
-            <option>Docente</option>
-            <option>Estudiante</option>
+            className="px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+          >
+            <option value="">Todos</option>
+            <option value="ADMIN">Administrador</option>
+            <option value="COORDINATOR">Coordinador</option>
+            <option value="TEACHER">Docente</option>
+            <option value="STUDENT">Estudiante</option>
           </select>
         </div>
 
         {/* Users Table */}
         <div className="bg-surface border border-border rounded-lg shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-surface-alt">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">
-                    Nombre completo
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">
-                    Correo institucional
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">
-                    Rol
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">
-                    Tipo
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">
-                    Estado
-                  </th>
-                  {!isCoordinator && (
+          {loading ? (
+            <div className="flex items-center justify-center py-16 gap-3 text-text-muted">
+              <Loader2Icon className="w-6 h-6 animate-spin" />
+              <span>Cargando usuarios...</span>
+            </div>
+          ) : error ? (
+            <div className="flex items-center justify-center py-16">
+              <p className="text-accent">{error}</p>
+            </div>
+          ) : filteredUsers.length === 0 ? (
+            <EmptyState
+              icon={UsersIcon}
+              title="No se encontraron usuarios"
+              subtitle={
+                searchTerm || filterRole
+                  ? 'Intenta ajustar los filtros de búsqueda.'
+                  : undefined
+              }
+            />
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-surface-alt">
+                  <tr>
                     <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">
-                      Acciones
+                      Nombre completo
                     </th>
-                  )}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {mockUsers.map((user, index) =>
-                <tr
-                  key={user.id}
-                  className={
-                  index % 2 === 0 ? 'bg-surface' : 'bg-surface-alt'
-                  }>
-                  
-                    <td className="px-6 py-4 text-sm text-text font-medium">
-                      {user.nombre}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-text-muted">
-                      {user.correo}
-                    </td>
-                    <td className="px-6 py-4">
-                      <StatusBadge variant="activo">{user.rol}</StatusBadge>
-                    </td>
-                    <td className="px-6 py-4">
-                      <StatusBadge
-                      variant={user.tipo === 'Externo' ? 'externo' : 'activo'}>
-                      
-                        {user.tipo}
-                      </StatusBadge>
-                    </td>
-                    <td className="px-6 py-4">
-                      <StatusBadge
-                      variant={
-                      user.estado === 'activo' ? 'activo' : 'inactivo'
-                      }>
-                      
-                        {user.estado === 'activo' ? 'Activo' : 'Inactivo'}
-                      </StatusBadge>
-                    </td>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">
+                      Correo institucional
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">
+                      Rol
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">
+                      Estado
+                    </th>
                     {!isCoordinator && (
-                      <td className="px-6 py-4">
-                        <div className="flex gap-2">
-                          <button className="p-1 text-primary hover:text-primary-light transition-colors">
-                            <EditIcon className="w-5 h-5" />
-                          </button>
-                          <button className="p-1 text-accent hover:text-accent-light transition-colors">
-                            <XIcon className="w-5 h-5" />
-                          </button>
-                        </div>
-                      </td>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">
+                        Acciones
+                      </th>
                     )}
                   </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {filteredUsers.map((user, index) => (
+                    <tr
+                      key={user.id}
+                      className={index % 2 === 0 ? 'bg-surface' : 'bg-surface-alt'}
+                    >
+                      <td className="px-6 py-4 text-sm text-text font-medium">
+                        {user.firstName} {user.lastName}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-text-muted">
+                        {user.email}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-text">
+                        {ROLE_LABELS[user.role] ?? user.role}
+                      </td>
+                      <td className="px-6 py-4">
+                        <StatusBadge variant={user.active ? 'activo' : 'inactivo'}>
+                          {user.active ? 'Activo' : 'Inactivo'}
+                        </StatusBadge>
+                      </td>
+                      {!isCoordinator && (
+                        <td className="px-6 py-4">
+                          <div className="flex gap-2">
+                            <button className="p-1 text-primary hover:text-primary-light transition-colors">
+                              <EditIcon className="w-5 h-5" />
+                            </button>
+                            <button className="p-1 text-accent hover:text-accent-light transition-colors">
+                              <XIcon className="w-5 h-5" />
+                            </button>
+                          </div>
+                        </td>
+                      )}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </div>
 
@@ -202,82 +197,68 @@ export function AdminUsuarios() {
         onClose={() => setIsStudentModalOpen(false)}
         title="Registrar Estudiante"
         size="lg"
-        accentBorder>
-        
+        accentBorder
+      >
         <form className="space-y-6">
           <div className="grid grid-cols-2 gap-6">
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-text">
-                Nombres
-              </label>
+              <label className="block text-sm font-medium text-text">Nombres</label>
               <input
                 type="text"
-                className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" />
-              
+                className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+              />
             </div>
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-text">
-                Apellidos
-              </label>
+              <label className="block text-sm font-medium text-text">Apellidos</label>
               <input
                 type="text"
-                className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" />
-              
+                className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+              />
             </div>
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-text">
-                Código de estudiante
-              </label>
+              <label className="block text-sm font-medium text-text">Código de estudiante</label>
               <input
                 type="text"
-                className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" />
-              
+                className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+              />
             </div>
             <div className="space-y-2">
               <label className="block text-sm font-medium text-text">DNI</label>
               <input
                 type="text"
-                className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" />
-              
+                className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+              />
             </div>
             <div className="space-y-2">
               <label className="block text-sm font-medium text-text">CUI</label>
               <input
                 type="text"
-                className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" />
-              
+                className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+              />
             </div>
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-text">
-                Correo institucional
-              </label>
+              <label className="block text-sm font-medium text-text">Correo institucional</label>
               <input
                 type="email"
                 placeholder="@unsa.edu.pe"
-                className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" />
-              
+                className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+              />
             </div>
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-text">
-                Teléfono
-              </label>
+              <label className="block text-sm font-medium text-text">Teléfono</label>
               <input
                 type="tel"
-                className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" />
-              
+                className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+              />
             </div>
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-text">
-                Programa
-              </label>
+              <label className="block text-sm font-medium text-text">Programa</label>
               <select className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
                 <option>Maestría en Informática</option>
               </select>
             </div>
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-text">
-                Promoción
-              </label>
+              <label className="block text-sm font-medium text-text">Promoción</label>
               <select className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
                 <option>2024-I</option>
                 <option>2024-II</option>
@@ -285,9 +266,7 @@ export function AdminUsuarios() {
               </select>
             </div>
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-text">
-                Estado
-              </label>
+              <label className="block text-sm font-medium text-text">Estado</label>
               <div className="flex items-center gap-3">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
@@ -295,8 +274,8 @@ export function AdminUsuarios() {
                     name="estado"
                     value="activo"
                     defaultChecked
-                    className="text-primary focus:ring-primary" />
-                  
+                    className="text-primary focus:ring-primary"
+                  />
                   <span className="text-sm text-text">Activo</span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
@@ -304,31 +283,28 @@ export function AdminUsuarios() {
                     type="radio"
                     name="estado"
                     value="inactivo"
-                    className="text-primary focus:ring-primary" />
-                  
+                    className="text-primary focus:ring-primary"
+                  />
                   <span className="text-sm text-text">Inactivo</span>
                 </label>
               </div>
             </div>
           </div>
-
           <p className="text-sm text-text-muted italic">
-            El correo institucional será usado para el acceso mediante Google.
-            Debe existir en la OTI.
+            El correo institucional será usado para el acceso mediante Google. Debe existir en la OTI.
           </p>
-
           <div className="flex gap-3 justify-end pt-4 border-t border-border">
             <button
               type="button"
               onClick={() => setIsStudentModalOpen(false)}
-              className="px-6 py-2 border border-primary text-primary rounded-lg hover:bg-primary/5 transition-colors">
-              
+              className="px-6 py-2 border border-primary text-primary rounded-lg hover:bg-primary/5 transition-colors"
+            >
               Cancelar
             </button>
             <button
               type="submit"
-              className="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary-light transition-colors">
-              
+              className="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary-light transition-colors"
+            >
               Guardar estudiante
             </button>
           </div>
@@ -341,67 +317,54 @@ export function AdminUsuarios() {
         onClose={() => setIsTeacherModalOpen(false)}
         title="Registrar Docente"
         size="lg"
-        accentBorder>
-        
+        accentBorder
+      >
         <form className="space-y-6">
           <div className="space-y-4">
             <h3 className="font-semibold text-text">Datos personales</h3>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className="block text-sm font-medium text-text">
-                  Nombres
-                </label>
+                <label className="block text-sm font-medium text-text">Nombres</label>
                 <input
                   type="text"
-                  className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" />
-                
+                  className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                />
               </div>
               <div className="space-y-2">
-                <label className="block text-sm font-medium text-text">
-                  Apellidos
-                </label>
+                <label className="block text-sm font-medium text-text">Apellidos</label>
                 <input
                   type="text"
-                  className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" />
-                
+                  className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                />
               </div>
               <div className="space-y-2">
-                <label className="block text-sm font-medium text-text">
-                  DNI
-                </label>
+                <label className="block text-sm font-medium text-text">DNI</label>
                 <input
                   type="text"
-                  className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" />
-                
+                  className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                />
               </div>
               <div className="space-y-2">
-                <label className="block text-sm font-medium text-text">
-                  Celular
-                </label>
+                <label className="block text-sm font-medium text-text">Celular</label>
                 <input
                   type="tel"
-                  className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" />
-                
+                  className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                />
               </div>
               <div className="col-span-2 space-y-2">
-                <label className="block text-sm font-medium text-text">
-                  Correo institucional
-                </label>
+                <label className="block text-sm font-medium text-text">Correo institucional</label>
                 <input
                   type="email"
                   placeholder="@unsa.edu.pe"
-                  className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" />
-                
+                  className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                />
               </div>
             </div>
           </div>
-
           <div className="space-y-4">
             <h3 className="font-semibold text-text">Datos académicos</h3>
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-text">
-                Tipo
-              </label>
+              <label className="block text-sm font-medium text-text">Tipo</label>
               <div className="flex gap-4">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
@@ -410,8 +373,8 @@ export function AdminUsuarios() {
                     value="interno"
                     checked={teacherType === 'interno'}
                     onChange={() => setTeacherType('interno')}
-                    className="text-primary focus:ring-primary" />
-                  
+                    className="text-primary focus:ring-primary"
+                  />
                   <span className="text-sm text-text">Interno UNSA</span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
@@ -421,27 +384,22 @@ export function AdminUsuarios() {
                     value="externo"
                     checked={teacherType === 'externo'}
                     onChange={() => setTeacherType('externo')}
-                    className="text-primary focus:ring-primary" />
-                  
+                    className="text-primary focus:ring-primary"
+                  />
                   <span className="text-sm text-text">Externo</span>
                 </label>
               </div>
             </div>
-
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className="block text-sm font-medium text-text">
-                  Categoría
-                </label>
+                <label className="block text-sm font-medium text-text">Categoría</label>
                 <select className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
                   <option>Principal</option>
                   <option>Asociado</option>
                 </select>
               </div>
               <div className="space-y-2">
-                <label className="block text-sm font-medium text-text">
-                  Régimen
-                </label>
+                <label className="block text-sm font-medium text-text">Régimen</label>
                 <select className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
                   <option>Dedicación exclusiva</option>
                   <option>Tiempo completo</option>
@@ -449,63 +407,56 @@ export function AdminUsuarios() {
                 </select>
               </div>
               <div className="space-y-2">
-                <label className="block text-sm font-medium text-text">
-                  Grado académico
-                </label>
+                <label className="block text-sm font-medium text-text">Grado académico</label>
                 <select className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
                   <option>Magíster</option>
                   <option>Doctor</option>
                 </select>
               </div>
               <div className="space-y-2">
-                <label className="block text-sm font-medium text-text">
-                  Especialidad
-                </label>
+                <label className="block text-sm font-medium text-text">Especialidad</label>
                 <input
                   type="text"
-                  className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" />
-                
+                  className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                />
               </div>
             </div>
           </div>
-
-          {teacherType === 'externo' &&
-          <div className="bg-accent/10 border border-accent rounded-lg p-4 space-y-3">
+          {teacherType === 'externo' && (
+            <div className="bg-accent/10 border border-accent rounded-lg p-4 space-y-3">
               <p className="text-sm text-text">
-                El correo institucional de docentes externos es generado
-                manualmente por la OTI. El trámite puede demorar hasta una
-                semana.
+                El correo institucional de docentes externos es generado manualmente por la OTI. El
+                trámite puede demorar hasta una semana.
               </p>
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-text">
                   Correo institucional asignado
                 </label>
                 <input
-                type="email"
-                placeholder="Ingresar cuando OTI confirme"
-                className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" />
-              
+                  type="email"
+                  placeholder="Ingresar cuando OTI confirme"
+                  className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                />
               </div>
             </div>
-          }
-
+          )}
           <div className="flex gap-3 justify-end pt-4 border-t border-border">
             <button
               type="button"
               onClick={() => setIsTeacherModalOpen(false)}
-              className="px-6 py-2 border border-primary text-primary rounded-lg hover:bg-primary/5 transition-colors">
-              
+              className="px-6 py-2 border border-primary text-primary rounded-lg hover:bg-primary/5 transition-colors"
+            >
               Cancelar
             </button>
             <button
               type="submit"
-              className="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary-light transition-colors">
-              
+              className="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary-light transition-colors"
+            >
               Guardar docente
             </button>
           </div>
         </form>
       </Modal>
-    </AdminLayout>);
-
+    </AdminLayout>
+  );
 }
