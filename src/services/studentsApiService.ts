@@ -1,0 +1,49 @@
+import { apiFetch } from './api';
+
+export interface Promotion {
+  id: number;
+  name: string;
+  programName: string;
+}
+
+export interface StudentRequest {
+  userId: string;
+  promotionId: number;
+  cui: string;
+  paymentCode: string;
+  phone?: string;
+}
+
+export interface StudentResponse {
+  id: string;
+  userId: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  promotionId: number;
+  promotionName: string;
+  cui: string;
+  paymentCode: string;
+  phone?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface ApiResponse<T> {
+  success: boolean;
+  data: T;
+  message: string | null;
+}
+
+export async function listPromotions(token: string): Promise<Promotion[]> {
+  const res = await apiFetch<ApiResponse<Promotion[]>>('/v1/promotions', token);
+  return res.data;
+}
+
+export async function createStudent(token: string, request: StudentRequest): Promise<StudentResponse> {
+  const res = await apiFetch<ApiResponse<StudentResponse>>('/v1/students', token, {
+    method: 'POST',
+    body: JSON.stringify(request),
+  });
+  return res.data;
+}

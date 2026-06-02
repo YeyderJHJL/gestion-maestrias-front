@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { AdminLayout } from '../../layouts/AdminLayout';
 import { Modal } from '../../components/Modal';
 import { StatusBadge } from '../../components/StatusBadge';
 import { EmptyState } from '../../components/EmptyState';
+import { Toast } from '../../components/Toast';
 import {
   SearchIcon,
   PlusIcon,
@@ -12,7 +13,11 @@ import {
   Loader2Icon,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { User, listUsers } from '../../services/usersApiService';
+import { UserRole } from '../../types/auth';
+import { User, UserRequest, listUsers, createUser } from '../../services/usersApiService';
+import { Promotion, listPromotions } from '../../services/studentsApiService';
+import { TeacherType, TeacherCategory, AcademicDegree } from '../../services/teachersApiService';
+import { ApiError } from '../../services/api';
 
 const ROLE_LABELS: Record<string, string> = {
   ADMIN: 'Administrador',
@@ -21,20 +26,64 @@ const ROLE_LABELS: Record<string, string> = {
   COORDINATOR: 'Coordinador',
 };
 
+const EMPTY_BASE: UserRequest = {
+  firstName: '',
+  lastName: '',
+  email: '',
+  dni: '',
+  role: 'ADMIN',
+  active: true,
+};
+
+const EMPTY_STUDENT = {
+  promotionId: '' as number | '',
+  cui: '',
+  paymentCode: '',
+  phone: '',
+};
+
+const EMPTY_TEACHER = {
+  type: 'Interno' as TeacherType,
+  category: '' as TeacherCategory | '',
+  regime: '',
+  academicDegree: '' as AcademicDegree | '',
+  specialty: '',
+  phone: '',
+};
+
+
 export function AdminUsuarios() {
   const { user: authUser, token } = useAuth();
   const isCoordinator = authUser?.role === 'COORDINATOR';
 
+  // Lista de usuarios
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRole, setFilterRole] = useState('');
-  const [isStudentModalOpen, setIsStudentModalOpen] = useState(false);
-  const [isTeacherModalOpen, setIsTeacherModalOpen] = useState(false);
-  const [teacherType, setTeacherType] = useState<'interno' | 'externo'>('interno');
 
-  useEffect(() => {
+  // Modal crear usuario
+  const [isUserModalOpen, setIsUserModalOpen] = useState(false);
+  const [form, setForm] = useState<UserRequest>(EMPTY_BASE);
+  const [studentForm, setStudentForm] = useState(EMPTY_STUDENT);
+  const [teacherForm, setTeacherForm] = useState(EMPTY_TEACHER);
+  const [promotions, setPromotions] = useState<Promotion[]>([]);
+  const [loadingPromotions, setLoadingPromotions] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+
+  // Toast
+  const [toast, setToast] = useState<{
+    visible: boolean;
+    variant: 'success' | 'error';
+    message: string;
+  }>({ visible: false, variant: 'success', message: '' });
+
+  const showToast = (variant: 'success' | 'error', message: string) =>
+    setToast({ visible: true, variant, message });
+
+  const loadUsers = useCallback(() => {
     if (!token) return;
     setLoading(true);
     listUsers(token)
@@ -43,44 +92,80 @@ export function AdminUsuarios() {
       .finally(() => setLoading(false));
   }, [token]);
 
-  const filteredUsers = users.filter((u) => {
-    const fullName = `${u.firstName} ${u.lastName}`.toLowerCase();
-    const matchesSearch =
-      !searchTerm ||
-      fullName.includes(searchTerm.toLowerCase()) ||
-      u.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesRole = !filterRole || u.role === filterRole;
-    return matchesSearch && matchesRole;
-  });
+  useEffect(() => {
+    loadUsers();
+  }, [loadUsers]);
+
+  // Carga promociones cuando el rol es STUDENT y el modal está abierto
+  useEffect(() => {
+    if (!token || form.role !== 'STUDENT' || !isUserModalOpen) return;
+    setLoadingPromotions(true);
+    listPromotions(token)
+      .then(setPromotions)
+      .catch(() => setPromotions([]))
+      .finally(() => setLoadingPromotions(false));
+  }, [token, form.role, isUserModalOpen]);
+
+  const openCreateModal = () => {
+    setForm(EMPTY_BASE);
+    setStudentForm(EMPTY_STUDENT);
+    setTeacherForm(EMPTY_TEACHER);
+    setFormError(null);
+    setIsUserModalOpen(true);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!token) return;
+    setSubmitting(true);
+    setFormError(null);
+    try {
+      // Solo ADMIN y COORDINATOR por ahora — STUDENT y TEACHER requieren
+      // el endpoint unificado del backend (pendiente de implementar)
+      await createUser(token, {
+        ...form,
+        dni: form.dni?.trim() || undefined,
+      });
+      setIsUserModalOpen(false);
+      loadUsers();
+      showToast('success', 'Usuario creado correctamente.');
+    } catch (e) {
+      setFormError(e instanceof ApiError ? e.message : 'Error al crear el usuario.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // Excluir al usuario actual de la lista y aplicar filtros
+  const filteredUsers = users
+    .filter((u) => u.id !== authUser?.id)
+    .filter((u) => {
+      const fullName = `${u.firstName} ${u.lastName}`.toLowerCase();
+      const matchesSearch =
+        !searchTerm ||
+        fullName.includes(searchTerm.toLowerCase()) ||
+        u.email.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesRole = !filterRole || u.role === filterRole;
+      return matchesSearch && matchesRole;
+    });
 
   return (
     <AdminLayout>
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-serif font-bold text-text">
-            Gestión de Usuarios
-          </h1>
+          <h1 className="text-3xl font-serif font-bold text-text">Gestión de Usuarios</h1>
           {!isCoordinator && (
-            <div className="flex gap-3">
-              <button
-                onClick={() => setIsStudentModalOpen(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-light transition-colors"
-              >
-                <PlusIcon className="w-5 h-5" />
-                Nuevo Estudiante
-              </button>
-              <button
-                onClick={() => setIsTeacherModalOpen(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-light transition-colors"
-              >
-                <PlusIcon className="w-5 h-5" />
-                Nuevo Docente
-              </button>
-            </div>
+            <button
+              onClick={openCreateModal}
+              className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-light transition-colors"
+            >
+              <PlusIcon className="w-5 h-5" />
+              Nuevo Usuario
+            </button>
           )}
         </div>
 
-        {/* Filters */}
+        {/* Filtros */}
         <div className="bg-surface border border-border rounded-lg p-4 flex gap-4">
           <div className="flex-1 relative">
             <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-text-muted" />
@@ -105,7 +190,7 @@ export function AdminUsuarios() {
           </select>
         </div>
 
-        {/* Users Table */}
+        {/* Tabla */}
         <div className="bg-surface border border-border rounded-lg shadow-sm overflow-hidden">
           {loading ? (
             <div className="flex items-center justify-center py-16 gap-3 text-text-muted">
@@ -159,9 +244,7 @@ export function AdminUsuarios() {
                       <td className="px-6 py-4 text-sm text-text font-medium">
                         {user.firstName} {user.lastName}
                       </td>
-                      <td className="px-6 py-4 text-sm text-text-muted">
-                        {user.email}
-                      </td>
+                      <td className="px-6 py-4 text-sm text-text-muted">{user.email}</td>
                       <td className="px-6 py-4 text-sm text-text">
                         {ROLE_LABELS[user.role] ?? user.role}
                       </td>
@@ -191,149 +274,52 @@ export function AdminUsuarios() {
         </div>
       </div>
 
-      {/* Student Modal */}
+      {/* Modal: Nuevo Usuario */}
       <Modal
-        isOpen={isStudentModalOpen}
-        onClose={() => setIsStudentModalOpen(false)}
-        title="Registrar Estudiante"
+        isOpen={isUserModalOpen}
+        onClose={() => setIsUserModalOpen(false)}
+        title="Nuevo Usuario"
         size="lg"
         accentBorder
       >
-        <form className="space-y-6">
-          <div className="grid grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-text">Nombres</label>
-              <input
-                type="text"
-                className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-text">Apellidos</label>
-              <input
-                type="text"
-                className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-text">Código de estudiante</label>
-              <input
-                type="text"
-                className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-text">DNI</label>
-              <input
-                type="text"
-                className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-text">CUI</label>
-              <input
-                type="text"
-                className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-text">Correo institucional</label>
-              <input
-                type="email"
-                placeholder="@unsa.edu.pe"
-                className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-text">Teléfono</label>
-              <input
-                type="tel"
-                className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-text">Programa</label>
-              <select className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
-                <option>Maestría en Informática</option>
-              </select>
-            </div>
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-text">Promoción</label>
-              <select className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
-                <option>2024-I</option>
-                <option>2024-II</option>
-                <option>2025-I</option>
-              </select>
-            </div>
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-text">Estado</label>
-              <div className="flex items-center gap-3">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="estado"
-                    value="activo"
-                    defaultChecked
-                    className="text-primary focus:ring-primary"
-                  />
-                  <span className="text-sm text-text">Activo</span>
-                </label>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="estado"
-                    value="inactivo"
-                    className="text-primary focus:ring-primary"
-                  />
-                  <span className="text-sm text-text">Inactivo</span>
-                </label>
-              </div>
-            </div>
-          </div>
-          <p className="text-sm text-text-muted italic">
-            El correo institucional será usado para el acceso mediante Google. Debe existir en la OTI.
-          </p>
-          <div className="flex gap-3 justify-end pt-4 border-t border-border">
-            <button
-              type="button"
-              onClick={() => setIsStudentModalOpen(false)}
-              className="px-6 py-2 border border-primary text-primary rounded-lg hover:bg-primary/5 transition-colors"
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              className="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary-light transition-colors"
-            >
-              Guardar estudiante
-            </button>
-          </div>
-        </form>
-      </Modal>
-
-      {/* Teacher Modal */}
-      <Modal
-        isOpen={isTeacherModalOpen}
-        onClose={() => setIsTeacherModalOpen(false)}
-        title="Registrar Docente"
-        size="lg"
-        accentBorder
-      >
-        <form className="space-y-6">
-          <div className="space-y-4">
-            <h3 className="font-semibold text-text">Datos personales</h3>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Datos personales */}
+          <div>
+            <h3 className="font-semibold text-text mb-4">Datos personales</h3>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className="block text-sm font-medium text-text">Nombres</label>
+                <label className="block text-sm font-medium text-text">Nombres *</label>
                 <input
                   type="text"
+                  required
+                  maxLength={100}
+                  value={form.firstName}
+                  onChange={(e) => setForm({ ...form, firstName: e.target.value })}
                   className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                 />
               </div>
               <div className="space-y-2">
-                <label className="block text-sm font-medium text-text">Apellidos</label>
+                <label className="block text-sm font-medium text-text">Apellidos *</label>
                 <input
                   type="text"
+                  required
+                  maxLength={100}
+                  value={form.lastName}
+                  onChange={(e) => setForm({ ...form, lastName: e.target.value })}
+                  className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+              </div>
+              <div className="col-span-2 space-y-2">
+                <label className="block text-sm font-medium text-text">
+                  Correo institucional *
+                </label>
+                <input
+                  type="email"
+                  required
+                  maxLength={255}
+                  placeholder="@unsa.edu.pe"
+                  value={form.email}
+                  onChange={(e) => setForm({ ...form, email: e.target.value })}
                   className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                 />
               </div>
@@ -341,122 +327,213 @@ export function AdminUsuarios() {
                 <label className="block text-sm font-medium text-text">DNI</label>
                 <input
                   type="text"
+                  maxLength={20}
+                  value={form.dni ?? ''}
+                  onChange={(e) => setForm({ ...form, dni: e.target.value })}
                   className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                 />
               </div>
               <div className="space-y-2">
-                <label className="block text-sm font-medium text-text">Celular</label>
-                <input
-                  type="tel"
+                <label className="block text-sm font-medium text-text">Rol *</label>
+                <select
+                  required
+                  value={form.role}
+                  onChange={(e) =>
+                    setForm({ ...form, role: e.target.value as UserRole })
+                  }
                   className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                />
+                >
+                  <option value="ADMIN">Administrador</option>
+                  <option value="COORDINATOR">Coordinador</option>
+                  <option value="TEACHER">Docente</option>
+                  <option value="STUDENT">Estudiante</option>
+                </select>
               </div>
               <div className="col-span-2 space-y-2">
-                <label className="block text-sm font-medium text-text">Correo institucional</label>
-                <input
-                  type="email"
-                  placeholder="@unsa.edu.pe"
-                  className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                />
+                <label className="block text-sm font-medium text-text">Estado</label>
+                <div className="flex items-center gap-4">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="active"
+                      checked={form.active}
+                      onChange={() => setForm({ ...form, active: true })}
+                      className="text-primary focus:ring-primary"
+                    />
+                    <span className="text-sm text-text">Activo</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="active"
+                      checked={!form.active}
+                      onChange={() => setForm({ ...form, active: false })}
+                      className="text-primary focus:ring-primary"
+                    />
+                    <span className="text-sm text-text">Inactivo</span>
+                  </label>
+                </div>
               </div>
             </div>
           </div>
-          <div className="space-y-4">
-            <h3 className="font-semibold text-text">Datos académicos</h3>
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-text">Tipo</label>
-              <div className="flex gap-4">
-                <label className="flex items-center gap-2 cursor-pointer">
+
+          {/* Datos del estudiante — visible pero pendiente de endpoint unificado */}
+          {form.role === 'STUDENT' && (
+            <div className="border-t border-border pt-6">
+              <h3 className="font-semibold text-text mb-4">Datos del estudiante</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="col-span-2 space-y-2">
+                  <label className="block text-sm font-medium text-text">Promoción *</label>
+                  {loadingPromotions ? (
+                    <div className="flex items-center gap-2 text-text-muted text-sm py-2">
+                      <Loader2Icon className="w-4 h-4 animate-spin" />
+                      Cargando promociones...
+                    </div>
+                  ) : (
+                    <select
+                      value={studentForm.promotionId}
+                      onChange={(e) =>
+                        setStudentForm({
+                          ...studentForm,
+                          promotionId: Number(e.target.value),
+                        })
+                      }
+                      disabled
+                      className="w-full px-4 py-2 border border-border rounded-lg bg-surface-alt text-text-muted cursor-not-allowed"
+                    >
+                      <option value="">Selecciona una promoción</option>
+                      {promotions.map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.name} — {p.programName}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-text">CUI *</label>
                   <input
-                    type="radio"
-                    name="tipo"
-                    value="interno"
-                    checked={teacherType === 'interno'}
-                    onChange={() => setTeacherType('interno')}
-                    className="text-primary focus:ring-primary"
+                    type="text"
+                    maxLength={20}
+                    value={studentForm.cui}
+                    disabled
+                    onChange={(e) =>
+                      setStudentForm({ ...studentForm, cui: e.target.value })
+                    }
+                    className="w-full px-4 py-2 border border-border rounded-lg bg-surface-alt text-text-muted cursor-not-allowed"
                   />
-                  <span className="text-sm text-text">Interno UNSA</span>
-                </label>
-                <label className="flex items-center gap-2 cursor-pointer">
+                </div>
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-text">Código de pago *</label>
                   <input
-                    type="radio"
-                    name="tipo"
-                    value="externo"
-                    checked={teacherType === 'externo'}
-                    onChange={() => setTeacherType('externo')}
-                    className="text-primary focus:ring-primary"
+                    type="text"
+                    maxLength={100}
+                    value={studentForm.paymentCode}
+                    disabled
+                    onChange={(e) =>
+                      setStudentForm({ ...studentForm, paymentCode: e.target.value })
+                    }
+                    className="w-full px-4 py-2 border border-border rounded-lg bg-surface-alt text-text-muted cursor-not-allowed"
                   />
-                  <span className="text-sm text-text">Externo</span>
-                </label>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-text">Categoría</label>
-                <select className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
-                  <option>Principal</option>
-                  <option>Asociado</option>
-                </select>
-              </div>
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-text">Régimen</label>
-                <select className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
-                  <option>Dedicación exclusiva</option>
-                  <option>Tiempo completo</option>
-                  <option>Tiempo parcial</option>
-                </select>
-              </div>
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-text">Grado académico</label>
-                <select className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
-                  <option>Magíster</option>
-                  <option>Doctor</option>
-                </select>
-              </div>
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-text">Especialidad</label>
-                <input
-                  type="text"
-                  className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                />
-              </div>
-            </div>
-          </div>
-          {teacherType === 'externo' && (
-            <div className="bg-accent/10 border border-accent rounded-lg p-4 space-y-3">
-              <p className="text-sm text-text">
-                El correo institucional de docentes externos es generado manualmente por la OTI. El
-                trámite puede demorar hasta una semana.
-              </p>
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-text">
-                  Correo institucional asignado
-                </label>
-                <input
-                  type="email"
-                  placeholder="Ingresar cuando OTI confirme"
-                  className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                />
+                </div>
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-text">Teléfono</label>
+                  <input
+                    type="tel"
+                    maxLength={20}
+                    value={studentForm.phone}
+                    disabled
+                    onChange={(e) =>
+                      setStudentForm({ ...studentForm, phone: e.target.value })
+                    }
+                    className="w-full px-4 py-2 border border-border rounded-lg bg-surface-alt text-text-muted cursor-not-allowed"
+                  />
+                </div>
               </div>
             </div>
           )}
+
+          {/* Datos del docente — visible pero pendiente de endpoint unificado */}
+          {form.role === 'TEACHER' && (
+            <div className="border-t border-border pt-6">
+              <h3 className="font-semibold text-text mb-4">Datos del docente</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="col-span-2 space-y-2">
+                  <label className="block text-sm font-medium text-text">Tipo *</label>
+                  <div className="flex gap-4">
+                    {(['Interno', 'Externo'] as TeacherType[]).map((t) => (
+                      <label key={t} className="flex items-center gap-2 cursor-not-allowed opacity-50">
+                        <input
+                          type="radio"
+                          name="teacherType"
+                          checked={teacherForm.type === t}
+                          disabled
+                          readOnly
+                          className="text-primary"
+                        />
+                        <span className="text-sm text-text">
+                          {t === 'Interno' ? 'Interno UNSA' : 'Externo'}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+                {[
+                  { label: 'Categoría', key: 'category' },
+                  { label: 'Grado académico', key: 'academicDegree' },
+                  { label: 'Régimen', key: 'regime' },
+                  { label: 'Especialidad', key: 'specialty' },
+                  { label: 'Teléfono', key: 'phone' },
+                ].map(({ label, key }) => (
+                  <div key={key} className="space-y-2">
+                    <label className="block text-sm font-medium text-text">{label}</label>
+                    <input
+                      type="text"
+                      disabled
+                      className="w-full px-4 py-2 border border-border rounded-lg bg-surface-alt text-text-muted cursor-not-allowed"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <p className="text-sm text-text-muted italic">
+            El correo debe pertenecer a una cuenta Google para que el usuario pueda iniciar sesión.
+          </p>
+
+          {formError && (
+            <p className="text-sm text-accent bg-accent/10 border border-accent/30 rounded-lg px-4 py-2">
+              {formError}
+            </p>
+          )}
+
           <div className="flex gap-3 justify-end pt-4 border-t border-border">
             <button
               type="button"
-              onClick={() => setIsTeacherModalOpen(false)}
+              onClick={() => setIsUserModalOpen(false)}
               className="px-6 py-2 border border-primary text-primary rounded-lg hover:bg-primary/5 transition-colors"
             >
               Cancelar
             </button>
             <button
               type="submit"
-              className="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary-light transition-colors"
+              disabled={submitting}
+              className="flex items-center gap-2 px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Guardar docente
+              {submitting && <Loader2Icon className="w-4 h-4 animate-spin" />}
+              Guardar usuario
             </button>
           </div>
         </form>
       </Modal>
+
+      <Toast
+        variant={toast.variant}
+        message={toast.message}
+        isVisible={toast.visible}
+        onClose={() => setToast((t) => ({ ...t, visible: false }))}
+      />
     </AdminLayout>
   );
 }
