@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { UserRole } from '../../types/auth';
-import { User, UserRequest, listUsers, createUser } from '../../services/usersApiService';
+import { User, UserRequest, listUsers, createUser, updateUser } from '../../services/usersApiService';
 import { Promotion, listPromotions } from '../../services/studentsApiService';
 import { TeacherType, TeacherCategory, AcademicDegree } from '../../services/teachersApiService';
 import { ApiError } from '../../services/api';
@@ -63,8 +63,9 @@ export function AdminUsuarios() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRole, setFilterRole] = useState('');
 
-  // Modal crear usuario
+  // Modal crear / editar usuario
   const [isUserModalOpen, setIsUserModalOpen] = useState(false);
+  const [editingUser, setEditingUser] = useState<User | null>(null);
   const [form, setForm] = useState<UserRequest>(EMPTY_BASE);
   const [studentForm, setStudentForm] = useState(EMPTY_STUDENT);
   const [teacherForm, setTeacherForm] = useState(EMPTY_TEACHER);
@@ -107,9 +108,24 @@ export function AdminUsuarios() {
   }, [token, form.role, isUserModalOpen]);
 
   const openCreateModal = () => {
+    setEditingUser(null);
     setForm(EMPTY_BASE);
     setStudentForm(EMPTY_STUDENT);
     setTeacherForm(EMPTY_TEACHER);
+    setFormError(null);
+    setIsUserModalOpen(true);
+  };
+
+  const openEditModal = (user: User) => {
+    setEditingUser(user);
+    setForm({
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      dni: user.dni ?? '',
+      role: user.role,
+      active: user.active,
+    });
     setFormError(null);
     setIsUserModalOpen(true);
   };
@@ -120,17 +136,19 @@ export function AdminUsuarios() {
     setSubmitting(true);
     setFormError(null);
     try {
-      // Solo ADMIN y COORDINATOR por ahora — STUDENT y TEACHER requieren
-      // el endpoint unificado del backend (pendiente de implementar)
-      await createUser(token, {
-        ...form,
-        dni: form.dni?.trim() || undefined,
-      });
+      const payload: UserRequest = { ...form, dni: form.dni?.trim() || undefined };
+      if (editingUser) {
+        await updateUser(token, editingUser.id, payload);
+        showToast('success', 'Usuario actualizado correctamente.');
+      } else {
+        await createUser(token, payload);
+        showToast('success', 'Usuario creado correctamente.');
+      }
       setIsUserModalOpen(false);
+      setEditingUser(null);
       loadUsers();
-      showToast('success', 'Usuario creado correctamente.');
     } catch (e) {
-      setFormError(e instanceof ApiError ? e.message : 'Error al crear el usuario.');
+      setFormError(e instanceof ApiError ? e.message : 'Error al guardar el usuario.');
     } finally {
       setSubmitting(false);
     }
@@ -256,7 +274,10 @@ export function AdminUsuarios() {
                       {!isCoordinator && (
                         <td className="px-6 py-4">
                           <div className="flex gap-2">
-                            <button className="p-1 text-primary hover:text-primary-light transition-colors">
+                            <button
+                              onClick={() => openEditModal(user)}
+                              className="p-1 text-primary hover:text-primary-light transition-colors"
+                            >
                               <EditIcon className="w-5 h-5" />
                             </button>
                             <button className="p-1 text-accent hover:text-accent-light transition-colors">
@@ -277,8 +298,8 @@ export function AdminUsuarios() {
       {/* Modal: Nuevo Usuario */}
       <Modal
         isOpen={isUserModalOpen}
-        onClose={() => setIsUserModalOpen(false)}
-        title="Nuevo Usuario"
+        onClose={() => { setIsUserModalOpen(false); setEditingUser(null); }}
+        title={editingUser ? 'Editar Usuario' : 'Nuevo Usuario'}
         size="lg"
         accentBorder
       >
@@ -377,8 +398,8 @@ export function AdminUsuarios() {
             </div>
           </div>
 
-          {/* Datos del estudiante — visible pero pendiente de endpoint unificado */}
-          {form.role === 'STUDENT' && (
+          {/* Datos del estudiante — solo en modo crear */}
+          {!editingUser && form.role === 'STUDENT' && (
             <div className="border-t border-border pt-6">
               <h3 className="font-semibold text-text mb-4">Datos del estudiante</h3>
               <div className="grid grid-cols-2 gap-4">
@@ -453,8 +474,8 @@ export function AdminUsuarios() {
             </div>
           )}
 
-          {/* Datos del docente — visible pero pendiente de endpoint unificado */}
-          {form.role === 'TEACHER' && (
+          {/* Datos del docente — solo en modo crear */}
+          {!editingUser && form.role === 'TEACHER' && (
             <div className="border-t border-border pt-6">
               <h3 className="font-semibold text-text mb-4">Datos del docente</h3>
               <div className="grid grid-cols-2 gap-4">
@@ -522,7 +543,7 @@ export function AdminUsuarios() {
               className="flex items-center gap-2 px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {submitting && <Loader2Icon className="w-4 h-4 animate-spin" />}
-              Guardar usuario
+              {editingUser ? 'Guardar cambios' : 'Guardar usuario'}
             </button>
           </div>
         </form>
