@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { AdminLayout } from '../../layouts/AdminLayout';
 import { Modal } from '../../components/Modal';
+import { ConfirmationModal } from '../../components/ConfirmationModal';
 import { StatusBadge } from '../../components/StatusBadge';
 import { EmptyState } from '../../components/EmptyState';
 import { Toast } from '../../components/Toast';
@@ -14,7 +15,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { UserRole } from '../../types/auth';
-import { User, UserRequest, listUsers, createUser, updateUser } from '../../services/usersApiService';
+import { User, UserRequest, listUsers, createUser, updateUser, deleteUser } from '../../services/usersApiService';
 import { Promotion, listPromotions } from '../../services/studentsApiService';
 import { TeacherType, TeacherCategory, AcademicDegree } from '../../services/teachersApiService';
 import { ApiError } from '../../services/api';
@@ -63,6 +64,9 @@ export function AdminUsuarios() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRole, setFilterRole] = useState('');
 
+  // Modal eliminar usuario
+  const [deletingUser, setDeletingUser] = useState<User | null>(null);
+
   // Modal crear / editar usuario
   const [isUserModalOpen, setIsUserModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
@@ -106,6 +110,19 @@ export function AdminUsuarios() {
       .catch(() => setPromotions([]))
       .finally(() => setLoadingPromotions(false));
   }, [token, form.role, isUserModalOpen]);
+
+  const handleDelete = async () => {
+    if (!token || !deletingUser) return;
+    try {
+      await deleteUser(token, deletingUser.id);
+      setUsers((prev) => prev.filter((u) => u.id !== deletingUser.id));
+      showToast('success', `Usuario ${deletingUser.firstName} ${deletingUser.lastName} eliminado.`);
+    } catch (e) {
+      showToast('error', e instanceof ApiError ? e.message : 'Error al eliminar el usuario.');
+    } finally {
+      setDeletingUser(null);
+    }
+  };
 
   const openCreateModal = () => {
     setEditingUser(null);
@@ -280,7 +297,10 @@ export function AdminUsuarios() {
                             >
                               <EditIcon className="w-5 h-5" />
                             </button>
-                            <button className="p-1 text-accent hover:text-accent-light transition-colors">
+                            <button
+                              onClick={() => setDeletingUser(user)}
+                              className="p-1 text-accent hover:text-accent-light transition-colors"
+                            >
                               <XIcon className="w-5 h-5" />
                             </button>
                           </div>
@@ -548,6 +568,20 @@ export function AdminUsuarios() {
           </div>
         </form>
       </Modal>
+
+      <ConfirmationModal
+        isOpen={deletingUser !== null}
+        onClose={() => setDeletingUser(null)}
+        onConfirm={handleDelete}
+        title="Eliminar usuario"
+        message={
+          deletingUser
+            ? `¿Estás seguro de que deseas eliminar a ${deletingUser.firstName} ${deletingUser.lastName}? Esta acción no se puede deshacer.`
+            : ''
+        }
+        confirmLabel="Eliminar"
+        variant="danger"
+      />
 
       <Toast
         variant={toast.variant}
