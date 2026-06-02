@@ -44,3 +44,8 @@ export async function createTeacher(token: string, request: TeacherRequest): Pro
   });
   return res.data;
 }
+
+export async function listTeachers(token: string): Promise<TeacherResponse[]> {
+  const res = await apiFetch<ApiResponse<TeacherResponse[]>>('/v1/teachers', token);
+  return res.data;
+}
