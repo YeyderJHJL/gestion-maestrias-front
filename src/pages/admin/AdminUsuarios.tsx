@@ -27,6 +27,13 @@ const ROLE_LABELS: Record<string, string> = {
   COORDINATOR: 'Coordinador',
 };
 
+const ROLE_BADGE_VARIANT: Record<string, 'activo' | 'en-curso' | 'validado' | 'matriculado'> = {
+  ADMIN: 'activo',
+  COORDINATOR: 'en-curso',
+  TEACHER: 'validado',
+  STUDENT: 'matriculado',
+};
+
 const EMPTY_BASE: UserRequest = {
   firstName: '',
   lastName: '',
@@ -280,8 +287,10 @@ export function AdminUsuarios() {
                         {user.firstName} {user.lastName}
                       </td>
                       <td className="px-6 py-4 text-sm text-text-muted">{user.email}</td>
-                      <td className="px-6 py-4 text-sm text-text">
-                        {ROLE_LABELS[user.role] ?? user.role}
+                      <td className="px-6 py-4">
+                        <StatusBadge variant={ROLE_BADGE_VARIANT[user.role] ?? 'activo'}>
+                          {ROLE_LABELS[user.role] ?? user.role}
+                        </StatusBadge>
                       </td>
                       <td className="px-6 py-4">
                         <StatusBadge variant={user.active ? 'activo' : 'inactivo'}>
