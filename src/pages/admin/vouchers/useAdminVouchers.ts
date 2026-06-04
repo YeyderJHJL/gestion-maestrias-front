@@ -42,8 +42,9 @@ export function useAdminVouchers() {
 
   const showToast = (variant: 'success' | 'error', message: string) => {
     setToast({ visible: true, variant, message });
-    setTimeout(() => setToast((t) => ({ ...t, visible: false })), 4000);
   };
+
+  const closeToast = () => setToast((t) => ({ ...t, visible: false }));
 
   const loadVouchers = useCallback(() => {
     if (!token) return;
@@ -108,5 +109,6 @@ export function useAdminVouchers() {
     handleReview,
     closeDrawer,
     toast,
+    closeToast,
   };
 }
