@@ -1,5 +1,6 @@
 import React from 'react';
 import { AdminLayout } from '../../layouts/AdminLayout';
+import { useAuth } from '../../context/AuthContext';
 import {
   UsersIcon,
   BookOpenIcon,
@@ -9,81 +10,86 @@ import {
 import { motion } from 'framer-motion';
 
 const stats = [
-{
-  label: 'Estudiantes activos',
-  value: '48',
-  icon: UsersIcon,
-  color: 'text-primary'
-},
-{
-  label: 'Cursos en periodo activo',
-  value: '12',
-  icon: BookOpenIcon,
-  color: 'text-primary'
-},
-{
-  label: 'Vouchers pendientes',
-  value: '7',
-  icon: ReceiptIcon,
-  color: 'text-warning',
-  badge: true
-},
-{
-  label: 'Expedientes / Resoluciones',
-  value: '23',
-  icon: FileTextIcon,
-  color: 'text-primary'
-}];
+  {
+    label: 'Estudiantes activos',
+    value: '48',
+    icon: UsersIcon,
+    color: 'text-primary'
+  },
+  {
+    label: 'Cursos en periodo activo',
+    value: '12',
+    icon: BookOpenIcon,
+    color: 'text-primary'
+  },
+  {
+    label: 'Vouchers pendientes',
+    value: '7',
+    icon: ReceiptIcon,
+    color: 'text-warning',
+    badge: true
+  },
+  {
+    label: 'Expedientes / Resoluciones',
+    value: '23',
+    icon: FileTextIcon,
+    color: 'text-primary'
+  }
+];
 
 const recentActivity = [
-{
-  tipo: 'Matrícula',
-  descripcion: 'Juan Pérez matriculado en Algoritmos Avanzados',
-  usuario: 'Admin Principal',
-  fecha: '23/05/2026 14:30'
-},
-{
-  tipo: 'Voucher',
-  descripcion: 'Voucher validado para María González',
-  usuario: 'Admin Principal',
-  fecha: '23/05/2026 13:15'
-},
-{
-  tipo: 'Nota',
-  descripcion: 'Notas registradas en Bases de Datos',
-  usuario: 'Dr. Carlos Mendoza',
-  fecha: '23/05/2026 11:45'
-},
-{
-  tipo: 'Usuario',
-  descripcion: 'Nuevo docente externo registrado',
-  usuario: 'Admin Principal',
-  fecha: '23/05/2026 10:20'
-},
-{
-  tipo: 'Curso',
-  descripcion: 'Curso de Tópicos Avanzados creado',
-  usuario: 'Admin Principal',
-  fecha: '22/05/2026 16:00'
-}];
+  {
+    tipo: 'Matrícula',
+    descripcion: 'Juan Pérez matriculado en Algoritmos Avanzados',
+    usuario: 'Admin Principal',
+    fecha: '23/05/2026 14:30'
+  },
+  {
+    tipo: 'Voucher',
+    descripcion: 'Voucher validado para María González',
+    usuario: 'Admin Principal',
+    fecha: '23/05/2026 13:15'
+  },
+  {
+    tipo: 'Nota',
+    descripcion: 'Notas registradas en Bases de Datos',
+    usuario: 'Dr. Carlos Mendoza',
+    fecha: '23/05/2026 11:45'
+  },
+  {
+    tipo: 'Usuario',
+    descripcion: 'Nuevo docente externo registrado',
+    usuario: 'Admin Principal',
+    fecha: '23/05/2026 10:20'
+  },
+  {
+    tipo: 'Curso',
+    descripcion: 'Curso de Tópicos Avanzados creado',
+    usuario: 'Admin Principal',
+    fecha: '22/05/2026 16:00'
+  }
+];
 
 export function AdminDashboard() {
+  const { user } = useAuth();
   const currentHour = new Date().getHours();
   const greeting =
-  currentHour < 12 ?
-  'Buenos días' :
-  currentHour < 19 ?
-  'Buenas tardes' :
-  'Buenas noches';
+    currentHour < 12 ?
+    'Buenos días' :
+    currentHour < 19 ?
+    'Buenas tardes' :
+    'Buenas noches';
   const currentDate = new Date().toLocaleDateString('es-PE', {
     weekday: 'long',
     year: 'numeric',
     month: 'long',
     day: 'numeric'
   });
+  
+  const userName = user ? `${user.firstName} ${user.lastName}` : 'Admin Principal';
+
   return (
     <AdminLayout>
-      
       <div className="space-y-8">
         {/* Greeting */}
         <motion.div
@@ -96,9 +102,8 @@ export function AdminDashboard() {
             y: 0
           }}
           className="space-y-1">
-          
           <h1 className="text-3xl font-serif font-bold text-text">
-            {greeting}, Admin Principal
+            {greeting}, {userName}
           </h1>
           <p className="text-text-muted capitalize">{currentDate}</p>
         </motion.div>

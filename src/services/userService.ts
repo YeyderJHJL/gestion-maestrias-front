@@ -12,20 +12,33 @@ function normalizeRole(raw: string): UserRole {
   return ROLE_MAP[raw] ?? (raw as UserRole);
 }
 
+interface StudentData {
+  id: string;
+  cui: string;
+  paymentCode: string;
+  promotionName: string;
+}
+
+interface TeacherData {
+  id: string;
+  category: string;
+  regime: string;
+  academicDegree: string;
+  specialty: string;
+  type: string;
+  phone: string;
+}
+
 interface UserResponse {
   id: string;
   email: string;
   firstName: string;
   lastName: string;
-  role: UserRole;
+  dni?: string;
+  role: string;
   active: boolean;
-}
-
-interface StudentResponse {
-  id: string;
-  cui: string;
-  paymentCode: string;
-  promotionName: string;
+  student?: StudentData;
+  teacher?: TeacherData;
 }
 
 interface ApiResponse<T> {
@@ -39,11 +52,6 @@ export async function getMe(token: string): Promise<UserResponse> {
   return res.data;
 }
 
-export async function getStudentProfile(token: string): Promise<StudentResponse> {
-  const res = await apiFetch<ApiResponse<StudentResponse>>('/v1/students/me', token);
-  return res.data;
-}
-
 export async function buildAuthUser(token: string): Promise<AuthUser> {
   const user = await getMe(token);
   const base: AuthUser = {
@@ -51,18 +59,31 @@ export async function buildAuthUser(token: string): Promise<AuthUser> {
     email: user.email,
     firstName: user.firstName,
     lastName: user.lastName,
+    dni: user.dni,
     role: normalizeRole(user.role),
     active: user.active,
   };
 
-  if (user.role === 'STUDENT') {
-    const student = await getStudentProfile(token);
+  if (user.student) {
     return {
       ...base,
-      studentId: student.id,
-      cui: student.cui,
-      paymentCode: student.paymentCode,
-      promotionName: student.promotionName,
+      studentId: user.student.id,
+      cui: user.student.cui,
+      paymentCode: user.student.paymentCode,
+      promotionName: user.student.promotionName,
+    };
+  }
+
+  if (user.teacher) {
+    return {
+      ...base,
+      teacherId: user.teacher.id,
+      teacherCategory: user.teacher.category,
+      teacherRegime: user.teacher.regime,
+      academicDegree: user.teacher.academicDegree,
+      teacherType: user.teacher.type,
+      specialty: user.teacher.specialty,
+      phone: user.teacher.phone,
     };
   }
 

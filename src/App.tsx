@@ -10,6 +10,7 @@ import { AdminCursos } from './pages/admin/AdminCursos';
 import { AdminMatriculas } from './pages/admin/AdminMatriculas';
 import { AdminVouchers } from './pages/admin/AdminVouchers';
 import { AdminReportes } from './pages/admin/AdminReportes';
+import { AdminImportar } from './pages/admin/AdminImportar';
 import { DocenteDashboard } from './pages/docente/DocenteDashboard';
 import { DocenteCursoDetalle } from './pages/docente/DocenteCursoDetalle';
 import { EstudianteDashboard } from './pages/estudiante/EstudianteDashboard';
@@ -27,14 +28,19 @@ export function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/" element={<Navigate to="/login" replace />} />
 
-          {/* Admin */}
-          <Route element={<ProtectedRoute allowedRoles={['ADMIN']} />}>
+          {/* Admin & Coordinator */}
+          <Route element={<ProtectedRoute allowedRoles={['ADMIN', 'COORDINATOR']} />}>
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
             <Route path="/admin/usuarios" element={<AdminUsuarios />} />
             <Route path="/admin/cursos" element={<AdminCursos />} />
             <Route path="/admin/matriculas" element={<AdminMatriculas />} />
             <Route path="/admin/vouchers" element={<AdminVouchers />} />
             <Route path="/admin/reportes" element={<AdminReportes />} />
+          </Route>
+
+          {/* Admin Only */}
+          <Route element={<ProtectedRoute allowedRoles={['ADMIN']} />}>
+            <Route path="/admin/importar" element={<AdminImportar />} />
           </Route>
 
           {/* Docente */}
