@@ -9,7 +9,6 @@ import { Loader2Icon } from 'lucide-react';
 import { Modal } from '../../../components/Modal';
 import { UserRole } from '../../../types/auth';
 import { User, UserRequest } from '../../../services/usersApiService';
-import { Promotion } from '../../../services/studentsApiService';
 import { TeacherType, TeacherCategory, AcademicDegree } from '../../../services/teachersApiService';
 import { StudentFormState, TeacherFormState } from './useUsuarios';
 
@@ -23,8 +22,6 @@ interface Props {
   setStudentForm: (form: StudentFormState) => void;
   teacherForm: TeacherFormState;
   setTeacherForm: (form: TeacherFormState) => void;
-  promotions: Promotion[];
-  loadingPromotions: boolean;
   submitting: boolean;
   formError: string | null;
   onSubmit: (e: React.FormEvent) => void;
@@ -91,8 +88,6 @@ export function UsuarioFormModal({
   setStudentForm,
   teacherForm,
   setTeacherForm,
-  promotions,
-  loadingPromotions,
   submitting,
   formError,
   onSubmit,
@@ -202,29 +197,19 @@ export function UsuarioFormModal({
             <SectionHeader title="Datos del estudiante" />
             <div className="grid grid-cols-2 gap-4">
               <div className="col-span-2 space-y-1.5">
-                <label className="block text-sm font-medium text-text">Promoción *</label>
-                {loadingPromotions ? (
-                  <div className="flex items-center gap-2 text-text-muted text-sm py-2">
-                    <Loader2Icon className="w-4 h-4 animate-spin" />
-                    Cargando promociones...
-                  </div>
-                ) : (
-                  <select
-                    required
-                    value={studentForm.promotionId}
-                    onChange={(e) =>
-                      setStudentForm({ ...studentForm, promotionId: Number(e.target.value) })
-                    }
-                    className={inputClass}
-                  >
-                    <option value="">Selecciona una promoción</option>
-                    {promotions.map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {p.name} — {p.programName}
-                      </option>
-                    ))}
-                  </select>
-                )}
+                <label className="block text-sm font-medium text-text">Año de promoción *</label>
+                <input
+                  type="number"
+                  required
+                  min={2001}
+                  max={new Date().getFullYear()}
+                  placeholder={`Ej: ${new Date().getFullYear()}`}
+                  value={studentForm.yearPromotion}
+                  onChange={(e) =>
+                    setStudentForm({ ...studentForm, yearPromotion: Number(e.target.value) })
+                  }
+                  className={inputClass}
+                />
               </div>
               <div className="space-y-1.5">
                 <label className="block text-sm font-medium text-text">CUI *</label>
@@ -281,14 +266,14 @@ export function UsuarioFormModal({
                     name="teacherType"
                     value="Interno"
                     checked={teacherForm.type === 'Interno'}
-                    onChange={() => setTeacherForm({ ...teacherForm, type: 'Interno' })}
+                    onChange={() => setTeacherForm({ ...teacherForm, type: 'Interno', university: '' })}
                     label="Interno UNSA"
                   />
                   <RadioPill
                     name="teacherType"
                     value="Externo"
                     checked={teacherForm.type === 'Externo'}
-                    onChange={() => setTeacherForm({ ...teacherForm, type: 'Externo' })}
+                    onChange={() => setTeacherForm({ ...teacherForm, type: 'Externo', university: '' })}
                     label="Externo"
                   />
                 </div>
@@ -299,6 +284,30 @@ export function UsuarioFormModal({
                   </p>
                 )}
               </div>
+
+              {/* Universidad — automática para interno, input para externo */}
+              {teacherForm.type === 'Interno' ? (
+                <div className="col-span-2 rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text-muted">
+                  Universidad:{' '}
+                  <span className="font-medium text-text">
+                    Universidad Nacional de San Agustín
+                  </span>
+                </div>
+              ) : (
+                <div className="col-span-2 space-y-1.5">
+                  <label className="block text-sm font-medium text-text">Universidad</label>
+                  <input
+                    type="text"
+                    maxLength={255}
+                    placeholder="Ej: Universidad Nacional Mayor de San Marcos"
+                    value={teacherForm.university}
+                    onChange={(e) =>
+                      setTeacherForm({ ...teacherForm, university: e.target.value })
+                    }
+                    className={inputClass}
+                  />
+                </div>
+              )}
 
               <div className="space-y-1.5">
                 <label className="block text-sm font-medium text-text">Categoría</label>
@@ -352,14 +361,14 @@ export function UsuarioFormModal({
               </div>
 
               <div className="space-y-1.5">
-                <label className="block text-sm font-medium text-text">Especialidad</label>
+                <label className="block text-sm font-medium text-text">Departamento</label>
                 <input
                   type="text"
                   maxLength={255}
-                  placeholder="Ej: Inteligencia Artificial"
-                  value={teacherForm.specialty}
+                  placeholder="Ej: Ingeniería de Sistemas"
+                  value={teacherForm.department}
                   onChange={(e) =>
-                    setTeacherForm({ ...teacherForm, specialty: e.target.value })
+                    setTeacherForm({ ...teacherForm, department: e.target.value })
                   }
                   className={inputClass}
                 />

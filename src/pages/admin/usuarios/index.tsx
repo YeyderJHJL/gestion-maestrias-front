@@ -33,8 +33,6 @@ export function AdminUsuarios() {
     setStudentForm,
     teacherForm,
     setTeacherForm,
-    promotions,
-    loadingPromotions,
     submitting,
     formError,
     openCreateModal,
@@ -93,8 +91,6 @@ export function AdminUsuarios() {
         setStudentForm={setStudentForm}
         teacherForm={teacherForm}
         setTeacherForm={setTeacherForm}
-        promotions={promotions}
-        loadingPromotions={loadingPromotions}
         submitting={submitting}
         formError={formError}
         onSubmit={handleSubmit}
