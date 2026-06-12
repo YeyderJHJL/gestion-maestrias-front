@@ -116,6 +116,9 @@ export function UsuariosTable({
                     Rol
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">
+                    Tipo
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">
                     Estado
                   </th>
                   {!isCoordinator && (
@@ -139,6 +142,9 @@ export function UsuariosTable({
                       <StatusBadge variant={ROLE_BADGE_VARIANT[user.role] ?? 'activo'}>
                         {ROLE_LABELS[user.role] ?? user.role}
                       </StatusBadge>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-text-muted">
+                      {user.teacher?.type ?? user.student?.status ?? '—'}
                     </td>
                     <td className="px-6 py-4">
                       <StatusBadge variant={user.active ? 'activo' : 'inactivo'}>

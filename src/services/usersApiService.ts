@@ -11,6 +11,22 @@ export interface User {
   active: boolean;
   createdAt: string;
   updatedAt: string;
+  teacher?: {
+    type: string;
+    category?: string;
+    regime?: string;
+    academicDegree?: string;
+    specialty?: string;
+    phone?: string;
+    university?: string;
+  };
+  student?: {
+    yearPromotion?: number;
+    status?: string;
+    cui?: string;
+    paymentCode?: string;
+    phone?: string;
+  };
 }
 
 export interface UserRequest {
@@ -20,6 +36,24 @@ export interface UserRequest {
   dni?: string;
   role: UserRole;
   active: boolean;
+}
+
+export interface UserCreateRequest extends UserRequest {
+  teacher?: {
+    type: string;
+    category?: string;
+    regime?: string;
+    academicDegree?: string;
+    specialty?: string;
+    phone?: string;
+    university?: string;
+  };
+  student?: {
+    yearPromotion: number;
+    cui: string;
+    paymentCode: string;
+    phone?: string;
+  };
 }
 
 interface ApiResponse<T> {
@@ -33,7 +67,7 @@ export async function listUsers(token: string): Promise<User[]> {
   return res.data;
 }
 
-export async function createUser(token: string, request: UserRequest): Promise<User> {
+export async function createUser(token: string, request: UserCreateRequest): Promise<User> {
   const res = await apiFetch<ApiResponse<User>>('/v1/users', token, {
     method: 'POST',
     body: JSON.stringify(request),
