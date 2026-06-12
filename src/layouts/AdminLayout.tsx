@@ -26,7 +26,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     { to: '/admin/matriculas', icon: ClipboardListIcon, label: 'Matrículas' },
     { to: '/admin/vouchers', icon: ReceiptIcon, label: 'Vouchers' },
     { to: '/admin/reportes', icon: FileTextIcon, label: 'Reportes' },
-    ...(isAdmin ? [{ to: '/admin/importar', icon: FileSpreadsheetIcon, label: 'Importar Alumnos' }] : []),
+    ...(isAdmin ? [{ to: '/admin/importar', icon: FileSpreadsheetIcon, label: 'Importar' }] : []),
   ];
 
   return (
