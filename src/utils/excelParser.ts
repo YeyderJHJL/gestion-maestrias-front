@@ -30,9 +30,9 @@ const STUDENT_ALIASES: Record<string, string> = {
   correoinstitucional: 'email',
   // dni
   dni: 'dni',
-  // promotionId
-  promotionid: 'promotionId', idpromocion: 'promotionId',
-  promocionid: 'promotionId', promocion: 'promotionId', idpromotion: 'promotionId',
+  // yearPromotion — año de ingreso del estudiante (reemplaza promotionId)
+  yearpromotion: 'yearPromotion', añopromocion: 'yearPromotion',
+  aniopromocion: 'yearPromotion', anio: 'yearPromotion', promocion: 'yearPromotion',
   // cui
   cui: 'cui',
   // paymentCode
@@ -66,6 +66,8 @@ const TEACHER_ALIASES: Record<string, string> = {
   specialty: 'specialty', especialidad: 'specialty',
   // phone
   phone: 'phone', telefono: 'phone', celular: 'phone',
+  // university
+  university: 'university', universidad: 'university',
 };
 
 // Renombra las claves de cada fila usando el mapa de aliases proporcionado.
@@ -126,35 +128,36 @@ function optionalString(row: Record<string, unknown>, key: string): string | und
 // --- Parsers públicos ---
 
 // Parsea un Excel de estudiantes.
-// Acepta encabezados en inglés o español (ej: "firstName" = "Nombres").
-// Requeridos: firstName, lastName, email, promotionId, cui, paymentCode
-// Opcionales: dni, phone
+// Acepta encabezados en inglés o español (ej: "yearPromotion" = "Año de Promoción").
+// Requeridos: firstName, lastName, email, dni, yearPromotion, cui, paymentCode
+// Opcionales: phone
 export async function parseStudentsExcel(file: File): Promise<ImportStudentRow[]> {
   const rawRows = await readExcelRows(file);
   const rows = normalizeRowKeys(rawRows, STUDENT_ALIASES);
+  const currentYear = new Date().getFullYear();
 
   return rows.map((row, i) => {
-    const promotionRaw = String(row['promotionId'] ?? '').trim();
-    const promotionId = Number(promotionRaw);
+    const yearRaw = String(row['yearPromotion'] ?? '').trim();
+    const yearPromotion = Number(yearRaw);
 
-    if (!promotionRaw) {
-      throw new Error(`Fila ${i + 2}: "promotionId" es obligatorio y está vacío.`);
+    if (!yearRaw) {
+      throw new Error(`Fila ${i + 2}: "Año de Promoción" es obligatorio y está vacío.`);
     }
-    if (isNaN(promotionId) || promotionId <= 0) {
+    if (isNaN(yearPromotion) || yearPromotion < 2001 || yearPromotion > currentYear) {
       throw new Error(
-        `Fila ${i + 2}: "promotionId" debe ser un número entero positivo (valor: "${promotionRaw}").`
+        `Fila ${i + 2}: "Año de Promoción" debe ser un año entre 2001 y ${currentYear} (valor: "${yearRaw}").`
       );
     }
 
     return {
-      firstName:   requireString(row, 'firstName', i),
-      lastName:    requireString(row, 'lastName', i),
-      email:       requireString(row, 'email', i),
-      promotionId,
-      cui:         requireString(row, 'cui', i),
-      paymentCode: requireString(row, 'paymentCode', i),
-      dni:         optionalString(row, 'dni'),
-      phone:       optionalString(row, 'phone'),
+      firstName:    requireString(row, 'firstName', i),
+      lastName:     requireString(row, 'lastName', i),
+      email:        requireString(row, 'email', i),
+      dni:          requireString(row, 'dni', i),
+      yearPromotion,
+      cui:          requireString(row, 'cui', i),
+      paymentCode:  requireString(row, 'paymentCode', i),
+      phone:        optionalString(row, 'phone'),
     };
   });
 }
@@ -162,11 +165,11 @@ export async function parseStudentsExcel(file: File): Promise<ImportStudentRow[]
 // Parsea un Excel de docentes.
 // Acepta encabezados en inglés o español (ej: "type" = "Tipo").
 // Requeridos: firstName, lastName, email, type (Interno | Externo)
-// Opcionales: dni, category, regime, academicDegree, specialty, phone
+// Opcionales: dni, category, regime, academicDegree, specialty, phone, university
 export async function parseTeachersExcel(file: File): Promise<ImportTeacherRow[]> {
-  const VALID_TYPES     = ['Interno', 'Externo'] as const;
+  const VALID_TYPES      = ['Interno', 'Externo'] as const;
   const VALID_CATEGORIES = ['Principal', 'Asociado', 'Auxiliar'] as const;
-  const VALID_DEGREES   = ['Magister', 'Doctor'] as const;
+  const VALID_DEGREES    = ['Magister', 'Doctor'] as const;
 
   const rawRows = await readExcelRows(file);
   const rows = normalizeRowKeys(rawRows, TEACHER_ALIASES);
@@ -204,6 +207,7 @@ export async function parseTeachersExcel(file: File): Promise<ImportTeacherRow[]
       academicDegree: academicDegree as ImportTeacherRow['academicDegree'],
       specialty:      optionalString(row, 'specialty'),
       phone:          optionalString(row, 'phone'),
+      university:     optionalString(row, 'university'),
     };
   });
 }
