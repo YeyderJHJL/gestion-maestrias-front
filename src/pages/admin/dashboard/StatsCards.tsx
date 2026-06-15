@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { UsersIcon, BookOpenIcon, ReceiptIcon } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { DashboardStats } from '../../../services/dashboardApiService';
@@ -16,6 +17,7 @@ const CARDS = [
     colorIcon: 'text-primary',
     colorBg: 'bg-primary/10',
     warning: false,
+    href: null,
   },
   {
     key: 'activeCourses' as const,
@@ -24,6 +26,7 @@ const CARDS = [
     colorIcon: 'text-green-600',
     colorBg: 'bg-green-600/10',
     warning: false,
+    href: '/admin/cursos',
   },
   {
     key: 'pendingVouchers' as const,
@@ -32,6 +35,7 @@ const CARDS = [
     colorIcon: 'text-warning',
     colorBg: 'bg-warning/10',
     warning: true,
+    href: '/admin/vouchers',
   },
 ];
 
@@ -63,14 +67,8 @@ export function StatsCards({ stats, loading }: Props) {
       {CARDS.map((card, index) => {
         const Icon = card.icon;
         const value = stats[card.key];
-        return (
-          <motion.div
-            key={card.key}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1 }}
-            className="bg-surface border border-border rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow"
-          >
+        const inner = (
+          <>
             <div className="flex items-start justify-between">
               <div className="space-y-2">
                 <p className="text-text-muted text-sm font-medium">{card.label}</p>
@@ -87,6 +85,20 @@ export function StatsCards({ stats, loading }: Props) {
                 </span>
               </div>
             )}
+          </>
+        );
+        const className = `bg-surface border border-border rounded-lg p-6 shadow-sm transition-shadow ${card.href ? 'hover:shadow-md hover:border-primary/30 cursor-pointer' : 'hover:shadow-md'}`;
+        return (
+          <motion.div
+            key={card.key}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.1 }}
+          >
+            {card.href
+              ? <Link to={card.href} className={`block ${className}`}>{inner}</Link>
+              : <div className={className}>{inner}</div>
+            }
           </motion.div>
         );
       })}
