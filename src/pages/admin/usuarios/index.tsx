@@ -2,7 +2,6 @@
 // Actúa como orquestador: obtiene el estado del hook y
 // distribuye los datos a cada componente hijo.
 
-import React from 'react';
 import { PlusIcon } from 'lucide-react';
 import { AdminLayout } from '../../../layouts/AdminLayout';
 import { ConfirmationModal } from '../../../components/ConfirmationModal';

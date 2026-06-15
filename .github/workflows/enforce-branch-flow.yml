@@ -30,6 +30,12 @@ jobs:
             exit 0
           fi
 
+          if [[ "$BASE_BRANCH" == "main" && "$HEAD_BRANCH" == revert-* ]]; then
+            echo "valid=true" >> "$GITHUB_OUTPUT"
+            echo "Valid PR: revert/* -> main"
+            exit 0
+          fi
+
           if [[ "$BASE_BRANCH" == "develop" && "$HEAD_BRANCH" == feature/* ]]; then
             echo "valid=true" >> "$GITHUB_OUTPUT"
             echo "Valid PR: feature/* -> develop"

@@ -3,7 +3,7 @@
 // correspondiente a cada paso: subida, preview, procesando y resultados.
 // Se reutiliza tanto para importar estudiantes como docentes.
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import {
   FileSpreadsheetIcon,
@@ -44,7 +44,7 @@ interface Props<T> {
   validateRow?: (row: T) => string[];
 }
 
-export function ImportFlow<T extends Record<string, unknown>>({
+export function ImportFlow<T>({
   parseFile,
   submitRows,
   columnDefs,
@@ -448,9 +448,9 @@ export function ImportFlow<T extends Record<string, unknown>>({
                     >
                       <div>
                         <p className="font-semibold text-text">
-                          {String(row['firstName'] ?? '')} {String(row['lastName'] ?? '')}
+                          {String((row as Record<string, unknown>)['firstName'] ?? '')} {String((row as Record<string, unknown>)['lastName'] ?? '')}
                         </p>
-                        <p className="text-xs text-text-muted">{String(row['email'] ?? '')}</p>
+                        <p className="text-xs text-text-muted">{String((row as Record<string, unknown>)['email'] ?? '')}</p>
                       </div>
                       <StatusBadge variant="activo">Importado</StatusBadge>
                     </div>

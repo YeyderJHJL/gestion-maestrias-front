@@ -4,12 +4,11 @@
 //   - TEACHER: datos del docente (tipo, categoría, grado académico, etc.)
 // En modo edición solo permite modificar los campos base del usuario.
 
-import React from 'react';
 import { Loader2Icon } from 'lucide-react';
 import { Modal } from '../../../components/Modal';
 import { UserRole } from '../../../types/auth';
 import { User, UserRequest } from '../../../services/usersApiService';
-import { TeacherType, TeacherCategory, AcademicDegree } from '../../../services/teachersApiService';
+import { TeacherCategory, AcademicDegree } from '../../../services/teachersApiService';
 import { StudentFormState, TeacherFormState } from './useUsuarios';
 
 interface Props {

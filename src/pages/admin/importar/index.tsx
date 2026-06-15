@@ -6,7 +6,7 @@
 // El selector de tabs controla cuál está activo sin desmontar el otro,
 // para que el usuario no pierda su estado si cambia de tab accidentalmente.
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { FileSpreadsheetIcon } from 'lucide-react';
 import { AdminLayout } from '../../../layouts/AdminLayout';
 import { ImportFlow, ColumnDef } from './ImportFlow';
