@@ -1,4 +1,3 @@
-import React from 'react';
 import { AdminLayout } from '../../../layouts/AdminLayout';
 import { Toast } from '../../../components/Toast';
 import { useAdminVouchers } from './useAdminVouchers';

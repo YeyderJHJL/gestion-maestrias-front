@@ -3,7 +3,6 @@
 // correspondiente a cada paso: subida, preview, procesando y resultados.
 // Se reutiliza tanto para importar estudiantes como docentes.
 
-import React from 'react';
 import { motion } from 'framer-motion';
 import {
   FileSpreadsheetIcon,
@@ -40,7 +39,7 @@ interface Props<T> {
   entityLabel: string;
 }
 
-export function ImportFlow<T extends Record<string, unknown>>({
+export function ImportFlow<T>({
   parseFile,
   submitRows,
   columnDefs,
@@ -187,7 +186,7 @@ export function ImportFlow<T extends Record<string, unknown>>({
                       <tr key={idx} className="hover:bg-surface-alt transition-colors">
                         {columnDefs.map((col) => (
                           <td key={col.key} className="px-4 py-2.5 text-text-muted whitespace-nowrap">
-                            {String(row[col.key] ?? '—')}
+                            {String((row as Record<string, unknown>)[col.key] ?? '—')}
                           </td>
                         ))}
                       </tr>
@@ -281,9 +280,9 @@ export function ImportFlow<T extends Record<string, unknown>>({
                     >
                       <div>
                         <p className="font-semibold text-text">
-                          {String(row['firstName'] ?? '')} {String(row['lastName'] ?? '')}
+                          {String((row as Record<string, unknown>)['firstName'] ?? '')} {String((row as Record<string, unknown>)['lastName'] ?? '')}
                         </p>
-                        <p className="text-xs text-text-muted">{String(row['email'] ?? '')}</p>
+                        <p className="text-xs text-text-muted">{String((row as Record<string, unknown>)['email'] ?? '')}</p>
                       </div>
                       <StatusBadge variant="activo">Importado</StatusBadge>
                     </div>

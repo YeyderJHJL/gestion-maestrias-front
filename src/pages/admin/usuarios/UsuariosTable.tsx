@@ -2,7 +2,6 @@
 // Recibe la lista ya filtrada desde el hook y delega las acciones
 // de edición y eliminación al componente padre.
 
-import React from 'react';
 import { SearchIcon, EditIcon, XIcon, UsersIcon, Loader2Icon } from 'lucide-react';
 import { StatusBadge } from '../../../components/StatusBadge';
 import { EmptyState } from '../../../components/EmptyState';
