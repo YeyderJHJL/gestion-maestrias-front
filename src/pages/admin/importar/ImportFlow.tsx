@@ -3,7 +3,7 @@
 // correspondiente a cada paso: subida, preview, procesando y resultados.
 // Se reutiliza tanto para importar estudiantes como docentes.
 
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import {
   FileSpreadsheetIcon,
@@ -16,6 +16,9 @@ import {
   PlayIcon,
   RefreshCwIcon,
   UserCheckIcon,
+  PencilIcon,
+  Trash2Icon,
+  CheckIcon,
 } from 'lucide-react';
 import { FileUpload } from '../../../components/FileUpload';
 import { StatusBadge } from '../../../components/StatusBadge';
@@ -58,8 +61,31 @@ export function ImportFlow<T extends Record<string, unknown>>({
     uploadKey,
     handleFileSelect,
     handleConfirm,
+    updateRow,
+    deleteRow,
     reset,
   } = useImportFlow<T>({ parseFile, submitRows });
+
+  // Estado de edición inline en la tabla de preview
+  const [editingIdx, setEditingIdx] = useState<number | null>(null);
+  const [editDraft, setEditDraft] = useState<Record<string, unknown>>({});
+
+  const startEdit = (idx: number, row: T) => {
+    setEditingIdx(idx);
+    setEditDraft({ ...(row as Record<string, unknown>) });
+  };
+
+  const saveEdit = () => {
+    if (editingIdx === null) return;
+    updateRow(editingIdx, editDraft);
+    setEditingIdx(null);
+    setEditDraft({});
+  };
+
+  const cancelEdit = () => {
+    setEditingIdx(null);
+    setEditDraft({});
+  };
 
   return (
     <div className="space-y-6">
@@ -190,18 +216,90 @@ export function ImportFlow<T extends Record<string, unknown>>({
                           {col.label}
                         </th>
                       ))}
+                      <th className="px-4 py-2.5 text-left text-xs font-semibold text-text-muted uppercase whitespace-nowrap">
+                        Acciones
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
-                    {rows.map((row, idx) => (
-                      <tr key={idx} className="hover:bg-surface-alt transition-colors">
-                        {columnDefs.map((col) => (
-                          <td key={col.key} className="px-4 py-2.5 text-text-muted whitespace-nowrap">
-                            {String(row[col.key] ?? '—')}
+                    {rows.map((row, idx) => {
+                      const isEditing = editingIdx === idx;
+                      return (
+                        <tr key={idx} className={isEditing ? 'bg-primary/5' : 'hover:bg-surface-alt transition-colors'}>
+                          {columnDefs.map((col) => (
+                            <td key={col.key} className="px-2 py-1.5 whitespace-nowrap">
+                              {isEditing ? (
+                                col.inputType === 'select' && col.options ? (
+                                  <select
+                                    value={String(editDraft[col.key] ?? '')}
+                                    onChange={(e) => setEditDraft((d) => ({ ...d, [col.key]: e.target.value }))}
+                                    className="w-full border border-border rounded px-2 py-1 text-xs bg-surface text-text focus:outline-none focus:border-primary"
+                                  >
+                                    <option value="">—</option>
+                                    {col.options.map((o) => (
+                                      <option key={o} value={o}>{o}</option>
+                                    ))}
+                                  </select>
+                                ) : (
+                                  <input
+                                    type={col.inputType === 'number' ? 'number' : 'text'}
+                                    value={String(editDraft[col.key] ?? '')}
+                                    onChange={(e) =>
+                                      setEditDraft((d) => ({
+                                        ...d,
+                                        [col.key]: col.inputType === 'number' ? Number(e.target.value) : e.target.value,
+                                      }))
+                                    }
+                                    className="w-full border border-border rounded px-2 py-1 text-xs bg-surface text-text focus:outline-none focus:border-primary"
+                                  />
+                                )
+                              ) : (
+                                <span className="px-2 text-text-muted">
+                                  {String((row as Record<string, unknown>)[col.key] ?? '—')}
+                                </span>
+                              )}
+                            </td>
+                          ))}
+                          <td className="px-3 py-1.5 whitespace-nowrap">
+                            {isEditing ? (
+                              <div className="flex gap-1">
+                                <button
+                                  onClick={saveEdit}
+                                  title="Guardar"
+                                  className="p-1.5 rounded bg-success/10 text-success hover:bg-success/20 transition-colors"
+                                >
+                                  <CheckIcon className="w-3.5 h-3.5" />
+                                </button>
+                                <button
+                                  onClick={cancelEdit}
+                                  title="Cancelar"
+                                  className="p-1.5 rounded bg-border text-text-muted hover:bg-surface-alt transition-colors"
+                                >
+                                  <XCircleIcon className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="flex gap-1">
+                                <button
+                                  onClick={() => startEdit(idx, row)}
+                                  title="Editar fila"
+                                  className="p-1.5 rounded text-text-muted hover:bg-primary/10 hover:text-primary transition-colors"
+                                >
+                                  <PencilIcon className="w-3.5 h-3.5" />
+                                </button>
+                                <button
+                                  onClick={() => deleteRow(idx)}
+                                  title="Eliminar fila"
+                                  className="p-1.5 rounded text-text-muted hover:bg-accent/10 hover:text-accent transition-colors"
+                                >
+                                  <Trash2Icon className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            )}
                           </td>
-                        ))}
-                      </tr>
-                    ))}
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
