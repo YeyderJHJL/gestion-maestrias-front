@@ -36,14 +36,12 @@ export interface ColumnDef {
 }
 
 interface Props<T> {
-  // Función que parsea el Excel y devuelve las filas tipadas
   parseFile: (file: File) => Promise<T[]>;
-  // Función que envía las filas al backend
   submitRows: (token: string, rows: T[]) => Promise<ImportResult>;
-  // Columnas que se muestran en la tabla de preview y en la guía de formato
   columnDefs: ColumnDef[];
-  // Etiqueta del tipo de entidad para los mensajes ("estudiantes" / "docentes")
   entityLabel: string;
+  // Validación de reglas de negocio por fila; devuelve lista de advertencias (no bloquea)
+  validateRow?: (row: T) => string[];
 }
 
 export function ImportFlow<T extends Record<string, unknown>>({
@@ -51,6 +49,7 @@ export function ImportFlow<T extends Record<string, unknown>>({
   submitRows,
   columnDefs,
   entityLabel,
+  validateRow,
 }: Props<T>) {
   const {
     step,
@@ -89,11 +88,27 @@ export function ImportFlow<T extends Record<string, unknown>>({
 
   return (
     <div className="space-y-6">
-      {/* Banner de error global (parseo o envío) */}
+      {/* Tarjeta de error (parseo o envío) */}
       {error && (
-        <div className="bg-accent/5 border border-accent/30 text-accent px-4 py-3 rounded-lg text-sm flex items-start gap-3">
-          <XCircleIcon className="w-5 h-5 flex-shrink-0 mt-0.5" />
-          <p>{error}</p>
+        <div className="bg-accent/5 border border-accent/30 rounded-lg p-5 space-y-4">
+          <div className="flex items-start gap-3">
+            <XCircleIcon className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
+            <div className="space-y-2">
+              <p className="font-semibold text-accent text-sm">Error al leer el archivo</p>
+              <ul className="space-y-1 list-disc list-inside">
+                {error.split('\n').map((line, i) => (
+                  <li key={i} className="text-sm text-text leading-relaxed">{line}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+          <button
+            onClick={reset}
+            className="flex items-center gap-2 px-4 py-2 border border-accent text-accent rounded-lg hover:bg-accent/10 transition-colors text-sm font-semibold"
+          >
+            <RefreshCwIcon className="w-4 h-4" />
+            Intentar de nuevo
+          </button>
         </div>
       )}
 
@@ -200,6 +215,22 @@ export function ImportFlow<T extends Record<string, unknown>>({
               </div>
             </div>
 
+            {/* Banner de advertencias de reglas de negocio */}
+            {(() => {
+              const warnCount = validateRow
+                ? rows.filter((r) => validateRow(r).length > 0).length
+                : 0;
+              return warnCount > 0 ? (
+                <div className="flex items-center gap-2 px-4 py-2.5 bg-amber-500/10 border border-amber-500/30 rounded-lg text-sm">
+                  <AlertTriangleIcon className="w-4 h-4 text-amber-500 flex-shrink-0" />
+                  <span className="text-amber-700">
+                    <strong>{warnCount}</strong> {warnCount === 1 ? 'fila tiene' : 'filas tienen'} advertencias —
+                    revísalas antes de confirmar. Pasa el cursor sobre <strong>⚠</strong> para ver el detalle.
+                  </span>
+                </div>
+              ) : null;
+            })()}
+
             {/* Tabla de preview con los datos parseados */}
             <div className="border border-border rounded-lg overflow-hidden">
               <div className="overflow-x-auto max-h-80 overflow-y-auto">
@@ -222,8 +253,19 @@ export function ImportFlow<T extends Record<string, unknown>>({
                   <tbody className="divide-y divide-border">
                     {rows.map((row, idx) => {
                       const isEditing = editingIdx === idx;
+                      const warnings = validateRow ? validateRow(row) : [];
+                      const hasWarning = warnings.length > 0;
                       return (
-                        <tr key={idx} className={isEditing ? 'bg-primary/5' : 'hover:bg-surface-alt transition-colors'}>
+                        <tr
+                          key={idx}
+                          className={
+                            isEditing
+                              ? 'bg-primary/5'
+                              : hasWarning
+                                ? 'bg-amber-500/5 hover:bg-amber-500/10 transition-colors'
+                                : 'hover:bg-surface-alt transition-colors'
+                          }
+                        >
                           {columnDefs.map((col) => (
                             <td key={col.key} className="px-2 py-1.5 whitespace-nowrap">
                               {isEditing ? (
@@ -277,7 +319,26 @@ export function ImportFlow<T extends Record<string, unknown>>({
                                 </button>
                               </div>
                             ) : (
-                              <div className="flex gap-1">
+                              <div className="flex items-center gap-1">
+                                {hasWarning && (
+                                  <div className="relative group">
+                                    <button
+                                      className="p-1.5 rounded text-amber-500 hover:bg-amber-500/10 transition-colors"
+                                    >
+                                      <AlertTriangleIcon className="w-3.5 h-3.5" />
+                                    </button>
+                                    <div className="absolute right-0 bottom-full mb-1 w-56 bg-surface border border-amber-500/30 rounded-lg p-2.5 hidden group-hover:block z-20 shadow-lg">
+                                      <ul className="space-y-1.5">
+                                        {warnings.map((w, i) => (
+                                          <li key={i} className="flex items-start gap-1.5 text-xs text-text">
+                                            <span className="text-amber-500 font-bold mt-0.5">•</span>
+                                            {w}
+                                          </li>
+                                        ))}
+                                      </ul>
+                                    </div>
+                                  </div>
+                                )}
                                 <button
                                   onClick={() => startEdit(idx, row)}
                                   title="Editar fila"
