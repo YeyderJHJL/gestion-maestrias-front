@@ -1,4 +1,3 @@
-import React from 'react';
 import { motion } from 'framer-motion';
 import { EyeIcon } from 'lucide-react';
 import { StatusBadge } from '../../../components/StatusBadge';

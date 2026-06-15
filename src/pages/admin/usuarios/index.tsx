@@ -2,7 +2,6 @@
 // Actúa como orquestador: obtiene el estado del hook y
 // distribuye los datos a cada componente hijo.
 
-import React from 'react';
 import { PlusIcon } from 'lucide-react';
 import { AdminLayout } from '../../../layouts/AdminLayout';
 import { ConfirmationModal } from '../../../components/ConfirmationModal';
@@ -33,8 +32,6 @@ export function AdminUsuarios() {
     setStudentForm,
     teacherForm,
     setTeacherForm,
-    promotions,
-    loadingPromotions,
     submitting,
     formError,
     openCreateModal,
@@ -93,8 +90,6 @@ export function AdminUsuarios() {
         setStudentForm={setStudentForm}
         teacherForm={teacherForm}
         setTeacherForm={setTeacherForm}
-        promotions={promotions}
-        loadingPromotions={loadingPromotions}
         submitting={submitting}
         formError={formError}
         onSubmit={handleSubmit}
