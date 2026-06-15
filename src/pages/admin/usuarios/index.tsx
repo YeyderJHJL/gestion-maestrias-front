@@ -33,8 +33,6 @@ export function AdminUsuarios() {
     setStudentForm,
     teacherForm,
     setTeacherForm,
-    promotions,
-    loadingPromotions,
     submitting,
     formError,
     openCreateModal,
@@ -82,7 +80,6 @@ export function AdminUsuarios() {
         />
       </div>
 
-      {/* Modal para crear o editar un usuario */}
       <UsuarioFormModal
         isOpen={isUserModalOpen}
         onClose={closeModal}
@@ -93,8 +90,6 @@ export function AdminUsuarios() {
         setStudentForm={setStudentForm}
         teacherForm={teacherForm}
         setTeacherForm={setTeacherForm}
-        promotions={promotions}
-        loadingPromotions={loadingPromotions}
         submitting={submitting}
         formError={formError}
         onSubmit={handleSubmit}

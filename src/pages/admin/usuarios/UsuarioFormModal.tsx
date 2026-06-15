@@ -1,36 +1,21 @@
-// Modal de creación y edición de usuarios.
-// En modo creación muestra campos adicionales según el rol seleccionado:
-//   - STUDENT: datos del estudiante (promoción, CUI, código de pago)
-//   - TEACHER: datos del docente (tipo, categoría, grado académico, etc.)
-// En modo edición solo permite modificar los campos base del usuario.
-
 import React from 'react';
 import { Loader2Icon } from 'lucide-react';
 import { Modal } from '../../../components/Modal';
 import { UserRole } from '../../../types/auth';
 import { User, UserRequest } from '../../../services/usersApiService';
-import { Promotion } from '../../../services/studentsApiService';
 import { TeacherType, TeacherCategory, AcademicDegree } from '../../../services/teachersApiService';
 import { StudentFormState, TeacherFormState } from './useUsuarios';
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
-  // null = modo crear, User = modo editar
   editingUser: User | null;
-  // Formulario base (aplica a todos los roles)
   form: UserRequest;
   setForm: (form: UserRequest) => void;
-  // Formulario adicional para estudiantes
   studentForm: StudentFormState;
   setStudentForm: (form: StudentFormState) => void;
-  // Formulario adicional para docentes
   teacherForm: TeacherFormState;
   setTeacherForm: (form: TeacherFormState) => void;
-  // Promociones disponibles para el select de estudiante
-  promotions: Promotion[];
-  loadingPromotions: boolean;
-  // Estado del envío
   submitting: boolean;
   formError: string | null;
   onSubmit: (e: React.FormEvent) => void;
@@ -46,13 +31,10 @@ export function UsuarioFormModal({
   setStudentForm,
   teacherForm,
   setTeacherForm,
-  promotions,
-  loadingPromotions,
   submitting,
   formError,
   onSubmit,
 }: Props) {
-  // Clase común para los inputs del formulario
   const inputClass =
     'w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary';
 
@@ -65,7 +47,6 @@ export function UsuarioFormModal({
       accentBorder
     >
       <form onSubmit={onSubmit} className="space-y-6">
-        {/* ── Datos personales (comunes a todos los roles) ── */}
         <div>
           <h3 className="font-semibold text-text mb-4">Datos personales</h3>
           <div className="grid grid-cols-2 gap-4">
@@ -123,10 +104,10 @@ export function UsuarioFormModal({
                 onChange={(e) => setForm({ ...form, role: e.target.value as UserRole })}
                 className={inputClass}
               >
-                <option value="ADMIN">Administrador</option>
-                <option value="COORDINATOR">Coordinador</option>
-                <option value="TEACHER">Docente</option>
-                <option value="STUDENT">Estudiante</option>
+                <option value="Administrador">Administrador</option>
+                <option value="Coordinador">Coordinador</option>
+                <option value="Docente">Docente</option>
+                <option value="Estudiante">Estudiante</option>
               </select>
             </div>
             <div className="col-span-2 space-y-2">
@@ -157,36 +138,10 @@ export function UsuarioFormModal({
           </div>
         </div>
 
-        {/* ── Datos del estudiante (solo en modo crear con rol STUDENT) ── */}
-        {!editingUser && form.role === 'STUDENT' && (
+        {!editingUser && form.role === 'Estudiante' && (
           <div className="border-t border-border pt-6">
             <h3 className="font-semibold text-text mb-4">Datos del estudiante</h3>
             <div className="grid grid-cols-2 gap-4">
-              <div className="col-span-2 space-y-2">
-                <label className="block text-sm font-medium text-text">Promoción *</label>
-                {loadingPromotions ? (
-                  <div className="flex items-center gap-2 text-text-muted text-sm py-2">
-                    <Loader2Icon className="w-4 h-4 animate-spin" />
-                    Cargando promociones...
-                  </div>
-                ) : (
-                  <select
-                    required
-                    value={studentForm.promotionId}
-                    onChange={(e) =>
-                      setStudentForm({ ...studentForm, promotionId: Number(e.target.value) })
-                    }
-                    className={inputClass}
-                  >
-                    <option value="">Selecciona una promoción</option>
-                    {promotions.map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {p.name} — {p.programName}
-                      </option>
-                    ))}
-                  </select>
-                )}
-              </div>
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-text">CUI *</label>
                 <input
@@ -225,8 +180,7 @@ export function UsuarioFormModal({
           </div>
         )}
 
-        {/* ── Datos del docente (solo en modo crear con rol TEACHER) ── */}
-        {!editingUser && form.role === 'TEACHER' && (
+        {!editingUser && form.role === 'Docente' && (
           <div className="border-t border-border pt-6">
             <h3 className="font-semibold text-text mb-4">Datos del docente</h3>
             <div className="grid grid-cols-2 gap-4">
@@ -334,14 +288,12 @@ export function UsuarioFormModal({
           El correo debe pertenecer a una cuenta Google para que el usuario pueda iniciar sesión.
         </p>
 
-        {/* Mensaje de error devuelto por el servidor */}
         {formError && (
           <p className="text-sm text-accent bg-accent/10 border border-accent/30 rounded-lg px-4 py-2">
             {formError}
           </p>
         )}
 
-        {/* Botones de acción */}
         <div className="flex gap-3 justify-end pt-4 border-t border-border">
           <button
             type="button"

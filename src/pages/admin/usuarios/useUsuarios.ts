@@ -1,7 +1,3 @@
-// Hook centralizado para la gestión de usuarios.
-// Encapsula todo el estado, los filtros y las operaciones CRUD
-// para que el componente de página solo se ocupe de renderizar.
-
 import { FormEvent, useCallback, useEffect, useState } from 'react';
 import { useAuth } from '../../../context/AuthContext';
 import { UserRole } from '../../../types/auth';
@@ -13,14 +9,12 @@ import {
   updateUser,
   deleteUser,
 } from '../../../services/usersApiService';
-import { Promotion, listPromotions } from '../../../services/studentsApiService';
 import { TeacherType, TeacherCategory, AcademicDegree } from '../../../services/teachersApiService';
 import { ApiError } from '../../../services/api';
 
 // --- Tipos del estado de los subformularios ---
 
 export type StudentFormState = {
-  promotionId: number | '';
   cui: string;
   paymentCode: string;
   phone: string;
@@ -42,12 +36,11 @@ const EMPTY_BASE: UserRequest = {
   lastName: '',
   email: '',
   dni: '',
-  role: 'ADMIN',
+  role: 'Administrador',
   active: true,
 };
 
 const EMPTY_STUDENT: StudentFormState = {
-  promotionId: '',
   cui: '',
   paymentCode: '',
   phone: '',
@@ -66,7 +59,7 @@ export function useUsuarios() {
   const { user: authUser, token } = useAuth();
 
   // El coordinador solo puede ver, no crear ni editar ni eliminar
-  const isCoordinator = authUser?.role === 'COORDINATOR';
+  const isCoordinator = authUser?.role === 'Coordinador';
 
   // --- Estado de la lista de usuarios ---
   const [users, setUsers] = useState<User[]>([]);
@@ -83,8 +76,6 @@ export function useUsuarios() {
   const [form, setForm] = useState<UserRequest>(EMPTY_BASE);
   const [studentForm, setStudentForm] = useState<StudentFormState>(EMPTY_STUDENT);
   const [teacherForm, setTeacherForm] = useState<TeacherFormState>(EMPTY_TEACHER);
-  const [promotions, setPromotions] = useState<Promotion[]>([]);
-  const [loadingPromotions, setLoadingPromotions] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -114,16 +105,6 @@ export function useUsuarios() {
   useEffect(() => {
     loadUsers();
   }, [loadUsers]);
-
-  // Carga las promociones disponibles cuando se selecciona el rol STUDENT
-  useEffect(() => {
-    if (!token || form.role !== 'STUDENT' || !isUserModalOpen) return;
-    setLoadingPromotions(true);
-    listPromotions(token)
-      .then(setPromotions)
-      .catch(() => setPromotions([]))
-      .finally(() => setLoadingPromotions(false));
-  }, [token, form.role, isUserModalOpen]);
 
   // Abre el modal en modo creación con los campos en blanco
   const openCreateModal = () => {
@@ -167,6 +148,26 @@ export function useUsuarios() {
         ...form,
         dni: form.dni?.trim() || undefined,
       };
+
+      if (!editingUser) {
+        if (form.role === 'Estudiante') {
+          payload.student = {
+            cui: studentForm.cui,
+            paymentCode: studentForm.paymentCode,
+            phone: studentForm.phone || undefined,
+          };
+        } else if (form.role === 'Docente') {
+          payload.teacher = {
+            type: teacherForm.type,
+            category: teacherForm.category || undefined,
+            regime: teacherForm.regime || undefined,
+            academicDegree: teacherForm.academicDegree || undefined,
+            specialty: teacherForm.specialty || undefined,
+            phone: teacherForm.phone || undefined,
+          };
+        }
+      }
+
       if (editingUser) {
         await updateUser(token, editingUser.id, payload);
         showToast('success', 'Usuario actualizado correctamente.');
@@ -234,8 +235,6 @@ export function useUsuarios() {
     setStudentForm,
     teacherForm,
     setTeacherForm,
-    promotions,
-    loadingPromotions,
     submitting,
     formError,
     openCreateModal,

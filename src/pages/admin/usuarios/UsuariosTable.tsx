@@ -1,27 +1,15 @@
-// Componente de tabla de usuarios con barra de filtros.
-// Recibe la lista ya filtrada desde el hook y delega las acciones
-// de edición y eliminación al componente padre.
-
 import React from 'react';
 import { SearchIcon, EditIcon, XIcon, UsersIcon, Loader2Icon } from 'lucide-react';
 import { StatusBadge } from '../../../components/StatusBadge';
 import { EmptyState } from '../../../components/EmptyState';
 import { User } from '../../../services/usersApiService';
 
-// Etiquetas en español para cada rol del sistema
-const ROLE_LABELS: Record<string, string> = {
-  ADMIN: 'Administrador',
-  COORDINATOR: 'Coordinador',
-  TEACHER: 'Docente',
-  STUDENT: 'Estudiante',
-};
-
 // Variante visual del badge según el rol
 const ROLE_BADGE_VARIANT: Record<string, 'activo' | 'en-curso' | 'validado' | 'matriculado'> = {
-  ADMIN: 'activo',
-  COORDINATOR: 'en-curso',
-  TEACHER: 'validado',
-  STUDENT: 'matriculado',
+  Administrador: 'activo',
+  Coordinador: 'en-curso',
+  Docente: 'validado',
+  Estudiante: 'matriculado',
 };
 
 interface Props {
@@ -73,10 +61,10 @@ export function UsuariosTable({
           className="px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
         >
           <option value="">Todos</option>
-          <option value="ADMIN">Administrador</option>
-          <option value="COORDINATOR">Coordinador</option>
-          <option value="TEACHER">Docente</option>
-          <option value="STUDENT">Estudiante</option>
+          <option value="Administrador">Administrador</option>
+          <option value="Coordinador">Coordinador</option>
+          <option value="Docente">Docente</option>
+          <option value="Estudiante">Estudiante</option>
         </select>
       </div>
 
@@ -137,7 +125,7 @@ export function UsuariosTable({
                     <td className="px-6 py-4 text-sm text-text-muted">{user.email}</td>
                     <td className="px-6 py-4">
                       <StatusBadge variant={ROLE_BADGE_VARIANT[user.role] ?? 'activo'}>
-                        {ROLE_LABELS[user.role] ?? user.role}
+                        {user.role}
                       </StatusBadge>
                     </td>
                     <td className="px-6 py-4">
