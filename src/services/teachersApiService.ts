@@ -5,6 +5,20 @@ export type TeacherType = 'Interno' | 'Externo';
 export type TeacherCategory = 'Principal' | 'Asociado' | 'Auxiliar';
 export type AcademicDegree = 'Magister' | 'Doctor';
 
+export interface TeacherBulkRequest {
+  firstName: string;
+  lastName: string;
+  email: string;
+  dni?: string;
+  type: TeacherType;
+  category?: TeacherCategory;
+  academicDegree?: AcademicDegree;
+  specialty?: string;
+  regime?: string;
+  phone?: string;
+  university?: string;
+}
+
 export interface TeacherRequest {
   userId: string;
   type: TeacherType;        // requerido
@@ -13,6 +27,7 @@ export interface TeacherRequest {
   academicDegree?: AcademicDegree;
   specialty?: string;
   phone?: string;
+  university?: string;
 }
 
 export interface TeacherResponse {
@@ -27,6 +42,7 @@ export interface TeacherResponse {
   specialty?: string;
   type: string;
   phone?: string;
+  university?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -47,5 +63,16 @@ export async function createTeacher(token: string, request: TeacherRequest): Pro
 
 export async function listTeachers(token: string): Promise<TeacherResponse[]> {
   const res = await apiFetch<ApiResponse<TeacherResponse[]>>('/v1/teachers', token);
+  return res.data;
+}
+
+export async function importTeachersBulk(
+  token: string,
+  rows: TeacherBulkRequest[]
+): Promise<unknown> {
+  const res = await apiFetch<ApiResponse<unknown>>('/v1/teachers/bulk', token, {
+    method: 'POST',
+    body: JSON.stringify(rows),
+  });
   return res.data;
 }

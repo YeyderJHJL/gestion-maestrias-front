@@ -111,7 +111,7 @@ export function CursoFormModal({
             />
             {editingItem?.syllabusFile && !form.syllabusFile && (
               <p className="text-sm text-text-muted">
-                Archivo actual: <a href={editingItem.syllabusFile.downloadUrl || '#'} className="text-primary hover:underline">{editingItem.syllabusFile.originalName}</a>
+                Archivo actual: <span className="text-primary">{editingItem.syllabusFile.originalName}</span>
               </p>
             )}
             {form.syllabusFile && (

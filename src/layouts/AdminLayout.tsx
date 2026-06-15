@@ -17,12 +17,12 @@ interface AdminLayoutProps {
 
 export function AdminLayout({ children }: AdminLayoutProps) {
   const { user } = useAuth();
-  const isAdmin = user?.role === 'ADMIN';
+  const isAdmin = user?.role === 'Administrador';
 
   const sidebarLinks = [
     { to: '/admin/dashboard', icon: LayoutDashboardIcon, label: 'Dashboard' },
     { to: '/admin/usuarios', icon: UsersIcon, label: 'Usuarios' },
-    { to: '/admin/cursos', icon: BookOpenIcon, label: 'Promociones y Cursos' },
+    { to: '/admin/cursos', icon: BookOpenIcon, label: 'Cursos y Semestres' },
     { to: '/admin/matriculas', icon: ClipboardListIcon, label: 'Matrículas' },
     { to: '/admin/vouchers', icon: ReceiptIcon, label: 'Vouchers' },
     { to: '/admin/reportes', icon: FileTextIcon, label: 'Reportes' },

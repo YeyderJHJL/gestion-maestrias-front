@@ -2,10 +2,10 @@ import { apiFetch } from './api';
 import { AuthUser, UserRole } from '../types/auth';
 
 const ROLE_MAP: Record<string, UserRole> = {
-  ADMIN: 'ADMIN', Administrador: 'ADMIN',
-  TEACHER: 'TEACHER', Docente: 'TEACHER',
-  STUDENT: 'STUDENT', Estudiante: 'STUDENT',
-  COORDINATOR: 'COORDINATOR', Coordinador: 'COORDINATOR',
+  Administrador: 'Administrador',
+  Docente: 'Docente',
+  Estudiante: 'Estudiante',
+  Coordinador: 'Coordinador',
 };
 
 function normalizeRole(raw: string): UserRole {
@@ -16,7 +16,8 @@ interface StudentData {
   id: string;
   cui: string;
   paymentCode: string;
-  promotionName: string;
+  yearPromotion: number;
+  status?: 'Regular' | 'Reactualizacion';
 }
 
 interface TeacherData {
@@ -27,6 +28,7 @@ interface TeacherData {
   specialty: string;
   type: string;
   phone: string;
+  university?: string;
 }
 
 interface UserResponse {
@@ -70,7 +72,8 @@ export async function buildAuthUser(token: string): Promise<AuthUser> {
       studentId: user.student.id,
       cui: user.student.cui,
       paymentCode: user.student.paymentCode,
-      promotionName: user.student.promotionName,
+      yearPromotion: user.student.yearPromotion,
+      studentStatus: user.student.status,
     };
   }
 
@@ -83,6 +86,7 @@ export async function buildAuthUser(token: string): Promise<AuthUser> {
       academicDegree: user.teacher.academicDegree,
       teacherType: user.teacher.type,
       specialty: user.teacher.specialty,
+      university: user.teacher.university,
       phone: user.teacher.phone,
     };
   }

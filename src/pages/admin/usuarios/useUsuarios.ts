@@ -2,8 +2,10 @@ import { FormEvent, useCallback, useEffect, useState } from 'react';
 import { useAuth } from '../../../context/AuthContext';
 import { UserRole } from '../../../types/auth';
 import {
-  User,
+  UserProfileResponse,
+  UserResponse,
   UserRequest,
+  UserCreateRequest,
   listUsers,
   createUser,
   updateUser,
@@ -31,7 +33,7 @@ export type TeacherFormState = {
 
 // --- Valores iniciales vacíos ---
 
-const EMPTY_BASE: UserRequest = {
+const EMPTY_BASE: UserCreateRequest = {
   firstName: '',
   lastName: '',
   email: '',
@@ -62,7 +64,7 @@ export function useUsuarios() {
   const isCoordinator = authUser?.role === 'Coordinador';
 
   // --- Estado de la lista de usuarios ---
-  const [users, setUsers] = useState<User[]>([]);
+  const [users, setUsers] = useState<UserResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -72,15 +74,15 @@ export function useUsuarios() {
 
   // --- Estado del modal de creación y edición ---
   const [isUserModalOpen, setIsUserModalOpen] = useState(false);
-  const [editingUser, setEditingUser] = useState<User | null>(null);
-  const [form, setForm] = useState<UserRequest>(EMPTY_BASE);
+  const [editingUser, setEditingUser] = useState<UserResponse | null>(null);
+  const [form, setForm] = useState<UserCreateRequest>(EMPTY_BASE);
   const [studentForm, setStudentForm] = useState<StudentFormState>(EMPTY_STUDENT);
   const [teacherForm, setTeacherForm] = useState<TeacherFormState>(EMPTY_TEACHER);
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
   // --- Estado del modal de eliminación ---
-  const [deletingUser, setDeletingUser] = useState<User | null>(null);
+  const [deletingUser, setDeletingUser] = useState<UserResponse | null>(null);
 
   // --- Estado del toast de notificación ---
   const [toast, setToast] = useState<{
@@ -117,7 +119,7 @@ export function useUsuarios() {
   };
 
   // Abre el modal en modo edición y precarga los datos del usuario seleccionado
-  const openEditModal = (user: User) => {
+  const openEditModal = (user: UserResponse) => {
     setEditingUser(user);
     setForm({
       firstName: user.firstName,
@@ -144,35 +146,39 @@ export function useUsuarios() {
     setSubmitting(true);
     setFormError(null);
     try {
-      const payload: UserRequest = {
-        ...form,
-        dni: form.dni?.trim() || undefined,
-      };
-
-      if (!editingUser) {
-        if (form.role === 'Estudiante') {
-          payload.student = {
-            cui: studentForm.cui,
-            paymentCode: studentForm.paymentCode,
-            phone: studentForm.phone || undefined,
-          };
-        } else if (form.role === 'Docente') {
-          payload.teacher = {
-            type: teacherForm.type,
-            category: teacherForm.category || undefined,
-            regime: teacherForm.regime || undefined,
-            academicDegree: teacherForm.academicDegree || undefined,
-            specialty: teacherForm.specialty || undefined,
-            phone: teacherForm.phone || undefined,
-          };
-        }
+      // 1. Validar el base form
+      if (!form.firstName.trim() || !form.lastName.trim() || !form.email.trim()) {
+        throw new Error('Nombres, apellidos y correo son obligatorios.');
+      }
+      if (!editingUser && !form.role) {
+        throw new Error('El rol es obligatorio para un nuevo usuario.');
       }
 
+      // 2. Armar payload de creación o edición
+      const basePayload: UserRequest = {
+        firstName: form.firstName,
+        lastName: form.lastName,
+        email: form.email,
+        dni: form.dni?.trim() || undefined,
+        role: form.role,
+        active: form.active,
+      };
+
       if (editingUser) {
-        await updateUser(token, editingUser.id, payload);
+        await updateUser(token, editingUser.id, basePayload);
         showToast('success', 'Usuario actualizado correctamente.');
       } else {
-        await createUser(token, payload);
+        const createPayload: UserCreateRequest = { ...basePayload };
+        if (form.role === 'Estudiante') {
+          createPayload.student = studentForm;
+        } else if (form.role === 'Docente') {
+          createPayload.teacher = {
+            ...teacherForm,
+            category: teacherForm.category || undefined,
+            academicDegree: teacherForm.academicDegree || undefined,
+          };
+        }
+        await createUser(token, createPayload);
         showToast('success', 'Usuario creado correctamente.');
       }
       closeModal();

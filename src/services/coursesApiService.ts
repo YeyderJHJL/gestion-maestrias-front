@@ -1,34 +1,25 @@
 import { apiFetch } from './api';
+import { StoredFileSummaryResponse } from './filesApiService';
 
-export type CourseType = 'Regular' | 'Tesis' | 'Topicos';
+export interface CourseRequest {
+  code: string;
+  name: string;
+  startDate: string;
+  endDate: string;
+  observations?: string;
+  syllabusFileId?: string;
+}
 
 export interface CourseResponse {
   id: string;
-  programId: number;
-  programName: string;
-  promotionId: number;
-  promotionName: string;
   code: string;
   name: string;
-  type: CourseType;
   startDate: string;
   endDate: string;
-  observations: string;
-  syllabusUrl: string;
+  observations?: string;
+  syllabusFile: StoredFileSummaryResponse | null;
   createdAt: string;
   updatedAt: string;
-}
-
-export interface CourseRequest {
-  programId: number;
-  promotionId: number;
-  code: string;
-  name: string;
-  type: CourseType;
-  startDate: string;
-  endDate: string;
-  observations: string;
-  syllabusUrl: string;
 }
 
 interface ApiResponse<T> {
@@ -66,7 +57,7 @@ export async function updateCourse(
 }
 
 export async function deleteCourse(token: string, id: string): Promise<void> {
-  await apiFetch<ApiResponse<void>>(`/v1/courses/${id}`, token, {
+  await apiFetch<void>(`/v1/courses/${id}`, token, {
     method: 'DELETE',
   });
 }

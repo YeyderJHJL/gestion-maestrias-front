@@ -5,10 +5,10 @@ import { UserRole } from '../types/auth';
 
 function roleLabel(role: UserRole): string {
   switch (role) {
-    case 'ADMIN':       return 'Administrador';
-    case 'TEACHER':     return 'Docente';
-    case 'STUDENT':     return 'Estudiante de Maestría';
-    case 'COORDINATOR': return 'Coordinador';
+    case 'Administrador': return 'Administrador';
+    case 'Docente': return 'Docente';
+    case 'Estudiante': return 'Estudiante de Maestría';
+    case 'Coordinador': return 'Coordinador';
   }
 }
 
@@ -82,7 +82,7 @@ export function Navbar() {
             </div>
 
             {/* Datos exclusivos del estudiante */}
-            {user.role === 'STUDENT' && (
+            {user.role === 'Estudiante' && (
               <div className="px-5 py-3 border-b border-gray-100 space-y-2">
                 <div className="flex items-center gap-2 text-sm text-gray-700">
                   <HashIcon className="w-4 h-4 text-gray-400 flex-shrink-0" />
@@ -94,11 +94,11 @@ export function Navbar() {
                   <span className="text-gray-500 w-24 flex-shrink-0">Cód. Pago</span>
                   <span className="font-medium truncate">{user.paymentCode ?? '—'}</span>
                 </div>
-                {user.promotionName && (
+                {user.yearPromotion && (
                   <div className="flex items-center gap-2 text-sm text-gray-700">
                     <UserIcon className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                    <span className="text-gray-500 w-24 flex-shrink-0">Promoción</span>
-                    <span className="font-medium truncate">{user.promotionName}</span>
+                    <span className="text-gray-500 w-24 flex-shrink-0">Año ingreso</span>
+                    <span className="font-medium truncate">{user.yearPromotion ?? '—'}</span>
                   </div>
                 )}
               </div>

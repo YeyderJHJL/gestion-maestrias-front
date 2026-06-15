@@ -7,10 +7,10 @@ import { UserRole } from '../types/auth';
 
 function dashboardFor(role: UserRole): string {
   switch (role) {
-    case 'ADMIN':       return '/admin/dashboard';
-    case 'TEACHER':     return '/docente/dashboard';
-    case 'STUDENT':     return '/estudiante/dashboard';
-    case 'COORDINATOR': return '/admin/dashboard';
+    case 'Administrador': return '/admin/dashboard';
+    case 'Docente': return '/docente/dashboard';
+    case 'Estudiante': return '/estudiante/dashboard';
+    case 'Coordinador': return '/admin/dashboard';
   }
 }
 

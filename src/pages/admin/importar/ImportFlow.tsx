@@ -29,23 +29,23 @@ export interface ColumnDef {
   required?: boolean;
 }
 
-interface Props<T> {
-  // Función que parsea el Excel y devuelve las filas tipadas
+export interface ImportFlowProps<T extends Record<string, any>> {
+  // Función que toma el File y devuelve el array de filas de tipo T
   parseFile: (file: File) => Promise<T[]>;
-  // Función que envía las filas al backend
+  // Función que envía las filas al backend y devuelve el resultado
   submitRows: (token: string, rows: T[]) => Promise<ImportResult>;
-  // Columnas que se muestran en la tabla de preview y en la guía de formato
+  // Definición de columnas para la previsualización y la guía
   columnDefs: ColumnDef[];
-  // Etiqueta del tipo de entidad para los mensajes ("estudiantes" / "docentes")
+  // Nombre de la entidad para textos (ej. "estudiantes", "docentes")
   entityLabel: string;
 }
 
-export function ImportFlow<T extends Record<string, unknown>>({
+export function ImportFlow<T extends Record<string, any>>({
   parseFile,
   submitRows,
   columnDefs,
   entityLabel,
-}: Props<T>) {
+}: ImportFlowProps<T>) {
   const {
     step,
     file,

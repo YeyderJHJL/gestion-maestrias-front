@@ -29,7 +29,7 @@ export function App() {
           <Route path="/" element={<Navigate to="/login" replace />} />
 
           {/* Admin & Coordinator */}
-          <Route element={<ProtectedRoute allowedRoles={['ADMIN', 'COORDINATOR']} />}>
+          <Route element={<ProtectedRoute allowedRoles={['Administrador', 'Coordinador']} />}>
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
             <Route path="/admin/usuarios" element={<AdminUsuarios />} />
             <Route path="/admin/cursos" element={<AdminCursos />} />
@@ -39,18 +39,18 @@ export function App() {
           </Route>
 
           {/* Admin Only */}
-          <Route element={<ProtectedRoute allowedRoles={['ADMIN']} />}>
+          <Route element={<ProtectedRoute allowedRoles={['Administrador']} />}>
             <Route path="/admin/importar" element={<AdminImportar />} />
           </Route>
 
           {/* Docente */}
-          <Route element={<ProtectedRoute allowedRoles={['TEACHER']} />}>
+          <Route element={<ProtectedRoute allowedRoles={['Docente']} />}>
             <Route path="/docente/dashboard" element={<DocenteDashboard />} />
             <Route path="/docente/cursos/:id" element={<DocenteCursoDetalle />} />
           </Route>
 
           {/* Estudiante */}
-          <Route element={<ProtectedRoute allowedRoles={['STUDENT']} />}>
+          <Route element={<ProtectedRoute allowedRoles={['Estudiante']} />}>
             <Route path="/estudiante/dashboard" element={<EstudianteDashboard />} />
             <Route path="/estudiante/matricula" element={<EstudianteMatricula />} />
             <Route path="/estudiante/notas" element={<EstudianteNotas />} />
