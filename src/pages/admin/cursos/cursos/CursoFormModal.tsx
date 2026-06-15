@@ -1,8 +1,7 @@
 import React from 'react';
 import { Loader2Icon } from 'lucide-react';
 import { Modal } from '../../../../components/Modal';
-import { CourseResponse, CourseType } from '../../../../services/coursesApiService';
-import { TeacherResponse } from '../../../../services/teachersApiService';
+import { CourseResponse } from '../../../../services/coursesApiService';
 import { CursoFormState } from './useCursos';
 
 interface Props {
@@ -11,8 +10,6 @@ interface Props {
   editingItem: CourseResponse | null;
   form: CursoFormState;
   setForm: (form: CursoFormState) => void;
-  teachers: TeacherResponse[];
-  loadingTeachers: boolean;
   submitting: boolean;
   formError: string | null;
   onSubmit: (e: React.FormEvent) => void;
@@ -24,8 +21,6 @@ export function CursoFormModal({
   editingItem,
   form,
   setForm,
-  teachers,
-  loadingTeachers,
   submitting,
   formError,
   onSubmit,
@@ -67,23 +62,6 @@ export function CursoFormModal({
             />
           </div>
 
-          <div className="col-span-2 space-y-2">
-            <label className="block text-sm font-medium text-text">Tipo *</label>
-            <select
-              required
-              value={form.type}
-              onChange={(e) => setForm({ ...form, type: e.target.value as CourseType })}
-              className={inputClass}
-            >
-              <option value="Regular">Regular</option>
-              <option value="Tesis">Tesis</option>
-              <option value="Topicos">Tópicos</option>
-            </select>
-            <p className="text-sm text-text-muted italic">
-              Regular: 4 sábados · Tesis y Tópicos: 5 sábados
-            </p>
-          </div>
-
           <div className="space-y-2">
             <label className="block text-sm font-medium text-text">Fecha de inicio *</label>
             <input
@@ -118,40 +96,27 @@ export function CursoFormModal({
           </div>
 
           <div className="col-span-2 space-y-2">
-            <label className="block text-sm font-medium text-text">URL del sílabus</label>
+            <label className="block text-sm font-medium text-text">Sílabus (Archivo)</label>
             <input
-              type="url"
-              maxLength={500}
-              value={form.syllabusUrl}
-              onChange={(e) => setForm({ ...form, syllabusUrl: e.target.value })}
+              type="file"
+              accept=".pdf,.doc,.docx"
+              onChange={(e) => {
+                if (e.target.files && e.target.files.length > 0) {
+                  setForm({ ...form, syllabusFile: e.target.files[0] });
+                } else {
+                  setForm({ ...form, syllabusFile: null });
+                }
+              }}
               className={inputClass}
             />
-          </div>
-
-          <div className="col-span-2 space-y-2">
-            <label className="block text-sm font-medium text-text">Docente responsable</label>
-            {loadingTeachers ? (
-              <div className="flex items-center gap-2 text-text-muted text-sm py-2">
-                <Loader2Icon className="w-4 h-4 animate-spin" />
-                Cargando docentes...
-              </div>
-            ) : (
-              <select
-                value={form.teacherId}
-                onChange={(e) => setForm({ ...form, teacherId: e.target.value })}
-                className={inputClass}
-              >
-                <option value="">Sin docente asignado</option>
-                {teachers.map((teacher) => (
-                  <option key={teacher.id} value={teacher.id}>
-                    {teacher.firstName} {teacher.lastName} ({teacher.type})
-                  </option>
-                ))}
-              </select>
+            {editingItem?.syllabusFile && !form.syllabusFile && (
+              <p className="text-sm text-text-muted">
+                Archivo actual: <a href={editingItem.syllabusFile.downloadUrl || '#'} className="text-primary hover:underline">{editingItem.syllabusFile.originalName}</a>
+              </p>
             )}
-            <p className="text-sm text-text-muted italic">
-              La asignación del docente se realizará después de guardar el curso.
-            </p>
+            {form.syllabusFile && (
+              <p className="text-sm text-text-muted">Archivo seleccionado: {form.syllabusFile.name}</p>
+            )}
           </div>
         </div>
 
