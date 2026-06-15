@@ -1,8 +1,8 @@
 // Modal de creación y edición de usuarios.
-// En modo creación muestra campos adicionales según el rol seleccionado:
+// Muestra un subformulario adicional según el rol seleccionado:
 //   - STUDENT: datos del estudiante (promoción, CUI, código de pago)
 //   - TEACHER: datos del docente (tipo, categoría, grado académico, etc.)
-// En modo edición solo permite modificar los campos base del usuario.
+// En modo edición los campos del subformulario se precargan desde el objeto usuario.
 
 import { Loader2Icon } from 'lucide-react';
 import { Modal } from '../../../components/Modal';
@@ -190,16 +190,18 @@ export function UsuarioFormModal({
           </div>
         </div>
 
-        {/* ── Datos del estudiante (solo en modo crear con rol STUDENT) ── */}
-        {!editingUser && form.role === 'STUDENT' && (
+        {/* ── Datos del estudiante (cuando el rol es STUDENT) ── */}
+        {form.role === 'STUDENT' && (
           <div className="space-y-4">
             <SectionHeader title="Datos del estudiante" />
             <div className="grid grid-cols-2 gap-4">
               <div className="col-span-2 space-y-1.5">
-                <label className="block text-sm font-medium text-text">Año de promoción *</label>
+                <label className="block text-sm font-medium text-text">
+                  Año de promoción {!editingUser && '*'}
+                </label>
                 <input
                   type="number"
-                  required
+                  required={!editingUser}
                   min={2001}
                   max={new Date().getFullYear()}
                   placeholder={`Ej: ${new Date().getFullYear()}`}
@@ -211,10 +213,12 @@ export function UsuarioFormModal({
                 />
               </div>
               <div className="space-y-1.5">
-                <label className="block text-sm font-medium text-text">CUI *</label>
+                <label className="block text-sm font-medium text-text">
+                  CUI {!editingUser && '*'}
+                </label>
                 <input
                   type="text"
-                  required
+                  required={!editingUser}
                   maxLength={20}
                   placeholder="Ej: 20260001"
                   value={studentForm.cui}
@@ -223,10 +227,12 @@ export function UsuarioFormModal({
                 />
               </div>
               <div className="space-y-1.5">
-                <label className="block text-sm font-medium text-text">Código de pago *</label>
+                <label className="block text-sm font-medium text-text">
+                  Código de pago {!editingUser && '*'}
+                </label>
                 <input
                   type="text"
-                  required
+                  required={!editingUser}
                   maxLength={100}
                   placeholder="Ej: PAG-001"
                   value={studentForm.paymentCode}
@@ -235,6 +241,18 @@ export function UsuarioFormModal({
                   }
                   className={inputClass}
                 />
+              </div>
+              <div className="space-y-1.5">
+                <label className="block text-sm font-medium text-text">Estado académico</label>
+                <select
+                  value={studentForm.status}
+                  onChange={(e) => setStudentForm({ ...studentForm, status: e.target.value })}
+                  className={inputClass}
+                >
+                  <option value="">Sin especificar</option>
+                  <option value="Regular">Regular</option>
+                  <option value="Reactualizacion">Reactualización</option>
+                </select>
               </div>
               <div className="space-y-1.5">
                 <label className="block text-sm font-medium text-text">Teléfono</label>
@@ -251,8 +269,8 @@ export function UsuarioFormModal({
           </div>
         )}
 
-        {/* ── Datos del docente (solo en modo crear con rol TEACHER) ── */}
-        {!editingUser && form.role === 'TEACHER' && (
+        {/* ── Datos del docente (cuando el rol es TEACHER) ── */}
+        {form.role === 'TEACHER' && (
           <div className="space-y-4">
             <SectionHeader title="Datos del docente" />
             <div className="grid grid-cols-2 gap-4">

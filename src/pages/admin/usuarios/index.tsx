@@ -21,6 +21,10 @@ export function AdminUsuarios() {
     setSearchTerm,
     filterRole,
     setFilterRole,
+    teacherTypeFilter,
+    setTeacherTypeFilter,
+    studentStatusFilter,
+    setStudentStatusFilter,
     // Permisos
     isCoordinator,
     // Modal crear / editar
@@ -73,6 +77,10 @@ export function AdminUsuarios() {
           onSearchChange={setSearchTerm}
           filterRole={filterRole}
           onFilterRoleChange={setFilterRole}
+          teacherTypeFilter={teacherTypeFilter}
+          onTeacherTypeFilterChange={setTeacherTypeFilter}
+          studentStatusFilter={studentStatusFilter}
+          onStudentStatusFilterChange={setStudentStatusFilter}
           isCoordinator={isCoordinator}
           onEdit={openEditModal}
           onDelete={setDeletingUser}

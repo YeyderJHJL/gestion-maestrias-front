@@ -33,6 +33,10 @@ interface Props {
   onSearchChange: (value: string) => void;
   filterRole: string;
   onFilterRoleChange: (value: string) => void;
+  teacherTypeFilter: string;
+  onTeacherTypeFilterChange: (value: string) => void;
+  studentStatusFilter: string;
+  onStudentStatusFilterChange: (value: string) => void;
   // Oculta las acciones cuando el usuario es coordinador
   isCoordinator: boolean;
   // Callbacks para abrir los modales correspondientes
@@ -48,24 +52,54 @@ export function UsuariosTable({
   onSearchChange,
   filterRole,
   onFilterRoleChange,
+  teacherTypeFilter,
+  onTeacherTypeFilterChange,
+  studentStatusFilter,
+  onStudentStatusFilterChange,
   isCoordinator,
   onEdit,
   onDelete,
 }: Props) {
   return (
     <>
-      {/* Barra de búsqueda y filtro por rol */}
+      {/* Barra de búsqueda y filtros */}
       <div className="bg-surface border border-border rounded-lg p-4 flex gap-4">
         <div className="flex-1 relative">
           <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-text-muted" />
           <input
             type="text"
-            placeholder="Buscar por nombre, correo o DNI..."
+            placeholder={
+              filterRole === 'STUDENT'
+                ? 'Buscar por nombre, correo, DNI o CUI...'
+                : 'Buscar por nombre, correo o DNI...'
+            }
             value={searchTerm}
             onChange={(e) => onSearchChange(e.target.value)}
             className="w-full pl-10 pr-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
           />
         </div>
+        {filterRole === 'TEACHER' && (
+          <select
+            value={teacherTypeFilter}
+            onChange={(e) => onTeacherTypeFilterChange(e.target.value)}
+            className="px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+          >
+            <option value="">Todos los tipos</option>
+            <option value="Interno">Interno</option>
+            <option value="Externo">Externo</option>
+          </select>
+        )}
+        {filterRole === 'STUDENT' && (
+          <select
+            value={studentStatusFilter}
+            onChange={(e) => onStudentStatusFilterChange(e.target.value)}
+            className="px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+          >
+            <option value="">Todos los estados</option>
+            <option value="Regular">Regular</option>
+            <option value="Reactualizacion">Reactualización</option>
+          </select>
+        )}
         <select
           value={filterRole}
           onChange={(e) => onFilterRoleChange(e.target.value)}
@@ -117,9 +151,20 @@ export function UsuariosTable({
                   <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">
                     Rol
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">
-                    Tipo
-                  </th>
+                  {filterRole === 'TEACHER' ? (
+                    <>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">Tipo</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">Categoría</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">Grado académico</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">Universidad</th>
+                    </>
+                  ) : filterRole === 'STUDENT' ? (
+                    <>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">CUI</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">Año promoción</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">Estado académico</th>
+                    </>
+                  ) : null}
                   <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">
                     Estado
                   </th>
@@ -146,9 +191,20 @@ export function UsuariosTable({
                         {ROLE_LABELS[user.role] ?? user.role}
                       </StatusBadge>
                     </td>
-                    <td className="px-6 py-4 text-sm text-text-muted">
-                      {user.teacher?.type ?? user.student?.status ?? '—'}
-                    </td>
+                    {filterRole === 'TEACHER' ? (
+                      <>
+                        <td className="px-6 py-4 text-sm text-text-muted">{user.teacher?.type ?? '—'}</td>
+                        <td className="px-6 py-4 text-sm text-text-muted">{user.teacher?.category ?? '—'}</td>
+                        <td className="px-6 py-4 text-sm text-text-muted">{user.teacher?.academicDegree ?? '—'}</td>
+                        <td className="px-6 py-4 text-sm text-text-muted">{user.teacher?.university ?? '—'}</td>
+                      </>
+                    ) : filterRole === 'STUDENT' ? (
+                      <>
+                        <td className="px-6 py-4 text-sm text-text-muted">{user.student?.cui ?? '—'}</td>
+                        <td className="px-6 py-4 text-sm text-text-muted">{user.student?.yearPromotion ?? '—'}</td>
+                        <td className="px-6 py-4 text-sm text-text-muted">{user.student?.status ?? '—'}</td>
+                      </>
+                    ) : null}
                     <td className="px-6 py-4">
                       <StatusBadge variant={user.active ? 'activo' : 'inactivo'}>
                         {user.active ? 'Activo' : 'Inactivo'}
