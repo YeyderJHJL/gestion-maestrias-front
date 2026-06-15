@@ -63,6 +63,25 @@ export interface UserCreateRequest extends UserRequest {
   };
 }
 
+export interface UserUpdateRequest extends UserRequest {
+  teacher?: {
+    type: string;
+    category?: string;
+    regime?: string;
+    academicDegree?: string;
+    specialty?: string;
+    phone?: string;
+    university?: string;
+  };
+  student?: {
+    yearPromotion?: number;
+    cui?: string;
+    paymentCode?: string;
+    status?: string;
+    phone?: string;
+  };
+}
+
 interface ApiResponse<T> {
   success: boolean;
   data: T;
@@ -85,7 +104,7 @@ export async function createUser(token: string, request: UserCreateRequest): Pro
   return res.data;
 }
 
-export async function updateUser(token: string, id: string, request: UserRequest): Promise<User> {
+export async function updateUser(token: string, id: string, request: UserUpdateRequest): Promise<User> {
   const res = await apiFetch<ApiResponse<User>>(`/v1/users/${id}`, token, {
     method: 'PUT',
     body: JSON.stringify(request),

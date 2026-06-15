@@ -9,6 +9,7 @@ import {
   User,
   UserRequest,
   UserCreateRequest,
+  UserUpdateRequest,
   listUsers,
   createUser,
   updateUser,
@@ -24,6 +25,7 @@ export type StudentFormState = {
   cui: string;
   paymentCode: string;
   phone: string;
+  status: string;
 };
 
 export type TeacherFormState = {
@@ -52,6 +54,7 @@ const EMPTY_STUDENT: StudentFormState = {
   cui: '',
   paymentCode: '',
   phone: '',
+  status: '',
 };
 
 const EMPTY_TEACHER: TeacherFormState = {
@@ -145,6 +148,30 @@ export function useUsuarios() {
       role: user.role as UserRole,
       active: user.active,
     });
+    if (user.teacher) {
+      setTeacherForm({
+        type: user.teacher.type as TeacherFormState['type'],
+        category: (user.teacher.category as TeacherFormState['category']) ?? '',
+        regime: user.teacher.regime ?? '',
+        academicDegree: (user.teacher.academicDegree as TeacherFormState['academicDegree']) ?? '',
+        department: user.teacher.specialty ?? '',
+        university: user.teacher.university ?? '',
+        phone: user.teacher.phone ?? '',
+      });
+    } else {
+      setTeacherForm(EMPTY_TEACHER);
+    }
+    if (user.student) {
+      setStudentForm({
+        yearPromotion: user.student.yearPromotion ?? '',
+        cui: user.student.cui ?? '',
+        paymentCode: user.student.paymentCode ?? '',
+        phone: user.student.phone ?? '',
+        status: user.student.status ?? '',
+      });
+    } else {
+      setStudentForm(EMPTY_STUDENT);
+    }
     setFormError(null);
     setIsUserModalOpen(true);
   };
@@ -163,10 +190,34 @@ export function useUsuarios() {
     setFormError(null);
     try {
       if (editingUser) {
-        const updatePayload: UserRequest = {
+        const updatePayload: UserUpdateRequest = {
           ...form,
           dni: form.dni?.trim() || undefined,
         };
+        if (form.role === 'TEACHER') {
+          updatePayload.teacher = {
+            type: teacherForm.type,
+            category: teacherForm.category || undefined,
+            regime: teacherForm.regime.trim() || undefined,
+            academicDegree: teacherForm.academicDegree || undefined,
+            specialty: teacherForm.department.trim() || undefined,
+            phone: teacherForm.phone.trim() || undefined,
+            university:
+              teacherForm.type === 'Interno'
+                ? 'Universidad Nacional de San Agustín'
+                : teacherForm.university.trim() || undefined,
+          };
+        }
+        if (form.role === 'STUDENT') {
+          updatePayload.student = {
+            yearPromotion:
+              studentForm.yearPromotion !== '' ? (studentForm.yearPromotion as number) : undefined,
+            cui: studentForm.cui || undefined,
+            paymentCode: studentForm.paymentCode || undefined,
+            phone: studentForm.phone.trim() || undefined,
+            status: studentForm.status || undefined,
+          };
+        }
         await updateUser(token, editingUser.id, updatePayload);
         showToast('success', 'Usuario actualizado correctamente.');
       } else {

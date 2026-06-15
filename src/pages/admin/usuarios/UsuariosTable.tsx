@@ -96,9 +96,8 @@ export function UsuariosTable({
             className="px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
           >
             <option value="">Todos los estados</option>
-            <option value="REGULAR">Regular</option>
-            <option value="EGRESADO">Egresado</option>
-            <option value="SUSPENDIDO">Suspendido</option>
+            <option value="Regular">Regular</option>
+            <option value="Reactualizacion">Reactualización</option>
           </select>
         )}
         <select
