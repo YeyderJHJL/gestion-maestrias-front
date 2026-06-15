@@ -24,7 +24,6 @@ const STUDENT_COLUMNS: ColumnDef[] = [
   { key: 'lastName',    label: 'Apellidos',        required: true  },
   { key: 'email',       label: 'Correo',           required: true  },
   { key: 'dni',         label: 'DNI',              required: false },
-  { key: 'promotionId', label: 'ID Promoción',     required: true  },
   { key: 'cui',         label: 'CUI',              required: true  },
   { key: 'paymentCode', label: 'Código de pago',   required: true  },
   { key: 'phone',       label: 'Teléfono',         required: false },

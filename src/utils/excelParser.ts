@@ -30,9 +30,6 @@ const STUDENT_ALIASES: Record<string, string> = {
   correoinstitucional: 'email',
   // dni
   dni: 'dni',
-  // promotionId
-  promotionid: 'promotionId', idpromocion: 'promotionId',
-  promocionid: 'promotionId', promocion: 'promotionId', idpromotion: 'promotionId',
   // cui
   cui: 'cui',
   // paymentCode
@@ -127,30 +124,17 @@ function optionalString(row: Record<string, unknown>, key: string): string | und
 
 // Parsea un Excel de estudiantes.
 // Acepta encabezados en inglés o español (ej: "firstName" = "Nombres").
-// Requeridos: firstName, lastName, email, promotionId, cui, paymentCode
+// Requeridos: firstName, lastName, email, cui, paymentCode
 // Opcionales: dni, phone
 export async function parseStudentsExcel(file: File): Promise<ImportStudentRow[]> {
   const rawRows = await readExcelRows(file);
   const rows = normalizeRowKeys(rawRows, STUDENT_ALIASES);
 
   return rows.map((row, i) => {
-    const promotionRaw = String(row['promotionId'] ?? '').trim();
-    const promotionId = Number(promotionRaw);
-
-    if (!promotionRaw) {
-      throw new Error(`Fila ${i + 2}: "promotionId" es obligatorio y está vacío.`);
-    }
-    if (isNaN(promotionId) || promotionId <= 0) {
-      throw new Error(
-        `Fila ${i + 2}: "promotionId" debe ser un número entero positivo (valor: "${promotionRaw}").`
-      );
-    }
-
     return {
       firstName:   requireString(row, 'firstName', i),
       lastName:    requireString(row, 'lastName', i),
       email:       requireString(row, 'email', i),
-      promotionId,
       cui:         requireString(row, 'cui', i),
       paymentCode: requireString(row, 'paymentCode', i),
       dni:         optionalString(row, 'dni'),
