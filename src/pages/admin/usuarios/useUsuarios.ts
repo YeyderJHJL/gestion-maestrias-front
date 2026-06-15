@@ -78,6 +78,15 @@ export function useUsuarios() {
   // --- Filtros de búsqueda y rol ---
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRole, setFilterRole] = useState('');
+  const [teacherTypeFilter, setTeacherTypeFilter] = useState('');
+  const [studentStatusFilter, setStudentStatusFilter] = useState('');
+
+  // Resetear filtros contextuales al cambiar de rol
+  useEffect(() => {
+    setTeacherTypeFilter('');
+    setStudentStatusFilter('');
+    setSearchTerm('');
+  }, [filterRole]);
 
   // --- Estado del modal de creación y edición ---
   const [isUserModalOpen, setIsUserModalOpen] = useState(false);
@@ -226,9 +235,12 @@ export function useUsuarios() {
         !searchTerm ||
         fullName.includes(term) ||
         u.email.toLowerCase().includes(term) ||
-        (u.dni ?? '').toLowerCase().includes(term);
+        (u.dni ?? '').toLowerCase().includes(term) ||
+        (filterRole === 'STUDENT' && (u.student?.cui ?? '').toLowerCase().includes(term));
       const matchesRole = !filterRole || u.role === filterRole;
-      return matchesSearch && matchesRole;
+      const matchesTeacherType = !teacherTypeFilter || u.teacher?.type === teacherTypeFilter;
+      const matchesStudentStatus = !studentStatusFilter || u.student?.status === studentStatusFilter;
+      return matchesSearch && matchesRole && matchesTeacherType && matchesStudentStatus;
     });
 
   return {
@@ -241,6 +253,10 @@ export function useUsuarios() {
     setSearchTerm,
     filterRole,
     setFilterRole,
+    teacherTypeFilter,
+    setTeacherTypeFilter,
+    studentStatusFilter,
+    setStudentStatusFilter,
     // Permisos del usuario en sesión
     isCoordinator,
     // Modal crear / editar
