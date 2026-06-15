@@ -71,19 +71,19 @@ export function StatsCards({ stats, loading }: Props) {
             <div className="flex items-start justify-between">
               <div className="space-y-2">
                 <p className="text-text-muted text-sm font-medium">{card.label}</p>
-                <p className="text-3xl font-bold text-text">{value}</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-3xl font-bold text-text">{value}</p>
+                  {card.warning && (
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-warning text-white">
+                      pendientes
+                    </span>
+                  )}
+                </div>
               </div>
               <div className={`p-3 rounded-lg ${card.colorBg}`}>
                 <Icon className={`w-6 h-6 ${card.colorIcon}`} />
               </div>
             </div>
-            {card.warning && (
-              <div className="mt-4">
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-warning text-white">
-                  {value} pendientes
-                </span>
-              </div>
-            )}
           </>
         );
         const className = `bg-surface border border-border rounded-lg p-6 shadow-sm transition-shadow ${card.href ? 'hover:shadow-md hover:border-primary/30 cursor-pointer' : 'hover:shadow-md'}`;
