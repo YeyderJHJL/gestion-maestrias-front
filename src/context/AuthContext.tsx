@@ -23,6 +23,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState<boolean>(!!sessionStorage.getItem(TOKEN_KEY));
 
+  // Cierra sesión automáticamente cuando el JWT expira (401 desde apiFetch)
+  useEffect(() => {
+    const handler = () => {
+      sessionStorage.removeItem(TOKEN_KEY);
+      setToken(null);
+      setUser(null);
+      navigate('/login', { replace: true });
+    };
+    window.addEventListener('session-expired', handler);
+    return () => window.removeEventListener('session-expired', handler);
+  }, [navigate]);
+
   // Rehidrata sesión al refrescar la página (F5)
   useEffect(() => {
     const savedToken = sessionStorage.getItem(TOKEN_KEY);
