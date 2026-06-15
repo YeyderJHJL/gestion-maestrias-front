@@ -6,7 +6,6 @@
   "scripts": {
     "dev": "npx vite",
     "build": "npx vite build",
-    "type-check": "tsc --noEmit",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "preview": "npx vite preview"
   },

@@ -8,19 +8,19 @@ import { UserRole } from '../../../types/auth';
 import {
   User,
   UserRequest,
-  UserCreateRequest,
   listUsers,
   createUser,
   updateUser,
   deleteUser,
 } from '../../../services/usersApiService';
+import { Promotion, listPromotions } from '../../../services/studentsApiService';
 import { TeacherType, TeacherCategory, AcademicDegree } from '../../../services/teachersApiService';
 import { ApiError } from '../../../services/api';
 
 // --- Tipos del estado de los subformularios ---
 
 export type StudentFormState = {
-  yearPromotion: number | '';
+  promotionId: number | '';
   cui: string;
   paymentCode: string;
   phone: string;
@@ -31,8 +31,7 @@ export type TeacherFormState = {
   category: TeacherCategory | '';
   regime: string;
   academicDegree: AcademicDegree | '';
-  department: string;
-  university: string;
+  specialty: string;
   phone: string;
 };
 
@@ -48,7 +47,7 @@ const EMPTY_BASE: UserRequest = {
 };
 
 const EMPTY_STUDENT: StudentFormState = {
-  yearPromotion: '',
+  promotionId: '',
   cui: '',
   paymentCode: '',
   phone: '',
@@ -59,8 +58,7 @@ const EMPTY_TEACHER: TeacherFormState = {
   category: '',
   regime: '',
   academicDegree: '',
-  department: '',
-  university: '',
+  specialty: '',
   phone: '',
 };
 
@@ -85,6 +83,8 @@ export function useUsuarios() {
   const [form, setForm] = useState<UserRequest>(EMPTY_BASE);
   const [studentForm, setStudentForm] = useState<StudentFormState>(EMPTY_STUDENT);
   const [teacherForm, setTeacherForm] = useState<TeacherFormState>(EMPTY_TEACHER);
+  const [promotions, setPromotions] = useState<Promotion[]>([]);
+  const [loadingPromotions, setLoadingPromotions] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -114,6 +114,16 @@ export function useUsuarios() {
   useEffect(() => {
     loadUsers();
   }, [loadUsers]);
+
+  // Carga las promociones disponibles cuando se selecciona el rol STUDENT
+  useEffect(() => {
+    if (!token || form.role !== 'STUDENT' || !isUserModalOpen) return;
+    setLoadingPromotions(true);
+    listPromotions(token)
+      .then(setPromotions)
+      .catch(() => setPromotions([]))
+      .finally(() => setLoadingPromotions(false));
+  }, [token, form.role, isUserModalOpen]);
 
   // Abre el modal en modo creación con los campos en blanco
   const openCreateModal = () => {
@@ -153,41 +163,15 @@ export function useUsuarios() {
     setSubmitting(true);
     setFormError(null);
     try {
+      const payload: UserRequest = {
+        ...form,
+        dni: form.dni?.trim() || undefined,
+      };
       if (editingUser) {
-        const updatePayload: UserRequest = {
-          ...form,
-          dni: form.dni?.trim() || undefined,
-        };
-        await updateUser(token, editingUser.id, updatePayload);
+        await updateUser(token, editingUser.id, payload);
         showToast('success', 'Usuario actualizado correctamente.');
       } else {
-        const createPayload: UserCreateRequest = {
-          ...form,
-          dni: form.dni?.trim() || undefined,
-        };
-        if (form.role === 'TEACHER') {
-          createPayload.teacher = {
-            type: teacherForm.type,
-            category: teacherForm.category || undefined,
-            regime: teacherForm.regime.trim() || undefined,
-            academicDegree: teacherForm.academicDegree || undefined,
-            specialty: teacherForm.department.trim() || undefined,
-            phone: teacherForm.phone.trim() || undefined,
-            university:
-              teacherForm.type === 'Interno'
-                ? 'Universidad Nacional de San Agustín'
-                : teacherForm.university.trim() || undefined,
-          };
-        }
-        if (form.role === 'STUDENT' && studentForm.yearPromotion !== '') {
-          createPayload.student = {
-            yearPromotion: studentForm.yearPromotion as number,
-            cui: studentForm.cui,
-            paymentCode: studentForm.paymentCode,
-            phone: studentForm.phone.trim() || undefined,
-          };
-        }
-        await createUser(token, createPayload);
+        await createUser(token, payload);
         showToast('success', 'Usuario creado correctamente.');
       }
       closeModal();
@@ -220,13 +204,11 @@ export function useUsuarios() {
   const filteredUsers = users
     .filter((u) => u.id !== authUser?.id)
     .filter((u) => {
-      const term = searchTerm.toLowerCase();
       const fullName = `${u.firstName} ${u.lastName}`.toLowerCase();
       const matchesSearch =
         !searchTerm ||
-        fullName.includes(term) ||
-        u.email.toLowerCase().includes(term) ||
-        (u.dni ?? '').toLowerCase().includes(term);
+        fullName.includes(searchTerm.toLowerCase()) ||
+        u.email.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesRole = !filterRole || u.role === filterRole;
       return matchesSearch && matchesRole;
     });
@@ -252,6 +234,8 @@ export function useUsuarios() {
     setStudentForm,
     teacherForm,
     setTeacherForm,
+    promotions,
+    loadingPromotions,
     submitting,
     formError,
     openCreateModal,
