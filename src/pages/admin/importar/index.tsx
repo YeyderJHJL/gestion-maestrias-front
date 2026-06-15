@@ -20,29 +20,34 @@ type Tab = 'students' | 'teachers';
 // --- Definición de columnas para estudiantes ---
 // Usadas tanto en la tabla de preview como en la guía de formato
 const STUDENT_COLUMNS: ColumnDef[] = [
-  { key: 'firstName',    label: 'Nombres',           required: true  },
-  { key: 'lastName',     label: 'Apellidos',         required: true  },
-  { key: 'email',        label: 'Correo',            required: true  },
-  { key: 'dni',          label: 'DNI',               required: true  },
-  { key: 'yearPromotion',label: 'Año de Promoción',  required: true  },
-  { key: 'cui',          label: 'CUI',               required: true  },
-  { key: 'paymentCode',  label: 'Código de pago',    required: true  },
-  { key: 'phone',        label: 'Teléfono',          required: false },
+  { key: 'firstName',     label: 'Nombres',          required: true  },
+  { key: 'lastName',      label: 'Apellidos',        required: true  },
+  { key: 'email',         label: 'Correo',           required: true  },
+  { key: 'dni',           label: 'DNI',              required: true  },
+  { key: 'yearPromotion', label: 'Año de Promoción', required: true,
+    inputType: 'number', hint: 'Año de ingreso, ej: 2024 (mínimo 2001)' },
+  { key: 'cui',           label: 'CUI',              required: true  },
+  { key: 'paymentCode',   label: 'Código de pago',   required: true  },
+  { key: 'phone',         label: 'Teléfono',         required: false },
 ];
 
 // --- Definición de columnas para docentes ---
 const TEACHER_COLUMNS: ColumnDef[] = [
-  { key: 'firstName',     label: 'Nombres',               required: true  },
-  { key: 'lastName',      label: 'Apellidos',             required: true  },
-  { key: 'email',         label: 'Correo',                required: true  },
-  { key: 'dni',           label: 'DNI',                   required: false },
-  { key: 'type',          label: 'Tipo (Interno/Externo)', required: true  },
-  { key: 'category',      label: 'Categoría',             required: false },
-  { key: 'regime',        label: 'Régimen',               required: false },
-  { key: 'academicDegree',label: 'Grado académico',       required: false },
-  { key: 'specialty',     label: 'Especialidad',          required: false },
-  { key: 'phone',         label: 'Teléfono',              required: false },
-  { key: 'university',    label: 'Universidad',           required: false },
+  { key: 'firstName',      label: 'Nombres',         required: true  },
+  { key: 'lastName',       label: 'Apellidos',       required: true  },
+  { key: 'email',          label: 'Correo',          required: true  },
+  { key: 'dni',            label: 'DNI',             required: false },
+  { key: 'type',           label: 'Tipo',            required: true,
+    inputType: 'select', options: ['Interno', 'Externo'] },
+  { key: 'category',       label: 'Categoría',       required: false,
+    inputType: 'select', options: ['Principal', 'Asociado', 'Auxiliar'] },
+  { key: 'regime',         label: 'Régimen',         required: false },
+  { key: 'academicDegree', label: 'Grado académico', required: false,
+    inputType: 'select', options: ['Magister', 'Doctor'] },
+  { key: 'specialty',      label: 'Especialidad',    required: false },
+  { key: 'phone',          label: 'Teléfono',        required: false },
+  { key: 'university',     label: 'Universidad',     required: false,
+    hint: 'Solo para docentes externos' },
 ];
 
 export function AdminImportar() {

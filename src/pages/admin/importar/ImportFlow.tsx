@@ -22,11 +22,14 @@ import { StatusBadge } from '../../../components/StatusBadge';
 import { ImportResult } from '../../../services/importApiService';
 import { useImportFlow } from './useImportFlow';
 
-// Definición de cada columna: clave en el objeto, label visible y si es requerida
+// Definición de cada columna: clave en el objeto, label visible y metadatos opcionales
 export interface ColumnDef {
   key: string;
   label: string;
   required?: boolean;
+  inputType?: 'text' | 'number' | 'select'; // tipo de input para edición inline
+  options?: string[];                        // valores válidos (para select y guía de formato)
+  hint?: string;                             // descripción extra en la guía de formato
 }
 
 interface Props<T> {
@@ -104,23 +107,30 @@ export function ImportFlow<T extends Record<string, unknown>>({
               </p>
               <div className="space-y-2">
                 {columnDefs.map((col) => (
-                  <div
-                    key={col.key}
-                    className="text-xs border-b border-border pb-1.5 flex justify-between items-center"
-                  >
-                    <span className="font-mono text-accent font-semibold">{col.key}</span>
-                    <span className="text-text-muted">
-                      {col.label}
-                      {col.required && (
-                        <span className="ml-1 text-accent font-bold">*</span>
-                      )}
-                    </span>
+                  <div key={col.key} className="text-xs border-b border-border pb-2 space-y-0.5">
+                    <div className="flex justify-between items-center">
+                      <span className="font-mono text-accent font-semibold">{col.key}</span>
+                      <span className="text-text-muted">
+                        {col.label}
+                        {col.required && (
+                          <span className="ml-1 text-accent font-bold">*</span>
+                        )}
+                      </span>
+                    </div>
+                    {col.options && (
+                      <p className="text-text-muted pl-1">
+                        Valores: <span className="font-mono">{col.options.join(' | ')}</span>
+                      </p>
+                    )}
+                    {col.hint && (
+                      <p className="text-text-muted pl-1 italic">{col.hint}</p>
+                    )}
                   </div>
                 ))}
               </div>
               <p className="text-xs text-text-muted bg-surface-alt p-3 rounded-lg border border-border">
-                <strong>*</strong> Campos obligatorios. Los correos duplicados o IDs
-                inválidos se reportarán como errores sin interrumpir el resto.
+                <strong>*</strong> Campos obligatorios. Los registros con errores se
+                reportan al final sin interrumpir el resto de la importación.
               </p>
             </div>
           </div>
