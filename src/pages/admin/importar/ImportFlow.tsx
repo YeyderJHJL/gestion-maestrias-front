@@ -129,19 +129,17 @@ export function ImportFlow<T extends Record<string, unknown>>({
                 <h4>Formato requerido</h4>
               </div>
               <p className="text-sm text-text-muted leading-relaxed">
-                La primera hoja debe tener exactamente estas columnas:
+                La primera fila del Excel (cabecera) debe tener estas columnas:
               </p>
               <div className="space-y-2">
                 {columnDefs.map((col) => (
                   <div key={col.key} className="text-xs border-b border-border pb-2 space-y-0.5">
-                    <div className="flex justify-between items-center">
-                      <span className="font-mono text-accent font-semibold">{col.key}</span>
-                      <span className="text-text-muted">
-                        {col.label}
-                        {col.required && (
-                          <span className="ml-1 text-accent font-bold">*</span>
-                        )}
-                      </span>
+                    <div className="flex items-center gap-1">
+                      <span className="font-semibold text-text">{col.label}</span>
+                      {col.required
+                        ? <span className="text-accent font-bold">*</span>
+                        : <span className="text-text-muted">(opcional)</span>
+                      }
                     </div>
                     {col.options && (
                       <p className="text-text-muted pl-1">

@@ -12,6 +12,7 @@ export interface ImportStudentRow {
   email: string;
   dni: string;            // @NotBlank en backend — obligatorio
   yearPromotion: number;  // año de ingreso, ej: 2024 (reemplaza promotionId)
+  status: 'REGULAR' | 'REACTUALIZATION'; // default REGULAR si no viene en el Excel
   cui: string;
   paymentCode: string;
   phone?: string;

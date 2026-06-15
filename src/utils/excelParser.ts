@@ -31,8 +31,16 @@ const STUDENT_ALIASES: Record<string, string> = {
   // dni
   dni: 'dni',
   // yearPromotion — año de ingreso del estudiante (reemplaza promotionId)
-  yearpromotion: 'yearPromotion', añopromocion: 'yearPromotion',
-  aniopromocion: 'yearPromotion', anio: 'yearPromotion', promocion: 'yearPromotion',
+  // las claves deben estar pre-normalizadas (sin tildes, sin espacios, lowercase)
+  yearpromotion: 'yearPromotion',
+  anopromocion: 'yearPromotion',   // "añopromocion" normalizado
+  aniopromocion: 'yearPromotion',
+  anodepromocion: 'yearPromotion', // "Año de Promoción" normalizado
+  aniodepromocion: 'yearPromotion',
+  anio: 'yearPromotion',
+  promocion: 'yearPromotion',
+  // status
+  status: 'status', estado: 'status',
   // cui
   cui: 'cui',
   // paymentCode
@@ -149,12 +157,16 @@ export async function parseStudentsExcel(file: File): Promise<ImportStudentRow[]
       );
     }
 
+    const statusRaw = optionalString(row, 'status')?.toUpperCase();
+    const status = (statusRaw === 'REACTUALIZATION' ? 'REACTUALIZATION' : 'REGULAR') as 'REGULAR' | 'REACTUALIZATION';
+
     return {
       firstName:    requireString(row, 'firstName', i),
       lastName:     requireString(row, 'lastName', i),
       email:        requireString(row, 'email', i),
       dni:          requireString(row, 'dni', i),
       yearPromotion,
+      status,
       cui:          requireString(row, 'cui', i),
       paymentCode:  requireString(row, 'paymentCode', i),
       phone:        optionalString(row, 'phone'),
