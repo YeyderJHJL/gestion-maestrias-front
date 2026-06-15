@@ -1,4 +1,3 @@
-import React from 'react';
 import { AdminLayout } from '../../../layouts/AdminLayout';
 import { ConfirmationModal } from '../../../components/ConfirmationModal';
 import { Toast } from '../../../components/Toast';

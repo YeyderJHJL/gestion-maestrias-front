@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { AdminLayout } from '../../layouts/AdminLayout';
 import { Modal } from '../../components/Modal';
 import { StatusBadge } from '../../components/StatusBadge';

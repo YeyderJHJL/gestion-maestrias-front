@@ -1,4 +1,3 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
 import { DocenteLayout } from '../../layouts/DocenteLayout';
 import { StatusBadge } from '../../components/StatusBadge';
