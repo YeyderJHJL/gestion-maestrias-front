@@ -61,7 +61,7 @@ export function UsuariosTable({
           <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-text-muted" />
           <input
             type="text"
-            placeholder="Buscar por nombre o correo..."
+            placeholder="Buscar por nombre, correo o DNI..."
             value={searchTerm}
             onChange={(e) => onSearchChange(e.target.value)}
             className="w-full pl-10 pr-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
@@ -113,6 +113,9 @@ export function UsuariosTable({
                     Correo institucional
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">
+                    DNI
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">
                     Rol
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">
@@ -138,6 +141,7 @@ export function UsuariosTable({
                       {user.firstName} {user.lastName}
                     </td>
                     <td className="px-6 py-4 text-sm text-text-muted">{user.email}</td>
+                    <td className="px-6 py-4 text-sm text-text-muted">{user.dni ?? '—'}</td>
                     <td className="px-6 py-4">
                       <StatusBadge variant={ROLE_BADGE_VARIANT[user.role] ?? 'activo'}>
                         {ROLE_LABELS[user.role] ?? user.role}

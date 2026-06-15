@@ -220,11 +220,13 @@ export function useUsuarios() {
   const filteredUsers = users
     .filter((u) => u.id !== authUser?.id)
     .filter((u) => {
+      const term = searchTerm.toLowerCase();
       const fullName = `${u.firstName} ${u.lastName}`.toLowerCase();
       const matchesSearch =
         !searchTerm ||
-        fullName.includes(searchTerm.toLowerCase()) ||
-        u.email.toLowerCase().includes(searchTerm.toLowerCase());
+        fullName.includes(term) ||
+        u.email.toLowerCase().includes(term) ||
+        (u.dni ?? '').toLowerCase().includes(term);
       const matchesRole = !filterRole || u.role === filterRole;
       return matchesSearch && matchesRole;
     });
