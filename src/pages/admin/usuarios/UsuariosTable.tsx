@@ -164,9 +164,7 @@ export function UsuariosTable({
                       <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">Año promoción</th>
                       <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">Estado académico</th>
                     </>
-                  ) : (
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">Tipo</th>
-                  )}
+                  ) : null}
                   <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">
                     Estado
                   </th>
@@ -206,11 +204,7 @@ export function UsuariosTable({
                         <td className="px-6 py-4 text-sm text-text-muted">{user.student?.yearPromotion ?? '—'}</td>
                         <td className="px-6 py-4 text-sm text-text-muted">{user.student?.status ?? '—'}</td>
                       </>
-                    ) : (
-                      <td className="px-6 py-4 text-sm text-text-muted">
-                        {user.teacher?.type ?? user.student?.status ?? '—'}
-                      </td>
-                    )}
+                    ) : null}
                     <td className="px-6 py-4">
                       <StatusBadge variant={user.active ? 'activo' : 'inactivo'}>
                         {user.active ? 'Activo' : 'Inactivo'}
