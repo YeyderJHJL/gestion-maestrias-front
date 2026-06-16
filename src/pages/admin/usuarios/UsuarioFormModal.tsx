@@ -143,6 +143,35 @@ export function UsuarioFormModal({
             <h3 className="font-semibold text-text mb-4">Datos del estudiante</h3>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
+                <label className="block text-sm font-medium text-text">Año de promoción *</label>
+                <input
+                  type="number"
+                  required
+                  min={2001}
+                  value={studentForm.yearPromotion}
+                  onChange={(e) =>
+                    setStudentForm({ ...studentForm, yearPromotion: Number(e.target.value) })
+                  }
+                  className={inputClass}
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-text">Estado</label>
+                <select
+                  value={studentForm.status}
+                  onChange={(e) =>
+                    setStudentForm({
+                      ...studentForm,
+                      status: e.target.value as 'Regular' | 'Reactualizacion',
+                    })
+                  }
+                  className={inputClass}
+                >
+                  <option value="Regular">Regular</option>
+                  <option value="Reactualizacion">Reactualización</option>
+                </select>
+              </div>
+              <div className="space-y-2">
                 <label className="block text-sm font-medium text-text">CUI *</label>
                 <input
                   type="text"

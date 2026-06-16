@@ -17,6 +17,8 @@ import { ApiError } from '../../../services/api';
 // --- Tipos del estado de los subformularios ---
 
 export type StudentFormState = {
+  yearPromotion: number;
+  status: 'Regular' | 'Reactualizacion';
   cui: string;
   paymentCode: string;
   phone: string;
@@ -43,6 +45,8 @@ const EMPTY_BASE: UserCreateRequest = {
 };
 
 const EMPTY_STUDENT: StudentFormState = {
+  yearPromotion: new Date().getFullYear(),
+  status: 'Regular',
   cui: '',
   paymentCode: '',
   phone: '',
@@ -170,7 +174,13 @@ export function useUsuarios() {
       } else {
         const createPayload: UserCreateRequest = { ...basePayload };
         if (form.role === 'Estudiante') {
-          createPayload.student = studentForm;
+          createPayload.student = {
+            yearPromotion: studentForm.yearPromotion,
+            status: studentForm.status,
+            cui: studentForm.cui,
+            paymentCode: studentForm.paymentCode,
+            phone: studentForm.phone || undefined,
+          };
         } else if (form.role === 'Docente') {
           createPayload.teacher = {
             ...teacherForm,

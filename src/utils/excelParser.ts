@@ -30,6 +30,12 @@ const STUDENT_ALIASES: Record<string, string> = {
   correoinstitucional: 'email',
   // dni
   dni: 'dni',
+  // yearPromotion
+  yearpromotion: 'yearPromotion', añodepromocion: 'yearPromotion',
+  anodepromocion: 'yearPromotion', promocion: 'yearPromotion', año: 'yearPromotion',
+  ano: 'yearPromotion',
+  // status
+  status: 'status', estado: 'status',
   // cui
   cui: 'cui',
   // paymentCode
@@ -63,6 +69,8 @@ const TEACHER_ALIASES: Record<string, string> = {
   specialty: 'specialty', especialidad: 'specialty',
   // phone
   phone: 'phone', telefono: 'phone', celular: 'phone',
+  // university
+  university: 'university', universidad: 'university',
 };
 
 // Renombra las claves de cada fila usando el mapa de aliases proporcionado.
@@ -124,21 +132,43 @@ function optionalString(row: Record<string, unknown>, key: string): string | und
 
 // Parsea un Excel de estudiantes.
 // Acepta encabezados en inglés o español (ej: "firstName" = "Nombres").
-// Requeridos: firstName, lastName, email, cui, paymentCode
-// Opcionales: dni, phone
+// Requeridos: firstName, lastName, email, cui, paymentCode, yearPromotion
+// Opcionales: dni, phone, status
 export async function parseStudentsExcel(file: File): Promise<ImportStudentRow[]> {
+  const VALID_STATUSES = ['Regular', 'Reactualizacion'] as const;
+
   const rawRows = await readExcelRows(file);
   const rows = normalizeRowKeys(rawRows, STUDENT_ALIASES);
 
   return rows.map((row, i) => {
+    const yearRaw = String(row['yearPromotion'] ?? '').trim();
+    if (!yearRaw) {
+      throw new Error(`Fila ${i + 2}: la columna "yearPromotion" es obligatoria y está vacía.`);
+    }
+    const yearPromotion = Number(yearRaw);
+    if (!Number.isInteger(yearPromotion) || yearPromotion < 2001) {
+      throw new Error(
+        `Fila ${i + 2}: "yearPromotion" debe ser un año entero >= 2001 (valor: "${yearRaw}").`
+      );
+    }
+
+    const status = optionalString(row, 'status');
+    if (status && !VALID_STATUSES.includes(status as (typeof VALID_STATUSES)[number])) {
+      throw new Error(
+        `Fila ${i + 2}: "status" debe ser "Regular" o "Reactualizacion" (valor: "${status}").`
+      );
+    }
+
     return {
-      firstName:   requireString(row, 'firstName', i),
-      lastName:    requireString(row, 'lastName', i),
-      email:       requireString(row, 'email', i),
-      cui:         requireString(row, 'cui', i),
-      paymentCode: requireString(row, 'paymentCode', i),
-      dni:         optionalString(row, 'dni'),
-      phone:       optionalString(row, 'phone'),
+      firstName:     requireString(row, 'firstName', i),
+      lastName:      requireString(row, 'lastName', i),
+      email:         requireString(row, 'email', i),
+      yearPromotion,
+      status:        (status as ImportStudentRow['status']) ?? 'Regular',
+      cui:           requireString(row, 'cui', i),
+      paymentCode:   requireString(row, 'paymentCode', i),
+      dni:           optionalString(row, 'dni'),
+      phone:         optionalString(row, 'phone'),
     };
   });
 }
@@ -146,7 +176,7 @@ export async function parseStudentsExcel(file: File): Promise<ImportStudentRow[]
 // Parsea un Excel de docentes.
 // Acepta encabezados en inglés o español (ej: "type" = "Tipo").
 // Requeridos: firstName, lastName, email, type (Interno | Externo)
-// Opcionales: dni, category, regime, academicDegree, specialty, phone
+// Opcionales: dni, category, regime, academicDegree, specialty, phone, university
 export async function parseTeachersExcel(file: File): Promise<ImportTeacherRow[]> {
   const VALID_TYPES     = ['Interno', 'Externo'] as const;
   const VALID_CATEGORIES = ['Principal', 'Asociado', 'Auxiliar'] as const;
@@ -188,6 +218,7 @@ export async function parseTeachersExcel(file: File): Promise<ImportTeacherRow[]
       academicDegree: academicDegree as ImportTeacherRow['academicDegree'],
       specialty:      optionalString(row, 'specialty'),
       phone:          optionalString(row, 'phone'),
+      university:     optionalString(row, 'university'),
     };
   });
 }
