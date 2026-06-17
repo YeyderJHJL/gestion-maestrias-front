@@ -1,30 +1,30 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '../../../context/AuthContext';
 import { ApiError } from '../../../services/api';
-import { listVouchers, reviewVoucher } from '../../../services/vouchersApiService';
+import { listVouchers, updateVoucher } from '../../../services/vouchersApiService';
 import { VoucherResponse, VoucherStateCode } from '../../../types/voucher';
 
 type ActiveTab = 'pendientes' | 'validados' | 'observados' | 'rechazados';
 type Decision = 'validar' | 'observar' | 'rechazar';
 
 const TAB_TO_STATE: Record<ActiveTab, VoucherStateCode> = {
-  pendientes: 'PENDING',
+  pendientes: 'UPLOADED',
   validados: 'VALIDATED',
   observados: 'OBSERVED',
   rechazados: 'REJECTED',
 };
 
-const DECISION_TO_ACTION: Record<Decision, 'VALIDATE' | 'OBSERVE' | 'REJECT'> = {
-  validar: 'VALIDATE',
-  observar: 'OBSERVE',
-  rechazar: 'REJECT',
+const DECISION_TO_STATE_CODE: Record<Decision, VoucherStateCode> = {
+  validar: 'VALIDATED',
+  observar: 'OBSERVED',
+  rechazar: 'REJECTED',
 };
 
 export function useAdminVouchers() {
   const { user, token } = useAuth();
   const isCoordinator = user?.role === 'COORDINATOR';
 
-  const [vouchers, setVouchers] = useState<VoucherResponse[]>([]);
+  const [allVouchers, setAllVouchers] = useState<VoucherResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<ActiveTab>('pendientes');
@@ -50,15 +50,27 @@ export function useAdminVouchers() {
     if (!token) return;
     setLoading(true);
     setError(null);
-    listVouchers(token, TAB_TO_STATE[activeTab])
-      .then(setVouchers)
+    listVouchers(token)
+      .then(setAllVouchers)
       .catch((e: Error) => setError(e.message))
       .finally(() => setLoading(false));
-  }, [token, activeTab]);
+  }, [token]);
 
   useEffect(() => {
     loadVouchers();
   }, [loadVouchers]);
+
+  const vouchers = useMemo(
+    () => allVouchers.filter((v) => v.stateCode === TAB_TO_STATE[activeTab]),
+    [allVouchers, activeTab]
+  );
+
+  const tabs = useMemo(() => [
+    { key: 'pendientes' as const, label: 'Pendientes', count: allVouchers.filter((v) => v.stateCode === 'UPLOADED').length },
+    { key: 'validados' as const, label: 'Validados', count: allVouchers.filter((v) => v.stateCode === 'VALIDATED').length },
+    { key: 'observados' as const, label: 'Observados', count: allVouchers.filter((v) => v.stateCode === 'OBSERVED').length },
+    { key: 'rechazados' as const, label: 'Rechazados', count: allVouchers.filter((v) => v.stateCode === 'REJECTED').length },
+  ], [allVouchers]);
 
   const closeDrawer = () => {
     setSelectedVoucher(null);
@@ -70,11 +82,14 @@ export function useAdminVouchers() {
     if (!token || !selectedVoucher || !decision) return;
     setSubmitting(true);
     try {
-      await reviewVoucher(token, selectedVoucher.id, {
-        action: DECISION_TO_ACTION[decision],
+      const newStateCode = DECISION_TO_STATE_CODE[decision];
+      const updated = await updateVoucher(token, selectedVoucher.id, {
+        paymentId: selectedVoucher.paymentId,
+        stateId: selectedVoucher.stateId,
+        fileId: selectedVoucher.file.id,
         observation: motivo || undefined,
       });
-      setVouchers((prev) => prev.filter((v) => v.id !== selectedVoucher.id));
+      setAllVouchers((prev) => prev.map((v) => v.id === updated.id ? { ...updated, stateCode: newStateCode } : v));
       showToast('success', 'Decisión registrada correctamente.');
       closeDrawer();
     } catch (e) {
@@ -83,13 +98,6 @@ export function useAdminVouchers() {
       setSubmitting(false);
     }
   };
-
-  const tabs = [
-    { key: 'pendientes' as const, label: 'Pendientes', count: activeTab === 'pendientes' ? vouchers.length : 0 },
-    { key: 'validados' as const, label: 'Validados', count: activeTab === 'validados' ? vouchers.length : 0 },
-    { key: 'observados' as const, label: 'Observados', count: activeTab === 'observados' ? vouchers.length : 0 },
-    { key: 'rechazados' as const, label: 'Rechazados', count: activeTab === 'rechazados' ? vouchers.length : 0 },
-  ];
 
   return {
     vouchers,

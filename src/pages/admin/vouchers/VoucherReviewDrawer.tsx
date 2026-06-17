@@ -87,15 +87,15 @@ export function VoucherReviewDrawer({
                 </div>
                 <div>
                   <p className="text-xs text-text-muted mb-1">Monto declarado</p>
-                  <p className="text-sm font-medium text-text">{formatCurrency(voucher.declaredAmount)}</p>
+                  <p className="text-sm font-medium text-text">{formatCurrency(voucher.paymentAmount)}</p>
                 </div>
                 <div>
                   <p className="text-xs text-text-muted mb-1">Fecha subida</p>
-                  <p className="text-sm font-medium text-text">{formatDate(voucher.uploadedAt)}</p>
+                  <p className="text-sm font-medium text-text">{formatDate(voucher.createdAt)}</p>
                 </div>
                 <div className="col-span-2">
-                  <p className="text-xs text-text-muted mb-1">Pago asociado</p>
-                  <p className="text-sm font-medium text-text">{voucher.concept}</p>
+                  <p className="text-xs text-text-muted mb-1">Concepto</p>
+                  <p className="text-sm font-medium text-text">{voucher.paymentConcept}</p>
                 </div>
                 {voucher.observation && (
                   <div className="col-span-2">
