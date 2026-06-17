@@ -8,7 +8,7 @@
 import { Loader2Icon } from 'lucide-react';
 import { Modal } from '../../../components/Modal';
 import { UserRole } from '../../../types/auth';
-import { User, UserRequest, UserCreateRequest } from '../../../services/usersApiService';
+import { User, UserCreateRequest } from '../../../services/usersApiService';
 import { TeacherCategory, AcademicDegree } from '../../../services/teachersApiService';
 import { StudentFormState, TeacherFormState } from './useUsuarios';
 
