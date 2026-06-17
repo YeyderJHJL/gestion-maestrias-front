@@ -2,7 +2,6 @@ import { FormEvent, useCallback, useEffect, useState } from 'react';
 import { useAuth } from '../../../context/AuthContext';
 import { UserRole } from '../../../types/auth';
 import {
-  UserProfileResponse,
   UserResponse,
   UserRequest,
   UserCreateRequest,
@@ -201,7 +200,7 @@ export function useUsuarios() {
         email: form.email,
         dni: form.dni?.trim() || undefined,
         role: form.role,
-        active: form.active,
+        active: form.active ?? true,
       };
 
       if (editingUser) {

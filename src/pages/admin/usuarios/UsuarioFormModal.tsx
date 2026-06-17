@@ -8,7 +8,7 @@
 import { Loader2Icon } from 'lucide-react';
 import { Modal } from '../../../components/Modal';
 import { UserRole } from '../../../types/auth';
-import { User, UserRequest } from '../../../services/usersApiService';
+import { User, UserRequest, UserCreateRequest } from '../../../services/usersApiService';
 import { TeacherCategory, AcademicDegree } from '../../../services/teachersApiService';
 import { StudentFormState, TeacherFormState } from './useUsuarios';
 
@@ -16,8 +16,8 @@ interface Props {
   isOpen: boolean;
   onClose: () => void;
   editingUser: User | null;
-  form: UserRequest;
-  setForm: (form: UserRequest) => void;
+  form: UserCreateRequest;
+  setForm: (form: UserCreateRequest) => void;
   studentForm: StudentFormState;
   setStudentForm: (form: StudentFormState) => void;
   teacherForm: TeacherFormState;
@@ -175,14 +175,14 @@ export function UsuarioFormModal({
                 <RadioPill
                   name="active"
                   value="true"
-                  checked={form.active}
+                  checked={form.active ?? true}
                   onChange={() => setForm({ ...form, active: true })}
                   label="Activo"
                 />
                 <RadioPill
                   name="active"
                   value="false"
-                  checked={!form.active}
+                  checked={!(form.active ?? true)}
                   onChange={() => setForm({ ...form, active: false })}
                   label="Inactivo"
                 />

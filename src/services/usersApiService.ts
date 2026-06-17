@@ -89,6 +89,9 @@ export interface UserProfileResponse {
   teacher?: TeacherProfileResponse | null;
 }
 
+/** @deprecated Use UserResponse instead */
+export type User = UserResponse;
+
 export interface UserResponse {
   id: string;
   email: string;
