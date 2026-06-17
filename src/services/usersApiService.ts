@@ -117,6 +117,11 @@ export async function listUsers(token: string): Promise<UserResponse[]> {
   return res.data;
 }
 
+export async function getUserById(token: string, id: string): Promise<UserResponse> {
+  const res = await apiFetch<ApiResponse<UserResponse>>(`/v1/users/${id}`, token);
+  return res.data;
+}
+
 export async function createUser(
   token: string,
   request: UserCreateRequest

@@ -40,7 +40,15 @@ export async function listStudents(token: string): Promise<StudentResponse[]> {
   return res.data;
 }
 
-export async function createStudent(token: string, request: StudentRequest): Promise<StudentResponse> {
+export async function getStudentById(token: string, id: string): Promise<StudentResponse> {
+  const res = await apiFetch<ApiResponse<StudentResponse>>(`/v1/students/${id}`, token);
+  return res.data;
+}
+
+export async function createStudent(
+  token: string,
+  request: StudentRequest
+): Promise<StudentResponse> {
   const res = await apiFetch<ApiResponse<StudentResponse>>('/v1/students', token, {
     method: 'POST',
     body: JSON.stringify(request),
