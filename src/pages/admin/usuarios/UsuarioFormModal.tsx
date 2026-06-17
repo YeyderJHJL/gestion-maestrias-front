@@ -163,10 +163,10 @@ export function UsuarioFormModal({
                 onChange={(e) => setForm({ ...form, role: e.target.value as UserRole })}
                 className={inputClass}
               >
-                <option value="Administrador">Administrador</option>
-                <option value="Coordinador">Coordinador</option>
-                <option value="Docente">Docente</option>
-                <option value="Estudiante">Estudiante</option>
+                <option value="ADMIN">Administrador</option>
+                <option value="COORDINATOR">Coordinador</option>
+                <option value="TEACHER">Docente</option>
+                <option value="STUDENT">Estudiante</option>
               </select>
             </div>
             <div className="col-span-2 space-y-1.5">
@@ -192,7 +192,7 @@ export function UsuarioFormModal({
         </div>
 
         {/* ── Datos del estudiante (cuando el rol es Estudiante) ── */}
-        {form.role === 'Estudiante' && (
+        {form.role === 'STUDENT' && (
           <div className="space-y-4">
             <SectionHeader title="Datos del estudiante" />
             <div className="grid grid-cols-2 gap-4">
@@ -275,7 +275,7 @@ export function UsuarioFormModal({
         )}
 
         {/* ── Datos del docente (cuando el rol es Docente) ── */}
-        {form.role === 'Docente' && (
+        {form.role === 'TEACHER' && (
           <div className="space-y-4">
             <SectionHeader title="Datos del docente" />
             <div className="grid grid-cols-2 gap-4">

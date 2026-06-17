@@ -8,11 +8,18 @@ import { EmptyState } from '../../../components/EmptyState';
 import { User } from '../../../services/usersApiService';
 
 // Variante visual del badge según el rol
+const ROLE_LABELS: Record<string, string> = {
+  ADMIN: 'Administrador',
+  COORDINATOR: 'Coordinador',
+  TEACHER: 'Docente',
+  STUDENT: 'Estudiante',
+};
+
 const ROLE_BADGE_VARIANT: Record<string, 'activo' | 'en-curso' | 'validado' | 'matriculado'> = {
-  Administrador: 'activo',
-  Coordinador: 'en-curso',
-  Docente: 'validado',
-  Estudiante: 'matriculado',
+  ADMIN: 'activo',
+  COORDINATOR: 'en-curso',
+  TEACHER: 'validado',
+  STUDENT: 'matriculado',
 };
 
 interface Props {
@@ -61,7 +68,7 @@ export function UsuariosTable({
           <input
             type="text"
             placeholder={
-              filterRole === 'Estudiante'
+              filterRole === 'STUDENT'
                 ? 'Buscar por nombre, correo, DNI o CUI...'
                 : 'Buscar por nombre, correo o DNI...'
             }
@@ -70,7 +77,7 @@ export function UsuariosTable({
             className="w-full pl-10 pr-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
           />
         </div>
-        {filterRole === 'Docente' && (
+        {filterRole === 'TEACHER' && (
           <select
             value={teacherTypeFilter}
             onChange={(e) => onTeacherTypeFilterChange(e.target.value)}
@@ -81,7 +88,7 @@ export function UsuariosTable({
             <option value="Externo">Externo</option>
           </select>
         )}
-        {filterRole === 'Estudiante' && (
+        {filterRole === 'STUDENT' && (
           <select
             value={studentStatusFilter}
             onChange={(e) => onStudentStatusFilterChange(e.target.value)}
@@ -98,10 +105,10 @@ export function UsuariosTable({
           className="px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
         >
           <option value="">Todos</option>
-          <option value="Administrador">Administrador</option>
-          <option value="Coordinador">Coordinador</option>
-          <option value="Docente">Docente</option>
-          <option value="Estudiante">Estudiante</option>
+          <option value="ADMIN">Administrador</option>
+          <option value="COORDINATOR">Coordinador</option>
+          <option value="TEACHER">Docente</option>
+          <option value="STUDENT">Estudiante</option>
         </select>
       </div>
 
@@ -143,14 +150,14 @@ export function UsuariosTable({
                   <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">
                     Rol
                   </th>
-                  {filterRole === 'Docente' ? (
+                  {filterRole === 'TEACHER' ? (
                     <>
                       <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">Tipo</th>
                       <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">Categoría</th>
                       <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">Grado académico</th>
                       <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">Universidad</th>
                     </>
-                  ) : filterRole === 'Estudiante' ? (
+                  ) : filterRole === 'STUDENT' ? (
                     <>
                       <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">CUI</th>
                       <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">Año promoción</th>
@@ -180,17 +187,17 @@ export function UsuariosTable({
                     <td className="px-6 py-4 text-sm text-text-muted">{user.dni ?? '—'}</td>
                     <td className="px-6 py-4">
                       <StatusBadge variant={ROLE_BADGE_VARIANT[user.role] ?? 'activo'}>
-                        {user.role}
+                        {ROLE_LABELS[user.role] ?? user.role}
                       </StatusBadge>
                     </td>
-                    {filterRole === 'Docente' ? (
+                    {filterRole === 'TEACHER' ? (
                       <>
                         <td className="px-6 py-4 text-sm text-text-muted">{user.teacher?.type ?? '—'}</td>
                         <td className="px-6 py-4 text-sm text-text-muted">{user.teacher?.category ?? '—'}</td>
                         <td className="px-6 py-4 text-sm text-text-muted">{user.teacher?.academicDegree ?? '—'}</td>
                         <td className="px-6 py-4 text-sm text-text-muted">{user.teacher?.university ?? '—'}</td>
                       </>
-                    ) : filterRole === 'Estudiante' ? (
+                    ) : filterRole === 'STUDENT' ? (
                       <>
                         <td className="px-6 py-4 text-sm text-text-muted">{user.student?.cui ?? '—'}</td>
                         <td className="px-6 py-4 text-sm text-text-muted">{user.student?.yearPromotion ?? '—'}</td>

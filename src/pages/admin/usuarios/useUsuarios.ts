@@ -49,7 +49,7 @@ const EMPTY_BASE: UserCreateRequest = {
   lastName: '',
   email: '',
   dni: '',
-  role: 'Administrador',
+  role: 'ADMIN',
   active: true,
 };
 
@@ -95,7 +95,7 @@ function mapStudentsToUsers(students: StudentResponse[]): UserResponse[] {
     firstName: s.firstName,
     lastName: s.lastName,
 
-    role: 'Estudiante' as UserRole,
+    role: 'STUDENT' as UserRole,
 
     active: true,
     createdAt: s.createdAt,
@@ -119,7 +119,7 @@ function mapTeachersToUsers(teachers: TeacherResponse[]): UserResponse[] {
     email: t.email,
     firstName: t.firstName,
     lastName: t.lastName,
-    role: 'Docente' as UserRole,
+    role: 'TEACHER' as UserRole,
     active: true,
     createdAt: t.createdAt,
     updatedAt: t.updatedAt,
@@ -142,7 +142,7 @@ export function useUsuarios() {
   const { user: authUser, token } = useAuth();
 
   // El coordinador solo puede ver, no crear ni editar ni eliminar
-  const isCoordinator = authUser?.role === 'Coordinador';
+  const isCoordinator = authUser?.role === 'COORDINATOR';
 
   // --- Estado de la lista de usuarios ---
   const [users, setUsers] = useState<UserResponse[]>([]);
@@ -199,9 +199,9 @@ export function useUsuarios() {
     }
 
     let req: Promise<UserResponse[]>;
-    if (filterRole === 'Estudiante') {
+    if (filterRole === 'STUDENT') {
       req = listStudents(token).then(mapStudentsToUsers);
-    } else if (filterRole === 'Docente') {
+    } else if (filterRole === 'TEACHER') {
       req = listTeachers(token).then(mapTeachersToUsers);
     } else {
       req = listUsers(token);
@@ -324,7 +324,7 @@ export function useUsuarios() {
       if (editingUser) {
         const updatePayload: UserUpdateRequest = { ...basePayload };
 
-        if (form.role === 'Docente') {
+        if (form.role === 'TEACHER') {
           updatePayload.teacher = {
             type: teacherForm.type,
             category: teacherForm.category || undefined,
@@ -337,7 +337,7 @@ export function useUsuarios() {
                 ? 'Universidad Nacional de San Agustín'
                 : teacherForm.university.trim() || undefined,
           };
-        } else if (form.role === 'Estudiante') {
+        } else if (form.role === 'STUDENT') {
           updatePayload.student = {
             yearPromotion: studentForm.yearPromotion,
             status: studentForm.status,
@@ -351,7 +351,7 @@ export function useUsuarios() {
         showToast('success', 'Usuario actualizado correctamente.');
       } else {
         const createPayload: UserCreateRequest = { ...basePayload };
-        if (form.role === 'Estudiante') {
+        if (form.role === 'STUDENT') {
           createPayload.student = {
             yearPromotion: studentForm.yearPromotion,
             status: studentForm.status,
@@ -359,7 +359,7 @@ export function useUsuarios() {
             paymentCode: studentForm.paymentCode,
             phone: studentForm.phone || undefined,
           };
-        } else if (form.role === 'Docente') {
+        } else if (form.role === 'TEACHER') {
           createPayload.teacher = {
             type: teacherForm.type,
             category: teacherForm.category || undefined,
@@ -415,7 +415,7 @@ export function useUsuarios() {
         fullName.includes(term) ||
         u.email.toLowerCase().includes(term) ||
         (u.dni ?? '').toLowerCase().includes(term) ||
-        (filterRole === 'Estudiante' && (u.student?.cui ?? '').toLowerCase().includes(term));
+        (filterRole === 'STUDENT' && (u.student?.cui ?? '').toLowerCase().includes(term));
       const matchesRole = !filterRole || u.role === filterRole;
       const matchesTeacherType = !teacherTypeFilter || u.teacher?.type === teacherTypeFilter;
       const matchesStudentStatus = !studentStatusFilter || u.student?.status === studentStatusFilter;
