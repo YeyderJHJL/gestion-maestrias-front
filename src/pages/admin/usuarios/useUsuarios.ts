@@ -125,10 +125,10 @@ function mapTeachersToUsers(teachers: TeacherResponse[]): UserResponse[] {
     updatedAt: t.updatedAt,
     teacher: {
       id: t.id,
-      type: t.type,
-      category: t.category,
+      type: t.type as TeacherType,
+      category: t.category as TeacherCategory | undefined,
       regime: t.regime,
-      academicDegree: t.academicDegree,
+      academicDegree: t.academicDegree as AcademicDegree | undefined,
       specialty: t.specialty,
       phone: t.phone,
       university: t.university,
