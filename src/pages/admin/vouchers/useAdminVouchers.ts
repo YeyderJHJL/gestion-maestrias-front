@@ -22,7 +22,7 @@ const DECISION_TO_ACTION: Record<Decision, 'VALIDATE' | 'OBSERVE' | 'REJECT'> = 
 
 export function useAdminVouchers() {
   const { user, token } = useAuth();
-  const isCoordinator = user?.role === 'Coordinador';
+  const isCoordinator = user?.role === 'COORDINATOR';
 
   const [vouchers, setVouchers] = useState<VoucherResponse[]>([]);
   const [loading, setLoading] = useState(true);

@@ -42,7 +42,7 @@ const availableCourses = [
 
 export function AdminMatriculas() {
   const { user } = useAuth();
-  const isCoordinator = user?.role === 'Coordinador';
+  const isCoordinator = user?.role === 'COORDINATOR';
 
   const [searchTerm, setSearchTerm] = useState('');
   const [showStudent, setShowStudent] = useState(false);
