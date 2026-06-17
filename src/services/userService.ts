@@ -2,10 +2,10 @@ import { apiFetch } from './api';
 import { AuthUser, UserRole } from '../types/auth';
 
 const ROLE_MAP: Record<string, UserRole> = {
-  Administrador: 'Administrador',
-  Docente: 'Docente',
-  Estudiante: 'Estudiante',
-  Coordinador: 'Coordinador',
+  ADMIN: 'ADMIN', Administrador: 'ADMIN',
+  TEACHER: 'TEACHER', Docente: 'TEACHER',
+  STUDENT: 'STUDENT', Estudiante: 'STUDENT',
+  COORDINATOR: 'COORDINATOR', Coordinador: 'COORDINATOR',
 };
 
 function normalizeRole(raw: string): UserRole {

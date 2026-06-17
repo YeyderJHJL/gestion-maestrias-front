@@ -4,6 +4,13 @@ import { UserRole } from '../types/auth';
 import { AcademicDegree, TeacherCategory, TeacherType } from './teachersApiService';
 import { StudentStatus } from './studentsApiService';
 
+const ROLE_NORMALIZE: Record<string, UserRole> = {
+  ADMIN: 'ADMIN', Administrador: 'ADMIN',
+  TEACHER: 'TEACHER', Docente: 'TEACHER',
+  STUDENT: 'STUDENT', Estudiante: 'STUDENT',
+  COORDINATOR: 'COORDINATOR', Coordinador: 'COORDINATOR',
+};
+
 export interface StudentProfileRequest {
   yearPromotion: number;
   status?: StudentStatus;
@@ -114,12 +121,18 @@ interface ApiResponse<T> {
 
 export async function listUsers(token: string): Promise<UserResponse[]> {
   const res = await apiFetch<ApiResponse<UserResponse[]>>('/v1/users', token);
-  return res.data;
+  return res.data.map((u) => ({
+    ...u,
+    role: (ROLE_NORMALIZE[u.role as string] ?? u.role) as UserRole,
+  }));
 }
 
 export async function getUserById(token: string, id: string): Promise<UserResponse> {
   const res = await apiFetch<ApiResponse<UserResponse>>(`/v1/users/${id}`, token);
-  return res.data;
+  return {
+    ...res.data,
+    role: (ROLE_NORMALIZE[res.data.role as string] ?? res.data.role) as UserRole,
+  };
 }
 
 export async function createUser(
