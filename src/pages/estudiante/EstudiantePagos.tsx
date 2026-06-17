@@ -2,8 +2,9 @@ import { Fragment, useState } from 'react';
 import { EstudianteLayout } from '../../layouts/EstudianteLayout';
 import { StatusBadge } from '../../components/StatusBadge';
 import { FileUpload } from '../../components/FileUpload';
+import { Modal } from '../../components/Modal';
 import { Toast } from '../../components/Toast';
-import { ChevronDownIcon, CheckCircleIcon, Loader2Icon } from 'lucide-react';
+import { ChevronDownIcon, CheckCircleIcon, Loader2Icon, ImageIcon } from 'lucide-react';
 import { useEstudiantePagos } from './useEstudiantePagos';
 
 const formatDate = (iso: string) =>
@@ -32,6 +33,7 @@ export function EstudiantePagos() {
   } = useEstudiantePagos();
 
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
+  const [guideOpen, setGuideOpen] = useState(false);
 
   return (
     <EstudianteLayout>
@@ -163,6 +165,15 @@ export function EstudiantePagos() {
                   label="Arrastra el comprobante aquí o haz clic para seleccionar"
                 />
 
+                <button
+                  type="button"
+                  onClick={() => setGuideOpen(true)}
+                  className="flex items-center gap-1.5 text-sm text-primary hover:text-primary-light transition-colors"
+                >
+                  <ImageIcon className="w-4 h-4" />
+                  Ver imágenes de referencia
+                </button>
+
                 {formError && (
                   <p className="text-sm text-accent bg-accent/10 border border-accent/30 rounded-lg px-4 py-2">
                     {formError}
@@ -201,7 +212,51 @@ export function EstudiantePagos() {
             )}
           </div>
         </div>
+
       </div>
+
+      <Modal
+        isOpen={guideOpen}
+        onClose={() => setGuideOpen(false)}
+        title="Imágenes de referencia"
+        size="lg"
+      >
+        <p className="text-sm text-text-muted mb-6">
+          Asegúrate de que tu comprobante sea legible y muestre claramente el monto, fecha y número de operación.
+        </p>
+        <div className="grid grid-cols-3 gap-4">
+          <div className="space-y-2">
+            <div className="aspect-[3/4] rounded-lg border border-border bg-surface-alt overflow-hidden">
+              <img
+                src="/img/guia-voucher-yape.png"
+                alt="Ejemplo de voucher por Yape"
+                className="w-full h-full object-contain p-2"
+              />
+            </div>
+            <p className="text-sm font-semibold text-text text-center">Pago por YAPE</p>
+          </div>
+          <div className="space-y-2">
+            <div className="aspect-[3/4] rounded-lg border border-border bg-surface-alt overflow-hidden">
+              <img
+                src="/img/guia-voucher-bcp.png"
+                alt="Ejemplo de voucher por BCP"
+                className="w-full h-full object-contain p-2"
+              />
+            </div>
+            <p className="text-sm font-semibold text-text text-center">Pago por BCP</p>
+          </div>
+          <div className="space-y-2">
+            <div className="aspect-[3/4] rounded-lg border border-border bg-surface-alt overflow-hidden">
+              <img
+                src="/img/guia-voucher-agente.png"
+                alt="Ejemplo de voucher por agente"
+                className="w-full h-full object-contain p-2"
+              />
+            </div>
+            <p className="text-sm font-semibold text-text text-center">Pago por AGENTE</p>
+          </div>
+        </div>
+      </Modal>
 
       <Toast
         variant={toast.variant}
