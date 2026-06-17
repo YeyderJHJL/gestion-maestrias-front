@@ -1,11 +1,14 @@
 import { apiFetch } from './api';
-import { UserRequest } from './usersApiService';
+
+// --- Tipos de filas parseadas desde Excel (se envían al backend) ---
 
 export interface ImportStudentRow {
   firstName: string;
   lastName: string;
   email: string;
-  dni?: string;
+  dni: string;            // @NotBlank en backend — obligatorio
+  yearPromotion: number;  // año de ingreso, ej: 2024 (reemplaza promotionId)
+  status: 'REGULAR' | 'REACTUALIZATION'; // default REGULAR si no viene en el Excel
   cui: string;
   paymentCode: string;
   phone?: string;
@@ -22,7 +25,10 @@ export interface ImportTeacherRow {
   academicDegree?: 'Magister' | 'Doctor';
   specialty?: string;
   phone?: string;
+  university?: string;
 }
+
+// --- Forma pública del resultado (usada por la UI) ---
 
 export interface ImportResult {
   total: number;
@@ -31,61 +37,82 @@ export interface ImportResult {
   errors: { row: number; reason: string }[];
 }
 
+// --- Tipos internos de respuesta del backend ---
+
+// POST /api/v1/teachers/bulk → TeacherImportResult
+interface TeacherBulkRowResult {
+  row: number;
+  status: 'SUCCESS' | 'REJECTED';
+  email: string;
+  reason?: string;
+}
+
+interface TeacherImportResult {
+  imported: number;
+  rejected: number;
+  results: TeacherBulkRowResult[];
+}
+
+// POST /api/v1/students/bulk → StudentImportResponse
+interface StudentImportRowResult {
+  rowNumber: number;       // campo es rowNumber, no row
+  email: string;
+  status: 'IMPORTED' | 'REJECTED';
+  observations?: string[]; // lista de motivos, no campo reason
+}
+
+interface StudentImportResponse {
+  totalRows: number;
+  imported: number;
+  rejected: number;
+  results: StudentImportRowResult[];
+}
+
 interface ApiResponse<T> {
   success: boolean;
   data: T;
   message: string | null;
 }
 
-export async function importStudents(
-  token: string,
-  rows: ImportStudentRow[]
-): Promise<ImportResult> {
-  const payload: UserRequest[] = rows.map((row) => ({
-    firstName: row.firstName,
-    lastName: row.lastName,
-    email: row.email,
-    dni: row.dni,
-    role: 'Estudiante',
-    active: true,
-    student: {
-      cui: row.cui,
-      paymentCode: row.paymentCode,
-      phone: row.phone,
-    },
-  }));
-
-  const res = await apiFetch<ApiResponse<ImportResult>>('/v1/users/import/students', token, {
-    method: 'POST',
-    body: JSON.stringify(payload),
-  });
-  return res.data;
-}
-
+// POST /v1/teachers/bulk
 export async function importTeachers(
   token: string,
   rows: ImportTeacherRow[]
 ): Promise<ImportResult> {
-  const payload: UserRequest[] = rows.map((row) => ({
-    firstName: row.firstName,
-    lastName: row.lastName,
-    email: row.email,
-    dni: row.dni,
-    role: 'Docente',
-    active: true,
-    teacher: {
-      type: row.type,
-      category: row.category || undefined,
-      regime: row.regime,
-      academicDegree: row.academicDegree || undefined,
-      specialty: row.specialty,
-      phone: row.phone,
-    },
-  }));
-
-  const res = await apiFetch<ApiResponse<ImportResult>>('/v1/users/import/teachers', token, {
+  const res = await apiFetch<ApiResponse<TeacherImportResult>>('/v1/teachers/bulk', token, {
     method: 'POST',
-    body: JSON.stringify(payload),
+    body: JSON.stringify(rows),
   });
-  return res.data;
+  const data = res.data;
+  return {
+    total: data.imported + data.rejected,
+    created: data.imported,
+    failed: data.rejected,
+    errors: data.results
+      .filter((r) => r.status === 'REJECTED')
+      .map((r) => ({ row: r.row, reason: r.reason ?? 'Error desconocido' })),
+  };
+}
+
+// POST /v1/students/bulk
+export async function importStudents(
+  token: string,
+  rows: ImportStudentRow[]
+): Promise<ImportResult> {
+  const res = await apiFetch<ApiResponse<StudentImportResponse>>('/v1/students/bulk', token, {
+    method: 'POST',
+    body: JSON.stringify(rows),
+  });
+  const data = res.data;
+  return {
+    total: data.totalRows,
+    created: data.imported,
+    failed: data.rejected,
+    errors: data.results
+      .filter((r) => r.status === 'REJECTED')
+      .map((r) => ({
+        row: r.rowNumber,
+        reason: r.observations?.join('; ') ?? 'Error desconocido',
+      })),
+  };
 }

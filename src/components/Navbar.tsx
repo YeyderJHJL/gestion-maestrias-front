@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { LogOutIcon, ChevronDownIcon, UserIcon, CreditCardIcon, HashIcon } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { UserRole } from '../types/auth';

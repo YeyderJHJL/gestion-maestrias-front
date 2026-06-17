@@ -30,10 +30,16 @@ const STUDENT_ALIASES: Record<string, string> = {
   correoinstitucional: 'email',
   // dni
   dni: 'dni',
-  // yearPromotion
-  yearpromotion: 'yearPromotion', añodepromocion: 'yearPromotion',
-  anodepromocion: 'yearPromotion', promocion: 'yearPromotion', año: 'yearPromotion',
+  // yearPromotion — año de ingreso del estudiante (reemplaza promotionId)
+  // las claves deben estar pre-normalizadas (sin tildes, sin espacios, lowercase)
+  yearpromotion: 'yearPromotion',
+  anopromocion: 'yearPromotion',   // "añopromocion" normalizado
+  aniopromocion: 'yearPromotion',
+  anodepromocion: 'yearPromotion', // "Año de Promoción" normalizado
+  aniodepromocion: 'yearPromotion',
+  anio: 'yearPromotion',
   ano: 'yearPromotion',
+  promocion: 'yearPromotion',
   // status
   status: 'status', estado: 'status',
   // cui
@@ -113,11 +119,16 @@ async function readExcelRows(file: File): Promise<Record<string, unknown>[]> {
   return rows;
 }
 
-// Extrae un string requerido; lanza error con número de fila si está vacío
-function requireString(row: Record<string, unknown>, key: string, rowIndex: number): string {
+// Extrae un string requerido; lanza error con número de fila y nombre visible de columna
+function requireString(
+  row: Record<string, unknown>,
+  key: string,
+  rowIndex: number,
+  label?: string
+): string {
   const value = String(row[key] ?? '').trim();
   if (!value) {
-    throw new Error(`Fila ${rowIndex + 2}: la columna "${key}" es obligatoria y está vacía.`);
+    throw new Error(`Fila ${rowIndex + 2}: la columna "${label ?? key}" es obligatoria y está vacía.`);
   }
   return value;
 }
@@ -131,46 +142,60 @@ function optionalString(row: Record<string, unknown>, key: string): string | und
 // --- Parsers públicos ---
 
 // Parsea un Excel de estudiantes.
-// Acepta encabezados en inglés o español (ej: "firstName" = "Nombres").
-// Requeridos: firstName, lastName, email, cui, paymentCode, yearPromotion
-// Opcionales: dni, phone, status
+// Acepta encabezados en inglés o español (ej: "yearPromotion" = "Año de Promoción").
+// Requeridos: firstName, lastName, email, dni, yearPromotion, cui, paymentCode
+// Opcionales: phone, status
 export async function parseStudentsExcel(file: File): Promise<ImportStudentRow[]> {
-  const VALID_STATUSES = ['Regular', 'Reactualizacion'] as const;
-
   const rawRows = await readExcelRows(file);
+
+  // Detectar tipo de archivo sobre los headers crudos (antes del alias map)
+  const rawHeaders = Object.keys(rawRows[0] ?? {}).map(normalize);
+  const teacherSignals = ['tipo', 'type', 'categoria', 'category', 'universidad', 'university', 'especialidad', 'specialty'];
+  const studentSignals = ['anodepromocion', 'aniopromocion', 'yearpromotion', 'cui', 'paymentcode', 'codigopago'];
+  if (teacherSignals.some((s) => rawHeaders.includes(s)) && !studentSignals.some((s) => rawHeaders.includes(s))) {
+    throw new Error('Este archivo parece ser un Excel de docentes. Cambia a la pestaña "Docentes" para importarlo.');
+  }
+
   const rows = normalizeRowKeys(rawRows, STUDENT_ALIASES);
+  const currentYear = new Date().getFullYear();
+  const errors: string[] = [];
 
-  return rows.map((row, i) => {
-    const yearRaw = String(row['yearPromotion'] ?? '').trim();
-    if (!yearRaw) {
-      throw new Error(`Fila ${i + 2}: la columna "yearPromotion" es obligatoria y está vacía.`);
-    }
-    const yearPromotion = Number(yearRaw);
-    if (!Number.isInteger(yearPromotion) || yearPromotion < 2001) {
-      throw new Error(
-        `Fila ${i + 2}: "yearPromotion" debe ser un año entero >= 2001 (valor: "${yearRaw}").`
-      );
-    }
+  const parsed = rows.map((row, i) => {
+    try {
+      const yearRaw = String(row['yearPromotion'] ?? '').trim();
+      const yearPromotion = Number(yearRaw);
 
-    const status = optionalString(row, 'status');
-    if (status && !VALID_STATUSES.includes(status as (typeof VALID_STATUSES)[number])) {
-      throw new Error(
-        `Fila ${i + 2}: "status" debe ser "Regular" o "Reactualizacion" (valor: "${status}").`
-      );
-    }
+      if (!yearRaw) {
+        throw new Error(`Fila ${i + 2}: "Año de Promoción" es obligatorio y está vacío.`);
+      }
+      if (isNaN(yearPromotion) || yearPromotion < 2001 || yearPromotion > currentYear) {
+        throw new Error(
+          `Fila ${i + 2}: "Año de Promoción" debe ser un año entre 2001 y ${currentYear} (valor: "${yearRaw}").`
+        );
+      }
 
-    return {
-      firstName:     requireString(row, 'firstName', i),
-      lastName:      requireString(row, 'lastName', i),
-      email:         requireString(row, 'email', i),
-      yearPromotion,
-      status:        (status as ImportStudentRow['status']) ?? 'Regular',
-      cui:           requireString(row, 'cui', i),
-      paymentCode:   requireString(row, 'paymentCode', i),
-      dni:           optionalString(row, 'dni'),
-      phone:         optionalString(row, 'phone'),
-    };
+      const statusRaw = optionalString(row, 'status')?.toUpperCase();
+      const status = (statusRaw === 'REACTUALIZATION' ? 'REACTUALIZATION' : 'REGULAR') as 'REGULAR' | 'REACTUALIZATION';
+
+      return {
+        firstName:    requireString(row, 'firstName', i, 'Nombres'),
+        lastName:     requireString(row, 'lastName', i, 'Apellidos'),
+        email:        requireString(row, 'email', i, 'Correo'),
+        dni:          requireString(row, 'dni', i, 'DNI'),
+        yearPromotion,
+        status,
+        cui:          requireString(row, 'cui', i, 'CUI'),
+        paymentCode:  requireString(row, 'paymentCode', i, 'Código de Pago'),
+        phone:        optionalString(row, 'phone'),
+      };
+    } catch (e) {
+      errors.push(e instanceof Error ? e.message : `Fila ${i + 2}: error desconocido.`);
+      return null;
+    }
   });
+
+  if (errors.length > 0) throw new Error(errors.join('\n'));
+  return parsed as ImportStudentRow[];
 }
 
 // Parsea un Excel de docentes.
@@ -178,47 +203,64 @@ export async function parseStudentsExcel(file: File): Promise<ImportStudentRow[]
 // Requeridos: firstName, lastName, email, type (Interno | Externo)
 // Opcionales: dni, category, regime, academicDegree, specialty, phone, university
 export async function parseTeachersExcel(file: File): Promise<ImportTeacherRow[]> {
-  const VALID_TYPES     = ['Interno', 'Externo'] as const;
+  const VALID_TYPES      = ['Interno', 'Externo'] as const;
   const VALID_CATEGORIES = ['Principal', 'Asociado', 'Auxiliar'] as const;
-  const VALID_DEGREES   = ['Magister', 'Doctor'] as const;
+  const VALID_DEGREES    = ['Magister', 'Doctor'] as const;
 
   const rawRows = await readExcelRows(file);
+
+  // Detectar tipo de archivo sobre los headers crudos (antes del alias map)
+  const rawHeaders = Object.keys(rawRows[0] ?? {}).map(normalize);
+  const studentSignals = ['anodepromocion', 'aniopromocion', 'yearpromotion', 'cui', 'paymentcode', 'codigopago'];
+  const teacherSignals = ['tipo', 'type', 'categoria', 'category', 'universidad', 'university', 'especialidad', 'specialty'];
+  if (studentSignals.some((s) => rawHeaders.includes(s)) && !teacherSignals.some((s) => rawHeaders.includes(s))) {
+    throw new Error('Este archivo parece ser un Excel de estudiantes. Cambia a la pestaña "Estudiantes" para importarlo.');
+  }
+
   const rows = normalizeRowKeys(rawRows, TEACHER_ALIASES);
 
-  return rows.map((row, i) => {
-    const type = requireString(row, 'type', i);
-    if (!VALID_TYPES.includes(type as (typeof VALID_TYPES)[number])) {
-      throw new Error(
-        `Fila ${i + 2}: "type" debe ser "Interno" o "Externo" (valor: "${type}").`
-      );
-    }
+  // Busca el valor canonical ignorando mayúsculas/minúsculas
+  function matchEnum<T extends string>(raw: string, valid: readonly T[], field: string, rowNum: number): T {
+    const match = valid.find((v) => v.toLowerCase() === raw.toLowerCase());
+    if (!match) throw new Error(`Fila ${rowNum}: "${field}" debe ser ${valid.join(' o ')} (valor: "${raw}").`);
+    return match;
+  }
 
-    const category = optionalString(row, 'category');
-    if (category && !VALID_CATEGORIES.includes(category as (typeof VALID_CATEGORIES)[number])) {
-      throw new Error(
-        `Fila ${i + 2}: "category" debe ser Principal, Asociado o Auxiliar (valor: "${category}").`
-      );
-    }
+  const errors: string[] = [];
 
-    const academicDegree = optionalString(row, 'academicDegree');
-    if (academicDegree && !VALID_DEGREES.includes(academicDegree as (typeof VALID_DEGREES)[number])) {
-      throw new Error(
-        `Fila ${i + 2}: "academicDegree" debe ser "Magister" o "Doctor" (valor: "${academicDegree}").`
-      );
-    }
+  const parsed = rows.map((row, i) => {
+    try {
+      const typeRaw = requireString(row, 'type', i, 'Tipo');
+      const type = matchEnum(typeRaw, VALID_TYPES, 'Tipo', i + 2);
 
-    return {
-      firstName:      requireString(row, 'firstName', i),
-      lastName:       requireString(row, 'lastName', i),
-      email:          requireString(row, 'email', i),
-      type:           type as 'Interno' | 'Externo',
-      dni:            optionalString(row, 'dni'),
-      category:       category as ImportTeacherRow['category'],
-      regime:         optionalString(row, 'regime'),
-      academicDegree: academicDegree as ImportTeacherRow['academicDegree'],
-      specialty:      optionalString(row, 'specialty'),
-      phone:          optionalString(row, 'phone'),
-      university:     optionalString(row, 'university'),
-    };
+      const categoryRaw = optionalString(row, 'category');
+      const category = categoryRaw ? matchEnum(categoryRaw, VALID_CATEGORIES, 'Categoría', i + 2) : undefined;
+
+      const degreeRaw = optionalString(row, 'academicDegree');
+      const academicDegree = degreeRaw ? matchEnum(degreeRaw, VALID_DEGREES, 'Grado académico', i + 2) : undefined;
+
+      return {
+        firstName:      requireString(row, 'firstName', i, 'Nombres'),
+        lastName:       requireString(row, 'lastName', i, 'Apellidos'),
+        email:          requireString(row, 'email', i, 'Correo'),
+        type:           type as 'Interno' | 'Externo',
+        dni:            optionalString(row, 'dni'),
+        category:       category as ImportTeacherRow['category'],
+        regime:         optionalString(row, 'regime'),
+        academicDegree: academicDegree as ImportTeacherRow['academicDegree'],
+        specialty:      optionalString(row, 'specialty'),
+        phone:          optionalString(row, 'phone'),
+        // Internos pertenecen a UNSA por defecto si no se especifica otra universidad
+        university: type === 'Interno'
+          ? (optionalString(row, 'university') ?? 'Universidad Nacional de San Agustín')
+          : optionalString(row, 'university'),
+      };
+    } catch (e) {
+      errors.push(e instanceof Error ? e.message : `Fila ${i + 2}: error desconocido.`);
+      return null;
+    }
   });
+
+  if (errors.length > 0) throw new Error(errors.join('\n'));
+  return parsed as ImportTeacherRow[];
 }

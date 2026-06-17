@@ -1,4 +1,3 @@
-import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { XIcon, CheckIcon, AlertTriangleIcon } from 'lucide-react';
 import { VoucherResponse } from '../../../types/voucher';

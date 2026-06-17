@@ -6,6 +6,7 @@ import {
   UserResponse,
   UserRequest,
   UserCreateRequest,
+  UserUpdateRequest,
   listUsers,
   createUser,
   updateUser,
@@ -29,7 +30,8 @@ export type TeacherFormState = {
   category: TeacherCategory | '';
   regime: string;
   academicDegree: AcademicDegree | '';
-  specialty: string;
+  department: string;
+  university: string;
   phone: string;
 };
 
@@ -57,7 +59,8 @@ const EMPTY_TEACHER: TeacherFormState = {
   category: '',
   regime: '',
   academicDegree: '',
-  specialty: '',
+  department: '',
+  university: '',
   phone: '',
 };
 
@@ -75,6 +78,15 @@ export function useUsuarios() {
   // --- Filtros de búsqueda y rol ---
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRole, setFilterRole] = useState('');
+  const [teacherTypeFilter, setTeacherTypeFilter] = useState('');
+  const [studentStatusFilter, setStudentStatusFilter] = useState('');
+
+  // Resetear filtros contextuales al cambiar de rol
+  useEffect(() => {
+    setTeacherTypeFilter('');
+    setStudentStatusFilter('');
+    setSearchTerm('');
+  }, [filterRole]);
 
   // --- Estado del modal de creación y edición ---
   const [isUserModalOpen, setIsUserModalOpen] = useState(false);
@@ -133,6 +145,30 @@ export function useUsuarios() {
       role: user.role as UserRole,
       active: user.active,
     });
+    if (user.teacher) {
+      setTeacherForm({
+        type: user.teacher.type as TeacherFormState['type'],
+        category: (user.teacher.category as TeacherFormState['category']) ?? '',
+        regime: user.teacher.regime ?? '',
+        academicDegree: (user.teacher.academicDegree as TeacherFormState['academicDegree']) ?? '',
+        department: user.teacher.specialty ?? '',
+        university: user.teacher.university ?? '',
+        phone: user.teacher.phone ?? '',
+      });
+    } else {
+      setTeacherForm(EMPTY_TEACHER);
+    }
+    if (user.student) {
+      setStudentForm({
+        yearPromotion: user.student.yearPromotion ?? new Date().getFullYear(),
+        status: (user.student.status as StudentFormState['status']) ?? 'Regular',
+        cui: user.student.cui ?? '',
+        paymentCode: user.student.paymentCode ?? '',
+        phone: user.student.phone ?? '',
+      });
+    } else {
+      setStudentForm(EMPTY_STUDENT);
+    }
     setFormError(null);
     setIsUserModalOpen(true);
   };
@@ -169,7 +205,34 @@ export function useUsuarios() {
       };
 
       if (editingUser) {
-        await updateUser(token, editingUser.id, basePayload);
+        // En edición, además del base, se actualizan los datos de teacher/student
+        // según el rol del usuario (campos opcionales: solo se mandan los que aplican).
+        const updatePayload: UserUpdateRequest = { ...basePayload };
+
+        if (form.role === 'Docente') {
+          updatePayload.teacher = {
+            type: teacherForm.type,
+            category: teacherForm.category || undefined,
+            regime: teacherForm.regime.trim() || undefined,
+            academicDegree: teacherForm.academicDegree || undefined,
+            specialty: teacherForm.department.trim() || undefined,
+            phone: teacherForm.phone.trim() || undefined,
+            university:
+              teacherForm.type === 'Interno'
+                ? 'Universidad Nacional de San Agustín'
+                : teacherForm.university.trim() || undefined,
+          };
+        } else if (form.role === 'Estudiante') {
+          updatePayload.student = {
+            yearPromotion: studentForm.yearPromotion,
+            status: studentForm.status,
+            cui: studentForm.cui.trim() || undefined,
+            paymentCode: studentForm.paymentCode.trim() || undefined,
+            phone: studentForm.phone.trim() || undefined,
+          };
+        }
+
+        await updateUser(token, editingUser.id, updatePayload);
         showToast('success', 'Usuario actualizado correctamente.');
       } else {
         const createPayload: UserCreateRequest = { ...basePayload };
@@ -183,9 +246,16 @@ export function useUsuarios() {
           };
         } else if (form.role === 'Docente') {
           createPayload.teacher = {
-            ...teacherForm,
+            type: teacherForm.type,
             category: teacherForm.category || undefined,
+            regime: teacherForm.regime.trim() || undefined,
             academicDegree: teacherForm.academicDegree || undefined,
+            specialty: teacherForm.department.trim() || undefined,
+            phone: teacherForm.phone.trim() || undefined,
+            university:
+              teacherForm.type === 'Interno'
+                ? 'Universidad Nacional de San Agustín'
+                : teacherForm.university.trim() || undefined,
           };
         }
         await createUser(token, createPayload);
@@ -221,13 +291,18 @@ export function useUsuarios() {
   const filteredUsers = users
     .filter((u) => u.id !== authUser?.id)
     .filter((u) => {
+      const term = searchTerm.toLowerCase();
       const fullName = `${u.firstName} ${u.lastName}`.toLowerCase();
       const matchesSearch =
         !searchTerm ||
-        fullName.includes(searchTerm.toLowerCase()) ||
-        u.email.toLowerCase().includes(searchTerm.toLowerCase());
+        fullName.includes(term) ||
+        u.email.toLowerCase().includes(term) ||
+        (u.dni ?? '').toLowerCase().includes(term) ||
+        (filterRole === 'Estudiante' && (u.student?.cui ?? '').toLowerCase().includes(term));
       const matchesRole = !filterRole || u.role === filterRole;
-      return matchesSearch && matchesRole;
+      const matchesTeacherType = !teacherTypeFilter || u.teacher?.type === teacherTypeFilter;
+      const matchesStudentStatus = !studentStatusFilter || u.student?.status === studentStatusFilter;
+      return matchesSearch && matchesRole && matchesTeacherType && matchesStudentStatus;
     });
 
   return {
@@ -240,6 +315,10 @@ export function useUsuarios() {
     setSearchTerm,
     filterRole,
     setFilterRole,
+    teacherTypeFilter,
+    setTeacherTypeFilter,
+    studentStatusFilter,
+    setStudentStatusFilter,
     // Permisos del usuario en sesión
     isCoordinator,
     // Modal crear / editar

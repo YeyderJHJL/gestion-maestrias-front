@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { ChevronDownIcon, ChevronRightIcon, PlusIcon, Loader2Icon, EditIcon, XIcon, BookOpenIcon, UsersIcon } from 'lucide-react';
 import { AdminLayout } from '../../../layouts/AdminLayout';
 import { ConfirmationModal } from '../../../components/ConfirmationModal';

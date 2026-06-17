@@ -63,6 +63,16 @@ export function useImportFlow<T>({ parseFile, submitRows }: UseImportFlowOptions
     }
   };
 
+  // Actualiza los campos de una fila existente (edición inline en preview)
+  const updateRow = (idx: number, patch: Record<string, unknown>) => {
+    setRows((prev) => prev.map((r, i) => (i === idx ? { ...r, ...patch } as T : r)));
+  };
+
+  // Elimina una fila de la lista (el usuario la descarta en preview)
+  const deleteRow = (idx: number) => {
+    setRows((prev) => prev.filter((_, i) => i !== idx));
+  };
+
   // Vuelve al paso inicial limpiando todo el estado
   const reset = () => {
     setStep('upload');
@@ -84,6 +94,8 @@ export function useImportFlow<T>({ parseFile, submitRows }: UseImportFlowOptions
     uploadKey,
     handleFileSelect,
     handleConfirm,
+    updateRow,
+    deleteRow,
     reset,
   };
 }

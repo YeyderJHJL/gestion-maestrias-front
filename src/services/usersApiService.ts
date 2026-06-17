@@ -43,6 +43,13 @@ export interface UserRequest {
   active: boolean;
 }
 
+// Actualización parcial: todos los subcampos de teacher/student son opcionales,
+// ya que en modo edición el usuario puede dejar campos sin tocar.
+export interface UserUpdateRequest extends UserRequest {
+  teacher?: Partial<TeacherProfileRequest>;
+  student?: Partial<StudentProfileRequest>;
+}
+
 export interface StudentProfileResponse {
   id: string;
   yearPromotion: number;
@@ -92,6 +99,8 @@ export interface UserResponse {
   active: boolean;
   createdAt: string;
   updatedAt: string;
+  student?: StudentProfileResponse | null;
+  teacher?: TeacherProfileResponse | null;
 }
 
 interface ApiResponse<T> {
@@ -119,7 +128,7 @@ export async function createUser(
 export async function updateUser(
   token: string,
   id: string,
-  request: UserRequest
+  request: UserUpdateRequest
 ): Promise<UserProfileResponse> {
   const res = await apiFetch<ApiResponse<UserProfileResponse>>(`/v1/users/${id}`, token, {
     method: 'PUT',

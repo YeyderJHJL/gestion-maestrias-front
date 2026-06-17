@@ -1,4 +1,3 @@
-import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { XIcon } from 'lucide-react';
 interface ModalProps {
@@ -54,10 +53,11 @@ export function Modal({
               opacity: 0,
               scale: 0.95
             }}
-            className={`bg-surface rounded-lg shadow-xl w-full ${sizeClasses[size]} my-8 ${accentBorder ? 'border-t-4 border-accent' : ''}`}
+            className={`bg-surface rounded-lg shadow-xl w-full ${sizeClasses[size]} my-8 max-h-[90vh] flex flex-col ${accentBorder ? 'border-t-4 border-accent' : ''}`}
             onClick={(e) => e.stopPropagation()}>
-            
-              <div className="flex items-center justify-between p-6 border-b border-border">
+
+              {/* Encabezado fijo — nunca se desplaza */}
+              <div className="flex items-center justify-between px-6 py-4 border-b border-border flex-shrink-0">
                 <h2 className="text-xl font-serif font-bold text-text">
                   {title}
                 </h2>
@@ -65,11 +65,12 @@ export function Modal({
                 onClick={onClose}
                 className="text-text-muted hover:text-text transition-colors"
                 aria-label="Cerrar">
-                
+
                   <XIcon className="w-6 h-6" />
                 </button>
               </div>
-              <div className="p-6">{children}</div>
+              {/* Contenido desplazable cuando supera el alto de la ventana */}
+              <div className="p-6 overflow-y-auto flex-1">{children}</div>
             </motion.div>
           </div>
         </>

@@ -1,12 +1,12 @@
 // Página de migración de datos con dos módulos independientes:
-//   - Estudiantes: parsea el Excel y envía a POST /v1/students/import
-//   - Docentes: parsea el Excel y envía a POST /v1/teachers/import
+//   - Estudiantes: parsea el Excel y envía a POST /v1/students/bulk
+//   - Docentes: parsea el Excel y envía a POST /v1/teachers/bulk
 //
 // Ambos flujos comparten el mismo componente ImportFlow de 4 pasos.
 // El selector de tabs controla cuál está activo sin desmontar el otro,
 // para que el usuario no pierda su estado si cambia de tab accidentalmente.
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { FileSpreadsheetIcon } from 'lucide-react';
 import { AdminLayout } from '../../../layouts/AdminLayout';
 import { ImportFlow, ColumnDef } from './ImportFlow';
@@ -20,31 +20,47 @@ type Tab = 'students' | 'teachers';
 // --- Definición de columnas para estudiantes ---
 // Usadas tanto en la tabla de preview como en la guía de formato
 const STUDENT_COLUMNS: ColumnDef[] = [
-  { key: 'firstName',    label: 'Nombres',           required: true  },
-  { key: 'lastName',     label: 'Apellidos',          required: true  },
-  { key: 'email',        label: 'Correo',             required: true  },
-  { key: 'dni',          label: 'DNI',                required: false },
-  { key: 'yearPromotion',label: 'Año de promoción',   required: true  },
-  { key: 'status',       label: 'Estado (Regular / Reactualizacion)', required: false },
-  { key: 'cui',          label: 'CUI',                required: true  },
-  { key: 'paymentCode',  label: 'Código de pago',     required: true  },
-  { key: 'phone',        label: 'Teléfono',           required: false },
+  { key: 'firstName',     label: 'Nombres',          required: true  },
+  { key: 'lastName',      label: 'Apellidos',        required: true  },
+  { key: 'email',         label: 'Correo',           required: true  },
+  { key: 'dni',           label: 'DNI',              required: true  },
+  { key: 'yearPromotion', label: 'Año de Promoción', required: true,
+    inputType: 'number', hint: 'Año de ingreso, ej: 2024 (mínimo 2001)' },
+  { key: 'status',        label: 'Estado',           required: false,
+    inputType: 'select', options: ['REGULAR', 'REACTUALIZATION'],
+    hint: 'Si no se indica, se asigna REGULAR por defecto' },
+  { key: 'cui',           label: 'CUI',              required: true  },
+  { key: 'paymentCode',   label: 'Código de pago',   required: true  },
+  { key: 'phone',         label: 'Teléfono',         required: false },
 ];
 
 // --- Definición de columnas para docentes ---
 const TEACHER_COLUMNS: ColumnDef[] = [
-  { key: 'firstName',     label: 'Nombres',               required: true  },
-  { key: 'lastName',      label: 'Apellidos',              required: true  },
-  { key: 'email',         label: 'Correo',                 required: true  },
-  { key: 'dni',           label: 'DNI',                    required: false },
-  { key: 'type',          label: 'Tipo (Interno/Externo)', required: true  },
-  { key: 'category',      label: 'Categoría',              required: false },
-  { key: 'regime',        label: 'Régimen',                required: false },
-  { key: 'academicDegree',label: 'Grado académico',        required: false },
-  { key: 'specialty',     label: 'Especialidad',           required: false },
-  { key: 'phone',         label: 'Teléfono',               required: false },
-  { key: 'university',    label: 'Universidad',            required: false },
+  { key: 'firstName',      label: 'Nombres',         required: true  },
+  { key: 'lastName',       label: 'Apellidos',       required: true  },
+  { key: 'email',          label: 'Correo',          required: true  },
+  { key: 'dni',            label: 'DNI',             required: false },
+  { key: 'type',           label: 'Tipo',            required: true,
+    inputType: 'select', options: ['Interno', 'Externo'] },
+  { key: 'category',       label: 'Categoría',       required: false,
+    inputType: 'select', options: ['Principal', 'Asociado', 'Auxiliar'] },
+  { key: 'regime',         label: 'Régimen',         required: false },
+  { key: 'academicDegree', label: 'Grado académico', required: false,
+    inputType: 'select', options: ['Magister', 'Doctor'] },
+  { key: 'specialty',      label: 'Especialidad',    required: false },
+  { key: 'phone',          label: 'Teléfono',        required: false },
+  { key: 'university',     label: 'Universidad',     required: false,
+    hint: 'Solo para docentes externos' },
 ];
+
+function validateTeacherRow(row: ImportTeacherRow): string[] {
+  const warns: string[] = [];
+  if (row.type === 'Externo' && !row.university)
+    warns.push('Docente externo sin universidad asignada');
+  if (row.type === 'Interno' && !row.category)
+    warns.push('Docente interno sin categoría asignada');
+  return warns;
+}
 
 export function AdminImportar() {
   const [activeTab, setActiveTab] = useState<Tab>('students');
@@ -107,6 +123,7 @@ export function AdminImportar() {
             submitRows={importTeachers}
             columnDefs={TEACHER_COLUMNS}
             entityLabel="docentes"
+            validateRow={validateTeacherRow}
           />
         </div>
 

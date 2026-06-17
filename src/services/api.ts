@@ -27,6 +27,9 @@ export async function apiFetch<T>(
   }
 
   if (!response.ok) {
+    if (response.status === 401) {
+      window.dispatchEvent(new CustomEvent('session-expired'));
+    }
     const body = await response.json().catch(() => ({}));
     throw new ApiError(response.status, body.message ?? `Error ${response.status}`);
   }

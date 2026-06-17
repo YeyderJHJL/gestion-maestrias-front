@@ -2,7 +2,6 @@
 // Actúa como orquestador: obtiene el estado del hook y
 // distribuye los datos a cada componente hijo.
 
-import React from 'react';
 import { PlusIcon } from 'lucide-react';
 import { AdminLayout } from '../../../layouts/AdminLayout';
 import { ConfirmationModal } from '../../../components/ConfirmationModal';
@@ -22,6 +21,10 @@ export function AdminUsuarios() {
     setSearchTerm,
     filterRole,
     setFilterRole,
+    teacherTypeFilter,
+    setTeacherTypeFilter,
+    studentStatusFilter,
+    setStudentStatusFilter,
     // Permisos
     isCoordinator,
     // Modal crear / editar
@@ -74,6 +77,10 @@ export function AdminUsuarios() {
           onSearchChange={setSearchTerm}
           filterRole={filterRole}
           onFilterRoleChange={setFilterRole}
+          teacherTypeFilter={teacherTypeFilter}
+          onTeacherTypeFilterChange={setTeacherTypeFilter}
+          studentStatusFilter={studentStatusFilter}
+          onStudentStatusFilterChange={setStudentStatusFilter}
           isCoordinator={isCoordinator}
           onEdit={openEditModal}
           onDelete={setDeletingUser}

@@ -1,4 +1,7 @@
-import React from 'react';
+// Componente de tabla de usuarios con barra de filtros.
+// Recibe la lista ya filtrada desde el hook y delega las acciones
+// de edición y eliminación al componente padre.
+
 import { SearchIcon, EditIcon, XIcon, UsersIcon, Loader2Icon } from 'lucide-react';
 import { StatusBadge } from '../../../components/StatusBadge';
 import { EmptyState } from '../../../components/EmptyState';
@@ -22,6 +25,10 @@ interface Props {
   onSearchChange: (value: string) => void;
   filterRole: string;
   onFilterRoleChange: (value: string) => void;
+  teacherTypeFilter: string;
+  onTeacherTypeFilterChange: (value: string) => void;
+  studentStatusFilter: string;
+  onStudentStatusFilterChange: (value: string) => void;
   // Oculta las acciones cuando el usuario es coordinador
   isCoordinator: boolean;
   // Callbacks para abrir los modales correspondientes
@@ -37,24 +44,54 @@ export function UsuariosTable({
   onSearchChange,
   filterRole,
   onFilterRoleChange,
+  teacherTypeFilter,
+  onTeacherTypeFilterChange,
+  studentStatusFilter,
+  onStudentStatusFilterChange,
   isCoordinator,
   onEdit,
   onDelete,
 }: Props) {
   return (
     <>
-      {/* Barra de búsqueda y filtro por rol */}
+      {/* Barra de búsqueda y filtros */}
       <div className="bg-surface border border-border rounded-lg p-4 flex gap-4">
         <div className="flex-1 relative">
           <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-text-muted" />
           <input
             type="text"
-            placeholder="Buscar por nombre o correo..."
+            placeholder={
+              filterRole === 'Estudiante'
+                ? 'Buscar por nombre, correo, DNI o CUI...'
+                : 'Buscar por nombre, correo o DNI...'
+            }
             value={searchTerm}
             onChange={(e) => onSearchChange(e.target.value)}
             className="w-full pl-10 pr-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
           />
         </div>
+        {filterRole === 'Docente' && (
+          <select
+            value={teacherTypeFilter}
+            onChange={(e) => onTeacherTypeFilterChange(e.target.value)}
+            className="px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+          >
+            <option value="">Todos los tipos</option>
+            <option value="Interno">Interno</option>
+            <option value="Externo">Externo</option>
+          </select>
+        )}
+        {filterRole === 'Estudiante' && (
+          <select
+            value={studentStatusFilter}
+            onChange={(e) => onStudentStatusFilterChange(e.target.value)}
+            className="px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+          >
+            <option value="">Todos los estados</option>
+            <option value="Regular">Regular</option>
+            <option value="Reactualizacion">Reactualización</option>
+          </select>
+        )}
         <select
           value={filterRole}
           onChange={(e) => onFilterRoleChange(e.target.value)}
@@ -101,8 +138,25 @@ export function UsuariosTable({
                     Correo institucional
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">
+                    DNI
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">
                     Rol
                   </th>
+                  {filterRole === 'Docente' ? (
+                    <>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">Tipo</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">Categoría</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">Grado académico</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">Universidad</th>
+                    </>
+                  ) : filterRole === 'Estudiante' ? (
+                    <>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">CUI</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">Año promoción</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">Estado académico</th>
+                    </>
+                  ) : null}
                   <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">
                     Estado
                   </th>
@@ -123,11 +177,26 @@ export function UsuariosTable({
                       {user.firstName} {user.lastName}
                     </td>
                     <td className="px-6 py-4 text-sm text-text-muted">{user.email}</td>
+                    <td className="px-6 py-4 text-sm text-text-muted">{user.dni ?? '—'}</td>
                     <td className="px-6 py-4">
                       <StatusBadge variant={ROLE_BADGE_VARIANT[user.role] ?? 'activo'}>
                         {user.role}
                       </StatusBadge>
                     </td>
+                    {filterRole === 'Docente' ? (
+                      <>
+                        <td className="px-6 py-4 text-sm text-text-muted">{user.teacher?.type ?? '—'}</td>
+                        <td className="px-6 py-4 text-sm text-text-muted">{user.teacher?.category ?? '—'}</td>
+                        <td className="px-6 py-4 text-sm text-text-muted">{user.teacher?.academicDegree ?? '—'}</td>
+                        <td className="px-6 py-4 text-sm text-text-muted">{user.teacher?.university ?? '—'}</td>
+                      </>
+                    ) : filterRole === 'Estudiante' ? (
+                      <>
+                        <td className="px-6 py-4 text-sm text-text-muted">{user.student?.cui ?? '—'}</td>
+                        <td className="px-6 py-4 text-sm text-text-muted">{user.student?.yearPromotion ?? '—'}</td>
+                        <td className="px-6 py-4 text-sm text-text-muted">{user.student?.status ?? '—'}</td>
+                      </>
+                    ) : null}
                     <td className="px-6 py-4">
                       <StatusBadge variant={user.active ? 'activo' : 'inactivo'}>
                         {user.active ? 'Activo' : 'Inactivo'}

@@ -1,4 +1,3 @@
-import React from 'react';
 import { EstudianteLayout } from '../../layouts/EstudianteLayout';
 import { StatusBadge } from '../../components/StatusBadge';
 import {
