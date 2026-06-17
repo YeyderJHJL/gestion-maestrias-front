@@ -86,56 +86,69 @@ function getCached(key: string): UserResponse[] | null {
 function clearAllCaches() {
   Object.values(CACHE_KEYS).forEach((k) => localStorage.removeItem(k));
 }
+// Lookup de datos base (dni, active) desde el caché de /users
+function getUserLookup(): Map<string, UserResponse> {
+  const cached = getCached('sga_users_all');
+  return new Map(cached?.map((u) => [u.id, u]) ?? []);
+}
+
 // --- Mappers especializado → UserResponse ---
 function mapStudentsToUsers(students: StudentResponse[]): UserResponse[] {
-  
-  return students.map((s) => ({
-    id: s.userId,
-    email: s.email,
-    firstName: s.firstName,
-    lastName: s.lastName,
-
-    role: 'STUDENT' as UserRole,
-
-    active: true,
-    createdAt: s.createdAt,
-    updatedAt: s.updatedAt,
-    student: {
-      id: s.id,
-      yearPromotion: s.yearPromotion,
-      status: s.status,
-      cui: s.cui,
-      paymentCode: s.paymentCode,
-      phone: s.phone,
+  const lookup = getUserLookup();
+  return students.map((s) => {
+    const base = lookup.get(s.userId);
+    return {
+      id: s.userId,
+      email: s.email,
+      firstName: s.firstName,
+      lastName: s.lastName,
+      dni: base?.dni,
+      role: 'STUDENT' as UserRole,
+      active: base?.active ?? true,
       createdAt: s.createdAt,
       updatedAt: s.updatedAt,
-    },
-  }));
+      student: {
+        id: s.id,
+        yearPromotion: s.yearPromotion,
+        status: s.status,
+        cui: s.cui,
+        paymentCode: s.paymentCode,
+        phone: s.phone,
+        createdAt: s.createdAt,
+        updatedAt: s.updatedAt,
+      },
+    };
+  });
 }
 
 function mapTeachersToUsers(teachers: TeacherResponse[]): UserResponse[] {
-  return teachers.map((t) => ({
-    id: t.userId,
-    email: t.email,
-    firstName: t.firstName,
-    lastName: t.lastName,
-    role: 'TEACHER' as UserRole,
-    active: true,
-    createdAt: t.createdAt,
-    updatedAt: t.updatedAt,
-    teacher: {
-      id: t.id,
-      type: t.type as TeacherType,
-      category: t.category as TeacherCategory | undefined,
-      regime: t.regime,
-      academicDegree: t.academicDegree as AcademicDegree | undefined,
-      specialty: t.specialty,
-      phone: t.phone,
-      university: t.university,
+  const lookup = getUserLookup();
+  return teachers.map((t) => {
+    const base = lookup.get(t.userId);
+    return {
+      id: t.userId,
+      email: t.email,
+      firstName: t.firstName,
+      lastName: t.lastName,
+      dni: base?.dni,
+      role: 'TEACHER' as UserRole,
+      active: base?.active ?? true,
       createdAt: t.createdAt,
       updatedAt: t.updatedAt,
-    },
-  }));
+      teacher: {
+        id: t.id,
+        type: t.type as TeacherType,
+        category: t.category as TeacherCategory | undefined,
+        regime: t.regime,
+        academicDegree: t.academicDegree as AcademicDegree | undefined,
+        specialty: t.specialty,
+        phone: t.phone,
+        university: t.university,
+        createdAt: t.createdAt,
+        updatedAt: t.updatedAt,
+      },
+    };
+  });
 }
 
 export function useUsuarios() {
