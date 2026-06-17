@@ -86,16 +86,17 @@ function getCached(key: string): UserResponse[] | null {
 function clearAllCaches() {
   Object.values(CACHE_KEYS).forEach((k) => localStorage.removeItem(k));
 }
-
 // --- Mappers especializado → UserResponse ---
-
 function mapStudentsToUsers(students: StudentResponse[]): UserResponse[] {
+  
   return students.map((s) => ({
     id: s.userId,
     email: s.email,
     firstName: s.firstName,
     lastName: s.lastName,
+
     role: 'Estudiante' as UserRole,
+
     active: true,
     createdAt: s.createdAt,
     updatedAt: s.updatedAt,
@@ -281,7 +282,7 @@ export function useUsuarios() {
       } else {
         setStudentForm(EMPTY_STUDENT);
       }
-
+      
       setFormError(null);
       setIsUserModalOpen(true);
     } catch {
