@@ -145,14 +145,6 @@ export async function updateUser(
   return res.data;
 }
 
-export async function getUserById(token: string, id: string): Promise<User> {
-  const res = await apiFetch<ApiResponse<User>>(`/v1/users/${id}`, token);
-  return {
-    ...res.data,
-    role: (ROLE_NORMALIZE[res.data.role as string] ?? res.data.role) as UserRole,
-  };
-}
-
 export async function deleteUser(token: string, id: string): Promise<void> {
   await apiFetch<void>(`/v1/users/${id}`, token, {
     method: 'DELETE',
