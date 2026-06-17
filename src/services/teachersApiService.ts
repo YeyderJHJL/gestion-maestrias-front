@@ -27,6 +27,7 @@ export interface TeacherResponse {
   specialty?: string;
   type: string;
   phone?: string;
+  university?: string;
   createdAt: string;
   updatedAt: string;
 }
