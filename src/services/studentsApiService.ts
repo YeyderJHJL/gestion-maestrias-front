@@ -1,5 +1,7 @@
 import { apiFetch } from './api';
 
+export type StudentStatus = 'Regular' | 'Reactualizacion';
+
 export interface Promotion {
   id: number;
   name: string;
@@ -20,8 +22,8 @@ export interface StudentResponse {
   email: string;
   firstName: string;
   lastName: string;
-  promotionId: number;
-  promotionName: string;
+  yearPromotion: number;
+  status: StudentStatus;
   cui: string;
   paymentCode: string;
   phone?: string;
@@ -35,8 +37,13 @@ interface ApiResponse<T> {
   message: string | null;
 }
 
-export async function listPromotions(token: string): Promise<Promotion[]> {
-  const res = await apiFetch<ApiResponse<Promotion[]>>('/v1/promotions', token);
+// stub — /v1/promotions eliminado en V4, pero usePromociones.ts importa esta función
+export async function listPromotions(_token: string): Promise<Promotion[]> {
+  return [];
+}
+
+export async function listStudents(token: string): Promise<StudentResponse[]> {
+  const res = await apiFetch<ApiResponse<StudentResponse[]>>('/v1/students', token);
   return res.data;
 }
 
