@@ -16,7 +16,7 @@ interface AdminLayoutProps {
 
 export function AdminLayout({ children }: AdminLayoutProps) {
   const { user } = useAuth();
-  const isAdmin = user?.role === 'Administrador';
+  const isAdmin = user?.role === 'ADMIN';
 
   const sidebarLinks = [
     { to: '/admin/dashboard', icon: LayoutDashboardIcon, label: 'Dashboard' },
