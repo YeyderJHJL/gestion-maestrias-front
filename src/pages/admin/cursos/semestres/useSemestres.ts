@@ -22,7 +22,7 @@ const EMPTY_SEMESTRE: SemestreFormState = {
 
 export function useSemestres() {
   const { user, token } = useAuth();
-  const isCoordinator = user?.role === 'Coordinador';
+  const isCoordinator = user?.role === 'COORDINATOR';
 
   const [semestres, setSemestres] = useState<SemesterResponse[]>([]);
   const [loading, setLoading] = useState(true);

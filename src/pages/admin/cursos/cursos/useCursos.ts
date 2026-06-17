@@ -33,7 +33,7 @@ const EMPTY_CURSO: CursoFormState = {
 
 export function useCursos() {
   const { user, token } = useAuth();
-  const isCoordinator = user?.role === 'Coordinador';
+  const isCoordinator = user?.role === 'COORDINATOR';
 
   const [cursos, setCursos] = useState<CourseResponse[]>([]);
   const [loading, setLoading] = useState(true);

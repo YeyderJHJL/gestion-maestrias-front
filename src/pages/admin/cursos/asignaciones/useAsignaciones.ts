@@ -26,7 +26,7 @@ const EMPTY_ASSIGNMENT: AssignmentFormState = {
 
 export function useAsignaciones() {
   const { user, token } = useAuth();
-  const isCoordinator = user?.role === 'Coordinador';
+  const isCoordinator = user?.role === 'COORDINATOR';
 
   const [assignments, setAssignments] = useState<AssignmentResponse[]>([]);
   const [loading, setLoading] = useState(true);
