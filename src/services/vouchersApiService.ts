@@ -33,6 +33,11 @@ export async function updateVoucher(token: string, id: string, request: VoucherU
   return res.data;
 }
 
+export async function listMyVouchers(token: string): Promise<VoucherResponse[]> {
+  const res = await apiFetch<ApiResponse<VoucherResponse[]>>('/v1/vouchers/my', token);
+  return res.data;
+}
+
 export async function deleteVoucher(token: string, id: string): Promise<void> {
   await apiFetch<ApiResponse<void>>(`/v1/vouchers/${id}`, token, {
     method: 'DELETE',
