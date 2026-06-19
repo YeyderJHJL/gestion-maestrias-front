@@ -1,8 +1,7 @@
 import { Loader2Icon } from 'lucide-react';
-import { Modal } from '../../../../components/Modal';
-import { CourseResponse, CourseType } from '../../../../services/coursesApiService';
-import { TeacherResponse } from '../../../../services/teachersApiService';
-import { CursoFormState } from './useCursos';
+import { Modal } from '../../../../../components/Modal';
+import { CourseResponse } from '../../../../../services/coursesApiService';
+import { CursoFormState } from '../../hooks/useCursos';
 
 interface Props {
   isOpen: boolean;
@@ -10,12 +9,13 @@ interface Props {
   editingItem: CourseResponse | null;
   form: CursoFormState;
   setForm: (form: CursoFormState) => void;
-  teachers: TeacherResponse[];
-  loadingTeachers: boolean;
   submitting: boolean;
   formError: string | null;
   onSubmit: (e: React.FormEvent) => void;
 }
+
+const inputClass =
+  'w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-surface text-text';
 
 export function CursoFormModal({
   isOpen,
@@ -23,15 +23,10 @@ export function CursoFormModal({
   editingItem,
   form,
   setForm,
-  teachers,
-  loadingTeachers,
   submitting,
   formError,
   onSubmit,
 }: Props) {
-  const inputClass =
-    'w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary';
-
   return (
     <Modal
       isOpen={isOpen}
@@ -42,49 +37,46 @@ export function CursoFormModal({
     >
       <form onSubmit={onSubmit} className="space-y-6">
         <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-text">Nombre del curso *</label>
+          {/* Nombre */}
+          <div className="col-span-2 space-y-2">
+            <label className="block text-sm font-medium text-text">
+              Nombre del curso <span className="text-accent">*</span>
+            </label>
             <input
               type="text"
               required
               maxLength={255}
+              placeholder="Ej. Fundamentos de Programación"
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
               className={inputClass}
             />
           </div>
 
+          {/* Código */}
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-text">Código *</label>
+            <label className="block text-sm font-medium text-text">
+              Código <span className="text-accent">*</span>
+            </label>
             <input
               type="text"
               required
               maxLength={50}
+              placeholder="Ej. CS-101"
               value={form.code}
               onChange={(e) => setForm({ ...form, code: e.target.value })}
               className={inputClass}
             />
           </div>
 
-          <div className="col-span-2 space-y-2">
-            <label className="block text-sm font-medium text-text">Tipo *</label>
-            <select
-              required
-              value={form.type}
-              onChange={(e) => setForm({ ...form, type: e.target.value as CourseType })}
-              className={inputClass}
-            >
-              <option value="Regular">Regular</option>
-              <option value="Tesis">Tesis</option>
-              <option value="Topicos">Tópicos</option>
-            </select>
-            <p className="text-sm text-text-muted italic">
-              Regular: 4 sábados · Tesis y Tópicos: 5 sábados
-            </p>
-          </div>
+          {/* Spacer para mantener grid */}
+          <div />
 
+          {/* Fecha inicio */}
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-text">Fecha de inicio *</label>
+            <label className="block text-sm font-medium text-text">
+              Fecha de inicio <span className="text-accent">*</span>
+            </label>
             <input
               type="date"
               required
@@ -94,8 +86,11 @@ export function CursoFormModal({
             />
           </div>
 
+          {/* Fecha fin */}
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-text">Fecha de fin *</label>
+            <label className="block text-sm font-medium text-text">
+              Fecha de fin <span className="text-accent">*</span>
+            </label>
             <input
               type="date"
               required
@@ -105,8 +100,11 @@ export function CursoFormModal({
             />
           </div>
 
+          {/* Observaciones */}
           <div className="col-span-2 space-y-2">
-            <label className="block text-sm font-medium text-text">Observaciones de fechas</label>
+            <label className="block text-sm font-medium text-text">
+              Observaciones de fechas
+            </label>
             <textarea
               rows={3}
               placeholder="Registrar cambios o ajustes de fechas aquí"
@@ -114,43 +112,6 @@ export function CursoFormModal({
               onChange={(e) => setForm({ ...form, observations: e.target.value })}
               className={inputClass}
             />
-          </div>
-
-          <div className="col-span-2 space-y-2">
-            <label className="block text-sm font-medium text-text">URL del sílabus</label>
-            <input
-              type="url"
-              maxLength={500}
-              value={form.syllabusUrl}
-              onChange={(e) => setForm({ ...form, syllabusUrl: e.target.value })}
-              className={inputClass}
-            />
-          </div>
-
-          <div className="col-span-2 space-y-2">
-            <label className="block text-sm font-medium text-text">Docente responsable</label>
-            {loadingTeachers ? (
-              <div className="flex items-center gap-2 text-text-muted text-sm py-2">
-                <Loader2Icon className="w-4 h-4 animate-spin" />
-                Cargando docentes...
-              </div>
-            ) : (
-              <select
-                value={form.teacherId}
-                onChange={(e) => setForm({ ...form, teacherId: e.target.value })}
-                className={inputClass}
-              >
-                <option value="">Sin docente asignado</option>
-                {teachers.map((teacher) => (
-                  <option key={teacher.id} value={teacher.id}>
-                    {teacher.firstName} {teacher.lastName} ({teacher.type})
-                  </option>
-                ))}
-              </select>
-            )}
-            <p className="text-sm text-text-muted italic">
-              La asignación del docente se realizará después de guardar el curso.
-            </p>
           </div>
         </div>
 
