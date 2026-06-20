@@ -43,20 +43,19 @@ interface UseEnrollmentFormOptions {
 export function useEnrollmentForm({ studentId, onSuccess, showToast }: UseEnrollmentFormOptions) {
   const { token } = useAuth();
 
-  const [courses, setCourses] = useState<CourseResponse[]>([]);
+  const [courses, setCourses]     = useState<CourseResponse[]>([]);
   const [semesters, setSemesters] = useState<SemesterResponse[]>([]);
   const [loadingDeps, setLoadingDeps] = useState(false);
 
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingItem, setEditingItem] = useState<EnrollmentResponse | null>(null);
-  const [form, setForm] = useState<EnrollmentFormState>(EMPTY_FORM);
-  const [submitting, setSubmitting] = useState(false);
-  const [formError, setFormError] = useState<string | null>(null);
+  const [isFormOpen, setIsFormOpen]     = useState(false);
+  const [editingItem, setEditingItem]   = useState<EnrollmentResponse | null>(null);
+  const [form, setForm]                 = useState<EnrollmentFormState>(EMPTY_FORM);
+  const [submitting, setSubmitting]     = useState(false);
+  const [formError, setFormError]       = useState<string | null>(null);
 
   const [deletingItem, setDeletingItem] = useState<EnrollmentResponse | null>(null);
-  const [deleting, setDeleting] = useState(false);
 
-  // ── Carga de dependencias ──────────────────────────────────────────────────
+  // ── Dependencias del formulario ────────────────────────────────────────────
   const loadDeps = useCallback(async () => {
     if (!token) return;
     setLoadingDeps(true);
@@ -76,7 +75,7 @@ export function useEnrollmentForm({ studentId, onSuccess, showToast }: UseEnroll
 
   useEffect(() => { if (isFormOpen) loadDeps(); }, [isFormOpen, loadDeps]);
 
-  // ── Abrir modal ────────────────────────────────────────────────────────────
+  // ── Abrir / cerrar modal ───────────────────────────────────────────────────
   const openCreate = () => {
     setEditingItem(null);
     setForm(EMPTY_FORM);
@@ -87,12 +86,12 @@ export function useEnrollmentForm({ studentId, onSuccess, showToast }: UseEnroll
   const openEdit = (enrollment: EnrollmentResponse) => {
     setEditingItem(enrollment);
     setForm({
-      courseId: enrollment.courseId,
-      semesterId: enrollment.semesterId,
-      stateId: enrollment.stateId,
+      courseId:       enrollment.courseId,
+      semesterId:     enrollment.semesterId,
+      stateId:        enrollment.stateId,
       enrollmentDate: enrollment.enrollmentDate,
       resolutionFile: null,
-      observations: enrollment.observations ?? '',
+      observations:   enrollment.observations ?? '',
     });
     setFormError(null);
     setIsFormOpen(true);
@@ -119,9 +118,9 @@ export function useEnrollmentForm({ studentId, onSuccess, showToast }: UseEnroll
 
       const payload: EnrollmentRequest = {
         studentId,
-        courseId: form.courseId,
-        semesterId: form.semesterId as number,
-        stateId: form.stateId,
+        courseId:       form.courseId,
+        semesterId:     form.semesterId as number,
+        stateId:        form.stateId,
         enrollmentDate: form.enrollmentDate,
         ...(resolutionFileId ? { resolutionFileId } : {}),
         ...(form.observations.trim() ? { observations: form.observations.trim() } : {}),
@@ -144,9 +143,10 @@ export function useEnrollmentForm({ studentId, onSuccess, showToast }: UseEnroll
   };
 
   // ── Eliminar ───────────────────────────────────────────────────────────────
+  // handleDelete es async internamente; triggerDelete es el wrapper síncrono
+  // que necesita ConfirmationModal (onConfirm: () => void).
   const handleDelete = async () => {
     if (!token || !deletingItem) return;
-    setDeleting(true);
     try {
       await deleteEnrollment(token, deletingItem.id);
       showToast('success', 'Matrícula eliminada.');
@@ -154,11 +154,12 @@ export function useEnrollmentForm({ studentId, onSuccess, showToast }: UseEnroll
       onSuccess();
     } catch (e) {
       showToast('error', e instanceof Error ? e.message : 'Error al eliminar la matrícula.');
-    } finally {
-      setDeleting(false);
       setDeletingItem(null);
     }
   };
+
+  /** Wrapper síncrono para pasar a ConfirmationModal.onConfirm */
+  const triggerDelete = () => { void handleDelete(); };
 
   return {
     // dependencias
@@ -168,6 +169,8 @@ export function useEnrollmentForm({ studentId, onSuccess, showToast }: UseEnroll
     submitting, formError,
     openCreate, openEdit, closeForm, handleSubmit,
     // eliminar
-    deletingItem, setDeletingItem, deleting, handleDelete,
+    deletingItem, setDeletingItem,
+    triggerDelete,   // ← síncrono, para ConfirmationModal
+    handleDelete,    // ← async, por si se necesita en otro contexto
   };
 }

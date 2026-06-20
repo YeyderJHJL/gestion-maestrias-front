@@ -1,11 +1,11 @@
 import { useRef } from 'react';
 import { Loader2Icon, FileTextIcon, UploadCloudIcon, XCircleIcon } from 'lucide-react';
-import { Modal } from '../../../../../components/Modal';
-import { EnrollmentResponse, ENROLLMENT_STATES } from '../../../../../services/enrollmentsApiService';
-import { CourseResponse } from '../../../../../services/coursesApiService';
-import { SemesterResponse } from '../../../../../services/semestersApiService';
-import { EnrollmentFormState } from '../../hooks/useEnrollmentForm';
-import { EnrollmentStateTag } from '../EnrollmentStateTag';
+import { Modal } from '../../../../components/Modal';
+import { EnrollmentResponse, ENROLLMENT_STATES } from '../../../../services/enrollmentsApiService';
+import { CourseResponse } from '../../../../services/coursesApiService';
+import { SemesterResponse } from '../../../../services/semestersApiService';
+import { EnrollmentFormState } from '../hooks/useEnrollmentForm';
+import { EnrollmentStateTag } from './EnrollmentStateTag';
 
 interface Props {
   isOpen: boolean;
