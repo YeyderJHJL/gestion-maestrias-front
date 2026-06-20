@@ -1,19 +1,21 @@
 import { apiFetch } from './api';
+import type { StoredFileSummary } from './filesApiService';
 
 // ── Tipos de respuesta ────────────────────────────────────────────────────────
 
 export interface AssignmentResponse {
-  id: number;           // integer (int64)
-  courseId: string;     // UUID
+  id: number;
+  courseId: string;
   courseCode: string;
   courseName: string;
-  teacherId: string;    // UUID
+  teacherId: string;
   teacherEmail: string;
   teacherName: string;
-  semesterId: number;   // integer (int32)
+  semesterId: number;
   semesterYear: number;
   semesterCode: string;
-  assignmentDate: string; // format: date (YYYY-MM-DD)
+  assignmentDate: string;           // YYYY-MM-DD
+  syllabusFile?: StoredFileSummary; // presente si ya se subió un sílabo
   createdAt: string;
   updatedAt: string;
 }
@@ -21,15 +23,16 @@ export interface AssignmentResponse {
 // ── Tipos de petición ─────────────────────────────────────────────────────────
 
 export interface AssignmentRequest {
-  courseId: string;       // UUID
-  teacherId: string;      // UUID
-  semesterId: number;     // integer (int32)
-  assignmentDate: string; // format: date (YYYY-MM-DD)
+  courseId: string;
+  teacherId: string;
+  semesterId: number;
+  assignmentDate: string;      // YYYY-MM-DD
+  syllabusFileId?: string;     // UUID — opcional
 }
 
-// ── Clave compuesta para UPDATE / DELETE ──────────────────────────────────────
+// ── Clave compuesta (identifica una asignación para GET / PUT / DELETE) ───────
 
-interface AssignmentKey {
+export interface AssignmentKey {
   courseId: string;
   teacherId: string;
   semesterId: number;
@@ -49,7 +52,7 @@ interface ApiResponse<T> {
 
 // ── Endpoints ─────────────────────────────────────────────────────────────────
 
-/** GET /v1/assignments — lista todas las asignaciones */
+/** GET /v1/assignments */
 export async function listAssignments(token: string): Promise<AssignmentResponse[]> {
   const res = await apiFetch<ApiResponse<AssignmentResponse[]>>('/v1/assignments', token);
   return res.data;
@@ -64,7 +67,7 @@ export async function getAssignment(
   return res.data;
 }
 
-/** POST /v1/assignments — crea una nueva asignación */
+/** POST /v1/assignments */
 export async function createAssignment(
   token: string,
   request: AssignmentRequest
@@ -91,7 +94,5 @@ export async function updateAssignment(
 
 /** DELETE /v1/assignments/courses/{courseId}/teachers/{teacherId}/semesters/{semesterId} */
 export async function deleteAssignment(token: string, key: AssignmentKey): Promise<void> {
-  await apiFetch<ApiResponse<void>>(assignmentPath(key), token, {
-    method: 'DELETE',
-  });
+  await apiFetch<ApiResponse<void>>(assignmentPath(key), token, { method: 'DELETE' });
 }

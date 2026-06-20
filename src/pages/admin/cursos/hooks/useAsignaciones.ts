@@ -2,44 +2,51 @@ import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '../../../../context/AuthContext';
 import {
   AssignmentResponse,
+  AssignmentKey,
+  AssignmentRequest,
   listAssignments,
   createAssignment,
   updateAssignment,
   deleteAssignment,
-  AssignmentRequest,
 } from '../../../../services/assignmentsApiService';
 import { TeacherResponse, listTeachers } from '../../../../services/teachersApiService';
 import { CourseResponse, listCourses } from '../../../../services/coursesApiService';
+import { uploadSyllabus, getFileUrl, StoredFileResponse } from '../../../../services/filesApiService';
+
+// ── Estado del formulario ─────────────────────────────────────────────────────
 
 export type AsignacionFormState = {
   courseId: string;
   teacherId: string;
   assignmentDate: string;
+  /** Archivo seleccionado localmente, pendiente de subir */
+  syllabusFile: File | null;
 };
 
 const EMPTY_FORM: AsignacionFormState = {
   courseId: '',
   teacherId: '',
   assignmentDate: new Date().toISOString().split('T')[0],
+  syllabusFile: null,
 };
 
 type Toast = { visible: boolean; variant: 'success' | 'error'; message: string };
 
+// ── Hook ──────────────────────────────────────────────────────────────────────
+
 export function useAsignaciones() {
   const { user, token } = useAuth();
-  const isCoordinator = user?.role === 'Coordinador';
+  // UserRole usa valores en mayúsculas: 'ADMIN' | 'TEACHER' | 'STUDENT' | 'COORDINATOR'
+  const isCoordinator = user?.role === 'COORDINATOR';
 
-  // ── Lista ──────────────────────────────────────────────────────────────────
   const [assignments, setAssignments] = useState<AssignmentResponse[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // ── Dependencias del form ──────────────────────────────────────────────────
   const [teachers, setTeachers] = useState<TeacherResponse[]>([]);
   const [courses, setCourses] = useState<CourseResponse[]>([]);
   const [loadingDeps, setLoadingDeps] = useState(false);
 
-  // ── Modal form ─────────────────────────────────────────────────────────────
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<AssignmentResponse | null>(null);
   const [targetSemesterId, setTargetSemesterId] = useState<number | null>(null);
@@ -47,15 +54,17 @@ export function useAsignaciones() {
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
-  // ── Confirmación eliminar ──────────────────────────────────────────────────
+  /** URL firmada del sílabo ya existente (solo en modo edición) */
+  const [existingSyllabus, setExistingSyllabus] = useState<StoredFileResponse | null>(null);
+  const [loadingSyllabus, setLoadingSyllabus] = useState(false);
+
   const [deletingItem, setDeletingItem] = useState<AssignmentResponse | null>(null);
 
-  // ── Toast ──────────────────────────────────────────────────────────────────
   const [toast, setToast] = useState<Toast>({ visible: false, variant: 'success', message: '' });
   const showToast = (variant: Toast['variant'], message: string) =>
     setToast({ visible: true, variant, message });
 
-  // ── Carga asignaciones ─────────────────────────────────────────────────────
+  // ── Carga lista ────────────────────────────────────────────────────────────
   const loadAssignments = useCallback(async () => {
     if (!token) return;
     setLoading(true);
@@ -70,11 +79,9 @@ export function useAsignaciones() {
     }
   }, [token]);
 
-  useEffect(() => {
-    loadAssignments();
-  }, [loadAssignments]);
+  useEffect(() => { loadAssignments(); }, [loadAssignments]);
 
-  // ── Carga dependencias cuando abre el form ─────────────────────────────────
+  // ── Dependencias del form ──────────────────────────────────────────────────
   const loadDeps = useCallback(async () => {
     if (!token) return;
     setLoadingDeps(true);
@@ -92,16 +99,30 @@ export function useAsignaciones() {
     }
   }, [token]);
 
-  useEffect(() => {
-    if (isFormOpen) loadDeps();
-  }, [isFormOpen, loadDeps]);
+  useEffect(() => { if (isFormOpen) loadDeps(); }, [isFormOpen, loadDeps]);
 
-  // ── Modal form ─────────────────────────────────────────────────────────────
+  // ── Sílabo existente ───────────────────────────────────────────────────────
+  const loadExistingSyllabus = useCallback(async (fileId: string) => {
+    if (!token) return;
+    setLoadingSyllabus(true);
+    try {
+      const file = await getFileUrl(token, fileId);
+      setExistingSyllabus(file);
+    } catch (e) {
+      console.error('Error cargando sílabo:', e);
+      setExistingSyllabus(null);
+    } finally {
+      setLoadingSyllabus(false);
+    }
+  }, [token]);
+
+  // ── Abrir modal ────────────────────────────────────────────────────────────
   const openCreate = (semesterId: number) => {
     setEditingItem(null);
     setTargetSemesterId(semesterId);
     setForm(EMPTY_FORM);
     setFormError(null);
+    setExistingSyllabus(null);
     setIsFormOpen(true);
   };
 
@@ -112,8 +133,13 @@ export function useAsignaciones() {
       courseId: assignment.courseId,
       teacherId: assignment.teacherId,
       assignmentDate: assignment.assignmentDate,
+      syllabusFile: null,
     });
     setFormError(null);
+    setExistingSyllabus(null);
+    if (assignment.syllabusFile?.id) {
+      loadExistingSyllabus(assignment.syllabusFile.id);
+    }
     setIsFormOpen(true);
   };
 
@@ -122,34 +148,51 @@ export function useAsignaciones() {
     setEditingItem(null);
     setTargetSemesterId(null);
     setFormError(null);
+    setExistingSyllabus(null);
   };
 
   // ── Submit ─────────────────────────────────────────────────────────────────
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!token || targetSemesterId === null) return;
-
     setSubmitting(true);
     setFormError(null);
-
-    const payload: AssignmentRequest = {
-      courseId: form.courseId,
-      teacherId: form.teacherId,
-      semesterId: targetSemesterId,
-      assignmentDate: form.assignmentDate,
-    };
-
     try {
+      let syllabusFileId: string | undefined;
+      if (form.syllabusFile) {
+        const uploaded = await uploadSyllabus(token, form.syllabusFile);
+        syllabusFileId = uploaded.id;
+      }
+
+      const payload: AssignmentRequest = {
+        courseId: form.courseId,
+        teacherId: form.teacherId,
+        semesterId: targetSemesterId,
+        assignmentDate: form.assignmentDate,
+        ...(syllabusFileId ? { syllabusFileId } : {}),
+      };
+
       if (editingItem) {
-        await updateAssignment(
-          token,
-          {
-            courseId: editingItem.courseId,
-            teacherId: editingItem.teacherId,
-            semesterId: editingItem.semesterId,
-          },
-          payload
-        );
+        const originalKey: AssignmentKey = {
+          courseId: editingItem.courseId,
+          teacherId: editingItem.teacherId,
+          semesterId: editingItem.semesterId,
+        };
+
+        // El backend no permite cambiar courseId/teacherId/semesterId vía PUT
+        // porque forman la clave primaria compuesta. Si alguno cambió, la única
+        // solución es DELETE del registro original + POST del nuevo.
+        const keyChanged =
+          form.courseId !== editingItem.courseId ||
+          form.teacherId !== editingItem.teacherId;
+
+        if (keyChanged) {
+          await deleteAssignment(token, originalKey);
+          await createAssignment(token, payload);
+        } else {
+          // Solo cambió fecha o sílabo → PUT normal
+          await updateAssignment(token, originalKey, payload);
+        }
         showToast('success', 'Asignación actualizada correctamente.');
       } else {
         await createAssignment(token, payload);
@@ -183,31 +226,12 @@ export function useAsignaciones() {
   };
 
   return {
-    assignments,
-    loading,
-    error,
-    isCoordinator,
-    // dependencias
-    teachers,
-    courses,
-    loadingDeps,
-    // modal form
-    isFormOpen,
-    editingItem,
-    form,
-    setForm,
-    submitting,
-    formError,
-    openCreate,
-    openEdit,
-    closeForm,
-    handleSubmit,
-    // eliminar
-    deletingItem,
-    setDeletingItem,
-    handleDelete,
-    // toast
-    toast,
-    setToast,
+    assignments, loading, error, isCoordinator,
+    teachers, courses, loadingDeps,
+    isFormOpen, editingItem, form, setForm, submitting, formError,
+    openCreate, openEdit, closeForm, handleSubmit,
+    existingSyllabus, loadingSyllabus,
+    deletingItem, setDeletingItem, handleDelete,
+    toast, setToast,
   };
 }

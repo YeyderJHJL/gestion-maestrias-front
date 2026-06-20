@@ -186,6 +186,8 @@ export function AdminCursos() {
         submitting={asignaciones.submitting}
         formError={asignaciones.formError}
         onSubmit={asignaciones.handleSubmit}
+        existingSyllabus={asignaciones.existingSyllabus}
+        loadingSyllabus={asignaciones.loadingSyllabus}
       />
 
       <ConfirmationModal
