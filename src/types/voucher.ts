@@ -6,9 +6,9 @@ export interface VoucherResponse {
   id: string;
   paymentId: string;
   paymentNumber: number;
-  paymentConcept: string;
-  paymentAmount: number;
-  paymentDate: string;
+  paymentConcept: string | null;
+  paymentAmount: number | null;
+  paymentDate: string | null;
   studentName: string;
   studentEmail: string;
   studentPaymentCode: string;
