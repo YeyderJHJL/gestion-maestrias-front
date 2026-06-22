@@ -4,7 +4,7 @@ import { StatusBadge } from '../../components/StatusBadge';
 import { FileUpload } from '../../components/FileUpload';
 import { Modal } from '../../components/Modal';
 import { Toast } from '../../components/Toast';
-import { ChevronDownIcon, CheckCircleIcon, Loader2Icon, ImageIcon } from 'lucide-react';
+import { ChevronDownIcon, CheckCircleIcon, Loader2Icon, ImageIcon, InfoIcon } from 'lucide-react';
 import { useEstudiantePagos } from './useEstudiantePagos';
 
 const formatDate = (iso: string) =>
@@ -175,7 +175,7 @@ export function EstudiantePagos() {
                   className="flex items-center gap-1.5 text-sm text-primary hover:text-primary-light transition-colors"
                 >
                   <ImageIcon className="w-4 h-4" />
-                  Ver imágenes de referencia
+                  Ver guía de pago
                 </button>
 
                 {formError && (
@@ -222,43 +222,26 @@ export function EstudiantePagos() {
       <Modal
         isOpen={guideOpen}
         onClose={() => setGuideOpen(false)}
-        title="Imágenes de referencia"
+        title="Guía de pago"
         size="lg"
       >
-        <p className="text-sm text-text-muted mb-6">
+        <p className="text-sm text-text-muted mb-4">
           Asegúrate de que tu comprobante sea legible y muestre claramente el monto, fecha y número de operación.
         </p>
-        <div className="grid grid-cols-3 gap-4">
-          <div className="space-y-2">
-            <div className="aspect-[3/4] rounded-lg border border-border bg-surface-alt overflow-hidden">
-              <img
-                src="/img/guia-voucher-yape.png"
-                alt="Ejemplo de voucher por Yape"
-                className="w-full h-full object-contain p-2"
-              />
-            </div>
-            <p className="text-sm font-semibold text-text text-center">Pago por YAPE</p>
-          </div>
-          <div className="space-y-2">
-            <div className="aspect-[3/4] rounded-lg border border-border bg-surface-alt overflow-hidden">
-              <img
-                src="/img/guia-voucher-bcp.png"
-                alt="Ejemplo de voucher por BCP"
-                className="w-full h-full object-contain p-2"
-              />
-            </div>
-            <p className="text-sm font-semibold text-text text-center">Pago por BCP</p>
-          </div>
-          <div className="space-y-2">
-            <div className="aspect-[3/4] rounded-lg border border-border bg-surface-alt overflow-hidden">
-              <img
-                src="/img/guia-voucher-agente.png"
-                alt="Ejemplo de voucher por agente"
-                className="w-full h-full object-contain p-2"
-              />
-            </div>
-            <p className="text-sm font-semibold text-text text-center">Pago por AGENTE</p>
-          </div>
+        <div className="rounded-lg border border-border bg-surface-alt overflow-hidden">
+          <img
+            src="/img/Guia_pagos.jpg.jpeg"
+            alt="Guía de pago por banca y Yape"
+            className="w-full object-contain"
+          />
+        </div>
+        <div className="mt-4 flex items-start gap-2 px-4 py-3 bg-primary/5 border border-primary/20 rounded-lg">
+          <InfoIcon className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+          <p className="text-sm text-text">
+            <strong>Pago por agente:</strong> Brinda tu código de pago al agente.
+            El comprobante que recibas debe mostrar tus datos y el monto pagado.
+            Tómale una foto clara y súbela como voucher.
+          </p>
         </div>
       </Modal>
 
