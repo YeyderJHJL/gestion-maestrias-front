@@ -69,7 +69,8 @@ export function EstudiantePagos() {
                 <table className="w-full">
                   <thead className="bg-surface-alt">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">N° Pago</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">Concepto</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">Monto</th>
                       <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">Fecha</th>
                       <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">Estado voucher</th>
                       <th className="px-6 py-3"></th>
@@ -86,7 +87,10 @@ export function EstudiantePagos() {
                         <Fragment key={payment.id}>
                           <tr className={index % 2 === 0 ? 'bg-surface' : 'bg-surface-alt'}>
                             <td className="px-6 py-4 text-sm text-text font-medium">
-                              Pago #{payment.paymentNumber}
+                              {payment.concept || `Pago #${payment.paymentNumber}`}
+                            </td>
+                            <td className="px-6 py-4 text-sm text-text">
+                              S/ {payment.amount?.toFixed(2) ?? '—'}
                             </td>
                             <td className="px-6 py-4 text-sm text-text-muted">
                               {payment.paymentDate ? formatDate(payment.paymentDate) : '—'}
@@ -113,7 +117,7 @@ export function EstudiantePagos() {
                           </tr>
                           {expandedRow === payment.id && latestVoucher?.observation && (
                             <tr>
-                              <td colSpan={4} className="px-6 py-4 bg-accent/10">
+                              <td colSpan={5} className="px-6 py-4 bg-accent/10">
                                 <div className="text-sm">
                                   <p className="font-semibold text-accent mb-1">
                                     {stateCode === 'OBSERVED' ? 'Motivo de observación:' : 'Motivo de rechazo:'}
@@ -152,7 +156,7 @@ export function EstudiantePagos() {
                     <option value="">Seleccionar...</option>
                     {payments.map((p) => (
                       <option key={p.id} value={p.id}>
-                        Pago #{p.paymentNumber}{p.paymentDate ? ` — ${formatDate(p.paymentDate)}` : ''}
+                        {p.concept || `Pago #${p.paymentNumber}`} — S/ {p.amount?.toFixed(2) ?? '0.00'}
                       </option>
                     ))}
                   </select>

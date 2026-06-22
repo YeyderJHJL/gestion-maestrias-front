@@ -3,6 +3,8 @@ import { apiFetch } from './api';
 export interface PaymentResponse {
   id: string;
   paymentNumber: number;
+  concept: string;
+  amount: number;
   paymentDate: string | null;
   latestVoucherStateCode: string | null;
   createdAt: string;
