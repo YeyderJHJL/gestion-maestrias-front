@@ -87,7 +87,6 @@ export function AdminUsuarios() {
         />
       </div>
 
-      {/* Modal para crear o editar un usuario */}
       <UsuarioFormModal
         isOpen={isUserModalOpen}
         onClose={closeModal}

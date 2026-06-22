@@ -38,6 +38,7 @@ const STUDENT_ALIASES: Record<string, string> = {
   anodepromocion: 'yearPromotion', // "Año de Promoción" normalizado
   aniodepromocion: 'yearPromotion',
   anio: 'yearPromotion',
+  ano: 'yearPromotion',
   promocion: 'yearPromotion',
   // status
   status: 'status', estado: 'status',
@@ -143,7 +144,7 @@ function optionalString(row: Record<string, unknown>, key: string): string | und
 // Parsea un Excel de estudiantes.
 // Acepta encabezados en inglés o español (ej: "yearPromotion" = "Año de Promoción").
 // Requeridos: firstName, lastName, email, dni, yearPromotion, cui, paymentCode
-// Opcionales: phone
+// Opcionales: phone, status
 export async function parseStudentsExcel(file: File): Promise<ImportStudentRow[]> {
   const rawRows = await readExcelRows(file);
 

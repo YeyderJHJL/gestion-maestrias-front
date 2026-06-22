@@ -1,12 +1,8 @@
-// Hook centralizado para la gestión de usuarios.
-// Encapsula todo el estado, los filtros y las operaciones CRUD
-// para que el componente de página solo se ocupe de renderizar.
-
 import { FormEvent, useCallback, useEffect, useState } from 'react';
 import { useAuth } from '../../../context/AuthContext';
 import { UserRole } from '../../../types/auth';
 import {
-  User,
+  UserResponse,
   UserRequest,
   UserCreateRequest,
   UserUpdateRequest,
@@ -29,11 +25,11 @@ import { ApiError } from '../../../services/api';
 // --- Tipos del estado de los subformularios ---
 
 export type StudentFormState = {
-  yearPromotion: number | '';
+  yearPromotion: number;
+  status: 'Regular' | 'Reactualizacion';
   cui: string;
   paymentCode: string;
   phone: string;
-  status: string;
 };
 
 export type TeacherFormState = {
@@ -48,7 +44,7 @@ export type TeacherFormState = {
 
 // --- Valores iniciales vacíos ---
 
-const EMPTY_BASE: UserRequest = {
+const EMPTY_BASE: UserCreateRequest = {
   firstName: '',
   lastName: '',
   email: '',
@@ -58,11 +54,11 @@ const EMPTY_BASE: UserRequest = {
 };
 
 const EMPTY_STUDENT: StudentFormState = {
-  yearPromotion: '',
+  yearPromotion: new Date().getFullYear(),
+  status: 'Regular',
   cui: '',
   paymentCode: '',
   phone: '',
-  status: '',
 };
 
 const EMPTY_TEACHER: TeacherFormState = {
@@ -75,62 +71,54 @@ const EMPTY_TEACHER: TeacherFormState = {
   phone: '',
 };
 
-// --- Cache localStorage por filtro ---
+// --- Mappers especializado → UserResponse ---
 
-const CACHE_KEYS: Record<string, string> = {
-  '':       'sga_users_all',
-  TEACHER:  'sga_users_teachers',
-  STUDENT:  'sga_users_students',
-};
-
-function getCached(key: string): User[] | null {
-  try { return JSON.parse(localStorage.getItem(key) ?? 'null'); } catch { return null; }
-}
-
-function clearAllCaches() {
-  Object.values(CACHE_KEYS).forEach((k) => localStorage.removeItem(k));
-}
-
-// --- Mappers especializado → User ---
-
-function mapStudentsToUsers(students: StudentResponse[]): User[] {
+function mapStudentsToUsers(students: StudentResponse[]): UserResponse[] {
   return students.map((s) => ({
     id: s.userId,
     email: s.email,
     firstName: s.firstName,
     lastName: s.lastName,
-    role: 'STUDENT' as const,
+    dni: s.dni,
+    role: 'STUDENT' as UserRole,
     active: true,
     createdAt: s.createdAt,
     updatedAt: s.updatedAt,
     student: {
+      id: s.id,
       yearPromotion: s.yearPromotion,
       status: s.status,
       cui: s.cui,
       paymentCode: s.paymentCode,
       phone: s.phone,
+      createdAt: s.createdAt,
+      updatedAt: s.updatedAt,
     },
   }));
 }
 
-function mapTeachersToUsers(teachers: TeacherResponse[]): User[] {
+function mapTeachersToUsers(teachers: TeacherResponse[]): UserResponse[] {
   return teachers.map((t) => ({
     id: t.userId,
     email: t.email,
     firstName: t.firstName,
     lastName: t.lastName,
-    role: 'TEACHER' as const,
+    dni: t.dni,
+    role: 'TEACHER' as UserRole,
     active: true,
     createdAt: t.createdAt,
     updatedAt: t.updatedAt,
     teacher: {
-      type: t.type,
-      category: t.category,
+      id: t.id,
+      type: t.type as TeacherType,
+      category: t.category as TeacherCategory | undefined,
       regime: t.regime,
-      academicDegree: t.academicDegree,
+      academicDegree: t.academicDegree as AcademicDegree | undefined,
       specialty: t.specialty,
       phone: t.phone,
       university: t.university,
+      createdAt: t.createdAt,
+      updatedAt: t.updatedAt,
     },
   }));
 }
@@ -142,7 +130,7 @@ export function useUsuarios() {
   const isCoordinator = authUser?.role === 'COORDINATOR';
 
   // --- Estado de la lista de usuarios ---
-  const [users, setUsers] = useState<User[]>([]);
+  const [users, setUsers] = useState<UserResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -161,15 +149,15 @@ export function useUsuarios() {
 
   // --- Estado del modal de creación y edición ---
   const [isUserModalOpen, setIsUserModalOpen] = useState(false);
-  const [editingUser, setEditingUser] = useState<User | null>(null);
-  const [form, setForm] = useState<UserRequest>(EMPTY_BASE);
+  const [editingUser, setEditingUser] = useState<UserResponse | null>(null);
+  const [form, setForm] = useState<UserCreateRequest>(EMPTY_BASE);
   const [studentForm, setStudentForm] = useState<StudentFormState>(EMPTY_STUDENT);
   const [teacherForm, setTeacherForm] = useState<TeacherFormState>(EMPTY_TEACHER);
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
   // --- Estado del modal de eliminación ---
-  const [deletingUser, setDeletingUser] = useState<User | null>(null);
+  const [deletingUser, setDeletingUser] = useState<UserResponse | null>(null);
 
   // --- Estado del toast de notificación ---
   const [toast, setToast] = useState<{
@@ -181,34 +169,18 @@ export function useUsuarios() {
   const showToast = (variant: 'success' | 'error', message: string) =>
     setToast({ visible: true, variant, message });
 
-  // Obtiene la lista según el filtro activo; muestra caché inmediato si existe
   const loadUsers = useCallback(() => {
     if (!token) return;
+    setLoading(true);
     setError(null);
 
-    const cacheKey = CACHE_KEYS[filterRole] ?? 'sga_users_all';
-    const cached = getCached(cacheKey);
-    if (cached) {
-      setUsers(cached);
-      setLoading(false);
-    } else {
-      setLoading(true);
-    }
-
-    let req: Promise<User[]>;
-    if (filterRole === 'STUDENT') {
-      req = listStudents(token).then(mapStudentsToUsers);
-    } else if (filterRole === 'TEACHER') {
-      req = listTeachers(token).then(mapTeachersToUsers);
-    } else {
-      req = listUsers(token);
-    }
+    const req =
+      filterRole === 'STUDENT' ? listStudents(token).then(mapStudentsToUsers) :
+      filterRole === 'TEACHER' ? listTeachers(token).then(mapTeachersToUsers) :
+      listUsers(token);
 
     req
-      .then((data) => {
-        setUsers(data);
-        localStorage.setItem(cacheKey, JSON.stringify(data));
-      })
+      .then(setUsers)
       .catch((e: Error) => setError(e.message))
       .finally(() => setLoading(false));
   }, [token, filterRole]);
@@ -227,44 +199,59 @@ export function useUsuarios() {
     setIsUserModalOpen(true);
   };
 
-  // Abre el modal en modo edición; hace GET /users/{id} para obtener dni y active reales
-  const openEditModal = async (user: User) => {
+  // Abre el modal en modo edición.
+  // Para usuarios de la vista general (GET /users) hace GET /users/{id} para obtener
+  // dni y active reales. Los datos de teacher/student se toman del objeto en lista,
+  // que cuando se filtra por rol viene completo desde GET /teachers o GET /students.
+  const openEditModal = async (user: UserResponse) => {
     if (!token) return;
     try {
+      // Obtener datos base actualizados (incluye dni y active que la lista puede omitir)
       const fullUser = await getUserById(token, user.id);
-      setEditingUser(fullUser);
+
+      // Combinar: datos base del GET /users/{id} + perfiles del objeto en lista
+      const merged: UserResponse = {
+        ...fullUser,
+        teacher: user.teacher ?? fullUser.teacher,
+        student: user.student ?? fullUser.student,
+      };
+
+      setEditingUser(merged);
       setForm({
-        firstName: fullUser.firstName,
-        lastName: fullUser.lastName,
-        email: fullUser.email,
-        dni: fullUser.dni ?? '',
-        role: fullUser.role as UserRole,
-        active: fullUser.active,
+        firstName: merged.firstName,
+        lastName: merged.lastName,
+        email: merged.email,
+        dni: merged.dni ?? '',
+        role: merged.role as UserRole,
+        active: merged.active,
       });
-      if (fullUser.teacher) {
+
+      if (merged.teacher) {
         setTeacherForm({
-          type: fullUser.teacher.type as TeacherType,
-          category: (fullUser.teacher.category as TeacherCategory | '') ?? '',
-          regime: fullUser.teacher.regime ?? '',
-          academicDegree: (fullUser.teacher.academicDegree as AcademicDegree | '') ?? '',
-          department: fullUser.teacher.specialty ?? '',
-          university: fullUser.teacher.university ?? '',
-          phone: fullUser.teacher.phone ?? '',
+          type: merged.teacher.type as TeacherType,
+          category: (merged.teacher.category as TeacherCategory | '') ?? '',
+          regime: merged.teacher.regime ?? '',
+          academicDegree: (merged.teacher.academicDegree as AcademicDegree | '') ?? '',
+          department: merged.teacher.specialty ?? '',
+          university: merged.teacher.university ?? '',
+          phone: merged.teacher.phone ?? '',
         });
       } else {
         setTeacherForm(EMPTY_TEACHER);
       }
-      if (fullUser.student) {
+
+      if (merged.student) {
         setStudentForm({
-          yearPromotion: fullUser.student.yearPromotion ?? '',
-          cui: fullUser.student.cui ?? '',
-          paymentCode: fullUser.student.paymentCode ?? '',
-          phone: fullUser.student.phone ?? '',
-          status: fullUser.student.status ?? '',
+          yearPromotion: merged.student.yearPromotion ?? new Date().getFullYear(),
+          status: (merged.student.status as StudentFormState['status']) ?? 'Regular',
+          cui: merged.student.cui ?? '',
+          paymentCode: merged.student.paymentCode ?? '',
+          phone: merged.student.phone ?? '',
         });
       } else {
         setStudentForm(EMPTY_STUDENT);
       }
+      
       setFormError(null);
       setIsUserModalOpen(true);
     } catch {
@@ -285,11 +272,27 @@ export function useUsuarios() {
     setSubmitting(true);
     setFormError(null);
     try {
+      // 1. Validar el base form
+      if (!form.firstName.trim() || !form.lastName.trim() || !form.email.trim()) {
+        throw new Error('Nombres, apellidos y correo son obligatorios.');
+      }
+      if (!editingUser && !form.role) {
+        throw new Error('El rol es obligatorio para un nuevo usuario.');
+      }
+
+      // 2. Armar payload de creación o edición
+      const basePayload: UserRequest = {
+        firstName: form.firstName,
+        lastName: form.lastName,
+        email: form.email,
+        dni: form.dni?.trim() || undefined,
+        role: form.role,
+        active: form.active ?? true,
+      };
+
       if (editingUser) {
-        const updatePayload: UserUpdateRequest = {
-          ...form,
-          dni: form.dni?.trim() || undefined,
-        };
+        const updatePayload: UserUpdateRequest = { ...basePayload };
+
         if (form.role === 'TEACHER') {
           updatePayload.teacher = {
             type: teacherForm.type,
@@ -303,25 +306,29 @@ export function useUsuarios() {
                 ? 'Universidad Nacional de San Agustín'
                 : teacherForm.university.trim() || undefined,
           };
-        }
-        if (form.role === 'STUDENT') {
+        } else if (form.role === 'STUDENT') {
           updatePayload.student = {
-            yearPromotion:
-              studentForm.yearPromotion !== '' ? (studentForm.yearPromotion as number) : undefined,
-            cui: studentForm.cui || undefined,
-            paymentCode: studentForm.paymentCode || undefined,
+            yearPromotion: studentForm.yearPromotion,
+            status: studentForm.status,
+            cui: studentForm.cui.trim() || undefined,
+            paymentCode: studentForm.paymentCode.trim() || undefined,
             phone: studentForm.phone.trim() || undefined,
-            status: studentForm.status || undefined,
           };
         }
+
         await updateUser(token, editingUser.id, updatePayload);
         showToast('success', 'Usuario actualizado correctamente.');
       } else {
-        const createPayload: UserCreateRequest = {
-          ...form,
-          dni: form.dni?.trim() || undefined,
-        };
-        if (form.role === 'TEACHER') {
+        const createPayload: UserCreateRequest = { ...basePayload };
+        if (form.role === 'STUDENT') {
+          createPayload.student = {
+            yearPromotion: studentForm.yearPromotion,
+            status: studentForm.status,
+            cui: studentForm.cui,
+            paymentCode: studentForm.paymentCode,
+            phone: studentForm.phone || undefined,
+          };
+        } else if (form.role === 'TEACHER') {
           createPayload.teacher = {
             type: teacherForm.type,
             category: teacherForm.category || undefined,
@@ -335,18 +342,10 @@ export function useUsuarios() {
                 : teacherForm.university.trim() || undefined,
           };
         }
-        if (form.role === 'STUDENT' && studentForm.yearPromotion !== '') {
-          createPayload.student = {
-            yearPromotion: studentForm.yearPromotion as number,
-            cui: studentForm.cui,
-            paymentCode: studentForm.paymentCode,
-            phone: studentForm.phone.trim() || undefined,
-          };
-        }
         await createUser(token, createPayload);
         showToast('success', 'Usuario creado correctamente.');
       }
-      clearAllCaches();
+
       closeModal();
       loadUsers();
     } catch (e) {
@@ -362,7 +361,7 @@ export function useUsuarios() {
     try {
       await deleteUser(token, deletingUser.id);
       setUsers((prev) => prev.filter((u) => u.id !== deletingUser.id));
-      clearAllCaches();
+
       showToast(
         'success',
         `Usuario ${deletingUser.firstName} ${deletingUser.lastName} eliminado.`

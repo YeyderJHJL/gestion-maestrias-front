@@ -1,233 +1,201 @@
-import { useState, Fragment } from 'react';
+import { Fragment, useState } from 'react';
 import { EstudianteLayout } from '../../layouts/EstudianteLayout';
 import { StatusBadge } from '../../components/StatusBadge';
 import { FileUpload } from '../../components/FileUpload';
-import {
-  ChevronDownIcon,
-  CheckCircleIcon } from
-'lucide-react';
+import { Modal } from '../../components/Modal';
+import { Toast } from '../../components/Toast';
+import { ChevronDownIcon, CheckCircleIcon, Loader2Icon, ImageIcon } from 'lucide-react';
+import { useEstudiantePagos } from './useEstudiantePagos';
 
-const mockPayments = [
-{
-  concepto: 'Matrícula 2024-I',
-  monto: 'S/ 500.00',
-  fecha: '15/03/2024',
-  recibo: '001234567',
-  estado: 'validado'
-},
-{
-  concepto: 'Pensión Marzo',
-  monto: 'S/ 350.00',
-  fecha: '20/03/2024',
-  recibo: '001234568',
-  estado: 'validado'
-},
-{
-  concepto: 'Pensión Abril',
-  monto: 'S/ 350.00',
-  fecha: '18/04/2024',
-  recibo: '001234569',
-  estado: 'pendiente'
-},
-{
-  concepto: 'Pensión Mayo',
-  monto: 'S/ 350.00',
-  fecha: '15/05/2024',
-  recibo: '001234570',
-  estado: 'observado',
-  motivo:
-  'El monto declarado no coincide con el comprobante. Por favor verifica.'
-}];
+const formatDate = (iso: string) =>
+  new Date(iso).toLocaleDateString('es-PE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
+const STATE_VARIANT: Record<string, string> = {
+  UPLOADED: 'pendiente',
+  VALIDATED: 'validado',
+  OBSERVED: 'observado',
+  REJECTED: 'rechazado',
+};
+
+const STATE_LABEL: Record<string, string> = {
+  UPLOADED: 'Pendiente de validación',
+  VALIDATED: 'Validado',
+  OBSERVED: 'Observado',
+  REJECTED: 'Rechazado',
+};
 
 export function EstudiantePagos() {
-  const [expandedRow, setExpandedRow] = useState<number | null>(null);
-  const [voucherSubmitted, setVoucherSubmitted] = useState(false);
+  const {
+    payments, loading, error,
+    form, setForm, submitting, submitted, formError,
+    handleSubmit, resetForm, vouchersForPayment,
+    toast, setToast,
+  } = useEstudiantePagos();
+
+  const [expandedRow, setExpandedRow] = useState<string | null>(null);
+  const [guideOpen, setGuideOpen] = useState(false);
+
   return (
     <EstudianteLayout>
-      
       <div className="space-y-6">
         <h1 className="text-3xl font-serif font-bold text-text">
           Pagos y Vouchers
         </h1>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left Column - Payments Table */}
+          {/* Tabla de pagos con vouchers */}
           <div className="lg:col-span-2 bg-surface border border-border rounded-lg shadow-sm overflow-hidden">
             <div className="px-6 py-4 border-b border-border">
               <h2 className="text-lg font-serif font-bold text-text">
-                Mis pagos y pensiones
+                Mis pagos y vouchers
               </h2>
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-surface-alt">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">
-                      Concepto
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">
-                      Monto
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">
-                      Fecha
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">
-                      N° recibo
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">
-                      Estado
-                    </th>
-                    <th className="px-6 py-3"></th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {mockPayments.map((payment, index) =>
-                  <Fragment key={index}>
-                      <tr
-                      className={
-                      index % 2 === 0 ? 'bg-surface' : 'bg-surface-alt'
-                      }>
-                      
-                        <td className="px-6 py-4 text-sm text-text font-medium">
-                          {payment.concepto}
-                        </td>
-                        <td className="px-6 py-4 text-sm text-text">
-                          {payment.monto}
-                        </td>
-                        <td className="px-6 py-4 text-sm text-text-muted">
-                          {payment.fecha}
-                        </td>
-                        <td className="px-6 py-4 text-sm text-text-muted">
-                          {payment.recibo}
-                        </td>
-                        <td className="px-6 py-4">
-                          <StatusBadge
-                          variant={
-                          payment.estado === 'validado' ?
-                          'validado' :
-                          payment.estado === 'observado' ?
-                          'observado' :
-                          payment.estado === 'rechazado' ?
-                          'rechazado' :
-                          'pendiente'
-                          }>
-                          
-                            {payment.estado === 'validado' ?
-                          'Validado' :
-                          payment.estado === 'observado' ?
-                          'Observado' :
-                          payment.estado === 'rechazado' ?
-                          'Rechazado' :
-                          'Pendiente de validación'}
-                          </StatusBadge>
-                        </td>
-                        <td className="px-6 py-4">
-                          {(payment.estado === 'observado' ||
-                        payment.estado === 'rechazado') &&
-                        <button
-                          onClick={() =>
-                          setExpandedRow(
-                            expandedRow === index ? null : index
-                          )
-                          }
-                          className="text-accent hover:text-accent-light transition-colors">
-                          
-                              <ChevronDownIcon
-                            className={`w-5 h-5 transition-transform ${expandedRow === index ? 'rotate-180' : ''}`} />
-                          
-                            </button>
-                        }
-                        </td>
-                      </tr>
-                      {expandedRow === index && payment.motivo &&
+            {loading ? (
+              <div className="flex items-center justify-center py-16 gap-2 text-text-muted">
+                <Loader2Icon className="w-5 h-5 animate-spin" />
+                <span>Cargando pagos...</span>
+              </div>
+            ) : error ? (
+              <div className="flex items-center justify-center py-16">
+                <p className="text-accent text-sm">{error}</p>
+              </div>
+            ) : payments.length === 0 ? (
+              <div className="flex items-center justify-center py-16">
+                <p className="text-text-muted text-sm">No tienes pagos registrados.</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-surface-alt">
                     <tr>
-                          <td colSpan={6} className="px-6 py-4 bg-accent/10">
-                            <div className="text-sm">
-                              <p className="font-semibold text-accent mb-1">
-                                {payment.estado === 'observado' ?
-                            'Motivo de observación:' :
-                            'Motivo de rechazo:'}
-                              </p>
-                              <p className="text-text">{payment.motivo}</p>
-                            </div>
-                          </td>
-                        </tr>
-                    }
-                    </Fragment>
-                  )}
-                </tbody>
-              </table>
-            </div>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">Concepto</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">Monto</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">Fecha</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">Estado voucher</th>
+                      <th className="px-6 py-3"></th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {payments.map((payment, index) => {
+                      const paymentVouchers = vouchersForPayment(payment.id);
+                      const latestVoucher = paymentVouchers[0];
+                      const stateCode = payment.latestVoucherStateCode;
+                      const hasObservation = latestVoucher?.observation && (stateCode === 'OBSERVED' || stateCode === 'REJECTED');
+
+                      return (
+                        <Fragment key={payment.id}>
+                          <tr className={index % 2 === 0 ? 'bg-surface' : 'bg-surface-alt'}>
+                            <td className="px-6 py-4 text-sm text-text font-medium">
+                              {payment.concept || `Pago #${payment.paymentNumber}`}
+                            </td>
+                            <td className="px-6 py-4 text-sm text-text">
+                              S/ {payment.amount?.toFixed(2) ?? '—'}
+                            </td>
+                            <td className="px-6 py-4 text-sm text-text-muted">
+                              {payment.paymentDate ? formatDate(payment.paymentDate) : '—'}
+                            </td>
+                            <td className="px-6 py-4">
+                              {stateCode ? (
+                                <StatusBadge variant={(STATE_VARIANT[stateCode] ?? 'pendiente') as 'validado' | 'observado' | 'rechazado' | 'pendiente'}>
+                                  {STATE_LABEL[stateCode] ?? stateCode}
+                                </StatusBadge>
+                              ) : (
+                                <span className="text-sm text-text-muted italic">Sin voucher</span>
+                              )}
+                            </td>
+                            <td className="px-6 py-4">
+                              {hasObservation && (
+                                <button
+                                  onClick={() => setExpandedRow(expandedRow === payment.id ? null : payment.id)}
+                                  className="text-accent hover:text-accent-light transition-colors"
+                                >
+                                  <ChevronDownIcon className={`w-5 h-5 transition-transform ${expandedRow === payment.id ? 'rotate-180' : ''}`} />
+                                </button>
+                              )}
+                            </td>
+                          </tr>
+                          {expandedRow === payment.id && latestVoucher?.observation && (
+                            <tr>
+                              <td colSpan={5} className="px-6 py-4 bg-accent/10">
+                                <div className="text-sm">
+                                  <p className="font-semibold text-accent mb-1">
+                                    {stateCode === 'OBSERVED' ? 'Motivo de observación:' : 'Motivo de rechazo:'}
+                                  </p>
+                                  <p className="text-text">{latestVoucher.observation}</p>
+                                </div>
+                              </td>
+                            </tr>
+                          )}
+                        </Fragment>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
 
-          {/* Right Column - Upload Voucher */}
+          {/* Formulario de subida de voucher */}
           <div className="bg-surface border-t-4 border-accent rounded-lg p-6 shadow-sm h-fit">
-            {!voucherSubmitted ?
-            <form className="space-y-6">
+            {!submitted ? (
+              <div className="space-y-6">
                 <h2 className="text-lg font-serif font-bold text-text">
                   Adjuntar comprobante de pago
                 </h2>
 
                 <div className="space-y-2">
                   <label className="block text-sm font-medium text-text">
-                    ¿A qué pago corresponde?
+                    ¿A qué pago corresponde? *
                   </label>
-                  <select className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
-                    <option>Seleccionar...</option>
-                    <option>Pensión Mayo</option>
-                    <option>Pensión Junio</option>
+                  <select
+                    value={form.paymentId}
+                    onChange={(e) => setForm({ ...form, paymentId: e.target.value })}
+                    className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                  >
+                    <option value="">Seleccionar...</option>
+                    {payments.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.concept || `Pago #${p.paymentNumber}`} — S/ {p.amount?.toFixed(2) ?? '0.00'}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-text">
-                    N° de recibo
-                  </label>
-                  <input
-                  type="text"
-                  className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" />
-                
-                </div>
-
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-text">
-                    Fecha del pago
-                  </label>
-                  <input
-                  type="date"
-                  className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" />
-                
-                </div>
-
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-text">
-                    Monto declarado (S/.)
-                  </label>
-                  <input
-                  type="number"
-                  step="0.01"
-                  className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" />
-                
-                </div>
-
                 <FileUpload
-                onFileSelect={(file) => console.log(file)}
-                acceptedFormats=".pdf,.jpg,.jpeg,.png"
-                maxSizeMB={5}
-                label="Arrastra el comprobante aquí o haz clic para seleccionar" />
-              
+                  onFileSelect={(file) => setForm((prev) => ({ ...prev, file }))}
+                  acceptedFormats=".pdf,.jpg,.jpeg,.png"
+                  maxSizeMB={20}
+                  label="Arrastra el comprobante aquí o haz clic para seleccionar"
+                />
 
                 <button
-                type="button"
-                onClick={() => setVoucherSubmitted(true)}
-                className="w-full px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-light transition-colors font-semibold">
-                
-                  Enviar voucher
+                  type="button"
+                  onClick={() => setGuideOpen(true)}
+                  className="flex items-center gap-1.5 text-sm text-primary hover:text-primary-light transition-colors"
+                >
+                  <ImageIcon className="w-4 h-4" />
+                  Ver imágenes de referencia
                 </button>
-              </form> :
 
-            <div className="text-center space-y-4 py-8">
+                {formError && (
+                  <p className="text-sm text-accent bg-accent/10 border border-accent/30 rounded-lg px-4 py-2">
+                    {formError}
+                  </p>
+                )}
+
+                <button
+                  type="button"
+                  disabled={submitting || !form.paymentId || !form.file}
+                  onClick={handleSubmit}
+                  className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-light transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {submitting && <Loader2Icon className="w-4 h-4 animate-spin" />}
+                  {submitting ? 'Enviando...' : 'Enviar voucher'}
+                </button>
+              </div>
+            ) : (
+              <div className="text-center space-y-4 py-8">
                 <CheckCircleIcon className="w-16 h-16 text-success mx-auto" />
                 <h3 className="text-lg font-semibold text-text">
                   Voucher enviado correctamente
@@ -239,16 +207,67 @@ export function EstudiantePagos() {
                   Recibirás una notificación cuando sea revisado.
                 </p>
                 <button
-                onClick={() => setVoucherSubmitted(false)}
-                className="text-primary hover:text-primary-light font-medium text-sm">
-                
+                  onClick={resetForm}
+                  className="text-primary hover:text-primary-light font-medium text-sm"
+                >
                   Enviar otro voucher
                 </button>
               </div>
-            }
+            )}
           </div>
         </div>
-      </div>
-    </EstudianteLayout>);
 
+      </div>
+
+      <Modal
+        isOpen={guideOpen}
+        onClose={() => setGuideOpen(false)}
+        title="Imágenes de referencia"
+        size="lg"
+      >
+        <p className="text-sm text-text-muted mb-6">
+          Asegúrate de que tu comprobante sea legible y muestre claramente el monto, fecha y número de operación.
+        </p>
+        <div className="grid grid-cols-3 gap-4">
+          <div className="space-y-2">
+            <div className="aspect-[3/4] rounded-lg border border-border bg-surface-alt overflow-hidden">
+              <img
+                src="/img/guia-voucher-yape.png"
+                alt="Ejemplo de voucher por Yape"
+                className="w-full h-full object-contain p-2"
+              />
+            </div>
+            <p className="text-sm font-semibold text-text text-center">Pago por YAPE</p>
+          </div>
+          <div className="space-y-2">
+            <div className="aspect-[3/4] rounded-lg border border-border bg-surface-alt overflow-hidden">
+              <img
+                src="/img/guia-voucher-bcp.png"
+                alt="Ejemplo de voucher por BCP"
+                className="w-full h-full object-contain p-2"
+              />
+            </div>
+            <p className="text-sm font-semibold text-text text-center">Pago por BCP</p>
+          </div>
+          <div className="space-y-2">
+            <div className="aspect-[3/4] rounded-lg border border-border bg-surface-alt overflow-hidden">
+              <img
+                src="/img/guia-voucher-agente.png"
+                alt="Ejemplo de voucher por agente"
+                className="w-full h-full object-contain p-2"
+              />
+            </div>
+            <p className="text-sm font-semibold text-text text-center">Pago por AGENTE</p>
+          </div>
+        </div>
+      </Modal>
+
+      <Toast
+        variant={toast.variant}
+        message={toast.message}
+        isVisible={toast.visible}
+        onClose={() => setToast((t) => ({ ...t, visible: false }))}
+      />
+    </EstudianteLayout>
+  );
 }

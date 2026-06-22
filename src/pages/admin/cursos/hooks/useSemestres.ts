@@ -23,7 +23,7 @@ type Toast = { visible: boolean; variant: 'success' | 'error'; message: string }
 
 export function useSemestres() {
   const { user, token } = useAuth();
-  const isCoordinator = user?.role === 'Coordinador';
+  const isCoordinator = user?.role === 'COORDINATOR';
 
   // ── Lista ──────────────────────────────────────────────────────────────────
   const [semestres, setSemestres] = useState<SemesterResponse[]>([]);

@@ -1,7 +1,3 @@
-// Servicio de importación masiva de usuarios.
-// Envía arrays de filas parseadas desde Excel al backend,
-// que las procesa y devuelve un resumen con éxitos y errores.
-
 import { apiFetch } from './api';
 
 // --- Tipos de filas parseadas desde Excel (se envían al backend) ---

@@ -1,5 +1,12 @@
 import { apiFetch } from './api';
 
+// ── Tipos de petición ─────────────────────────────────────────────────────────
+
+export interface SemesterRequest {
+  year: number;   // mínimo: 2001
+  code: string;   // máximo 50 caracteres
+}
+
 // ── Tipos de respuesta ────────────────────────────────────────────────────────
 
 export interface SemesterResponse {
@@ -8,13 +15,6 @@ export interface SemesterResponse {
   code: string;
   createdAt: string;
   updatedAt: string;
-}
-
-// ── Tipos de petición ─────────────────────────────────────────────────────────
-
-export interface SemesterRequest {
-  year: number;   // mínimo: 2001
-  code: string;   // máximo 50 caracteres
 }
 
 // ── Envelope genérico ─────────────────────────────────────────────────────────

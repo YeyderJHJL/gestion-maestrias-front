@@ -8,6 +8,7 @@ import {
   deleteCourse,
   CourseRequest,
 } from '../../../../services/coursesApiService';
+import { uploadSyllabus } from '../../../../services/filesApiService';
 
 export type CursoFormState = {
   code: string;
@@ -15,6 +16,7 @@ export type CursoFormState = {
   startDate: string;
   endDate: string;
   observations: string;
+  syllabusFile: File | null;
 };
 
 const EMPTY_FORM: CursoFormState = {
@@ -23,6 +25,7 @@ const EMPTY_FORM: CursoFormState = {
   startDate: '',
   endDate: '',
   observations: '',
+  syllabusFile: null,
 };
 
 type Toast = { visible: boolean; variant: 'success' | 'error'; message: string };
@@ -92,6 +95,7 @@ export function useCursos() {
       startDate: curso.startDate,
       endDate: curso.endDate,
       observations: curso.observations ?? '',
+      syllabusFile: null, // el archivo existente se muestra vía editingItem.syllabusFile
     });
     setFormError(null);
     setIsFormOpen(true);
@@ -111,15 +115,23 @@ export function useCursos() {
     setSubmitting(true);
     setFormError(null);
 
-    const payload: CourseRequest = {
-      code: form.code.trim(),
-      name: form.name.trim(),
-      startDate: form.startDate,
-      endDate: form.endDate,
-      observations: form.observations.trim(),
-    };
-
     try {
+      // Si hay un archivo nuevo seleccionado, subirlo primero
+      let syllabusFileId: string | undefined;
+      if (form.syllabusFile) {
+        const uploaded = await uploadSyllabus(token, form.syllabusFile);
+        syllabusFileId = uploaded.id;
+      }
+
+      const payload: CourseRequest = {
+        code: form.code.trim(),
+        name: form.name.trim(),
+        startDate: form.startDate,
+        endDate: form.endDate,
+        observations: form.observations.trim(),
+        ...(syllabusFileId ? { syllabusFileId } : {}),
+      };
+
       if (editingItem) {
         const updated = await updateCourse(token, editingItem.id, payload);
         setCursos((prev) => prev.map((c) => (c.id === updated.id ? updated : c)));

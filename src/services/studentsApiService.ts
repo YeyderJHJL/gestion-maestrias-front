@@ -1,6 +1,21 @@
 import { apiFetch } from './api';
+import type { StoredFileSummary } from './filesApiService';
 
 export type StudentStatus = 'Regular' | 'Reactualizacion';
+
+// ── Tipos de petición ─────────────────────────────────────────────────────────
+
+export interface StudentRequest {
+  userId: string;
+  yearPromotion: number;
+  status?: StudentStatus;
+  reactualizationFileId?: string;
+  cui: string;
+  paymentCode: string;
+  phone?: string;
+}
+
+// ── Tipos de respuesta ────────────────────────────────────────────────────────
 
 export interface StudentResponse {
   id: string;
@@ -8,8 +23,10 @@ export interface StudentResponse {
   email: string;
   firstName: string;
   lastName: string;
+  dni?: string;
   yearPromotion: number;
-  status: StudentStatus;
+  status?: StudentStatus;
+  reactualizationFile?: StoredFileSummary | null;
   cui: string;
   paymentCode: string;
   phone?: string;
@@ -17,17 +34,23 @@ export interface StudentResponse {
   updatedAt: string;
 }
 
+// ── Filtros para listado ───────────────────────────────────────────────────────
+
 export interface StudentFilters {
   yearPromotion?: number;
   status?: StudentStatus;
   search?: string;
 }
 
+// ── Envelope genérico ─────────────────────────────────────────────────────────
+
 interface ApiResponse<T> {
   success: boolean;
   data: T;
   message: string | null;
 }
+
+// ── Endpoints ─────────────────────────────────────────────────────────────────
 
 /** GET /v1/students — con filtros opcionales */
 export async function listStudents(
@@ -47,4 +70,36 @@ export async function listStudents(
 export async function getStudent(token: string, id: string): Promise<StudentResponse> {
   const res = await apiFetch<ApiResponse<StudentResponse>>(`/v1/students/${id}`, token);
   return res.data;
+}
+
+/** POST /v1/students */
+export async function createStudent(
+  token: string,
+  request: StudentRequest
+): Promise<StudentResponse> {
+  const res = await apiFetch<ApiResponse<StudentResponse>>('/v1/students', token, {
+    method: 'POST',
+    body: JSON.stringify(request),
+  });
+  return res.data;
+}
+
+/** PUT /v1/students/{id} */
+export async function updateStudent(
+  token: string,
+  id: string,
+  request: StudentRequest
+): Promise<StudentResponse> {
+  const res = await apiFetch<ApiResponse<StudentResponse>>(`/v1/students/${id}`, token, {
+    method: 'PUT',
+    body: JSON.stringify(request),
+  });
+  return res.data;
+}
+
+/** DELETE /v1/students/{id} */
+export async function deleteStudent(token: string, id: string): Promise<void> {
+  await apiFetch<void>(`/v1/students/${id}`, token, {
+    method: 'DELETE',
+  });
 }

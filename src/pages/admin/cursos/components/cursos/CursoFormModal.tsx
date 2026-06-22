@@ -113,6 +113,30 @@ export function CursoFormModal({
               className={inputClass}
             />
           </div>
+
+          <div className="col-span-2 space-y-2">
+            <label className="block text-sm font-medium text-text">Sílabus (Archivo)</label>
+            <input
+              type="file"
+              accept=".pdf,.doc,.docx"
+              onChange={(e) => {
+                if (e.target.files && e.target.files.length > 0) {
+                  setForm({ ...form, syllabusFile: e.target.files[0] });
+                } else {
+                  setForm({ ...form, syllabusFile: null });
+                }
+              }}
+              className={inputClass}
+            />
+            {editingItem?.syllabusFile && !form.syllabusFile && (
+              <p className="text-sm text-text-muted">
+                Archivo actual: <span className="text-primary">{editingItem.syllabusFile.originalName}</span>
+              </p>
+            )}
+            {form.syllabusFile && (
+              <p className="text-sm text-text-muted">Archivo seleccionado: {form.syllabusFile.name}</p>
+            )}
+          </div>
         </div>
 
         {formError && (

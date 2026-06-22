@@ -1,6 +1,6 @@
 // Página de migración de datos con dos módulos independientes:
-//   - Estudiantes: parsea el Excel y envía a POST /v1/students/import
-//   - Docentes: parsea el Excel y envía a POST /v1/teachers/import
+//   - Estudiantes: parsea el Excel y envía a POST /v1/students/bulk
+//   - Docentes: parsea el Excel y envía a POST /v1/teachers/bulk
 //
 // Ambos flujos comparten el mismo componente ImportFlow de 4 pasos.
 // El selector de tabs controla cuál está activo sin desmontar el otro,

@@ -1,18 +1,36 @@
-export type VoucherStateCode = 'PENDING' | 'VALIDATED' | 'OBSERVED' | 'REJECTED';
+import { StoredFileSummaryResponse } from '../services/filesApiService';
+
+export type VoucherStateCode = 'UPLOADED' | 'VALIDATED' | 'OBSERVED' | 'REJECTED';
 
 export interface VoucherResponse {
   id: string;
+  paymentId: string;
+  paymentNumber: number;
+  paymentConcept: string;
+  paymentAmount: number;
+  paymentDate: string;
   studentName: string;
+  studentEmail: string;
   studentPaymentCode: string;
-  concept: string;
-  declaredAmount: number;
-  fileUrl: string;
+  stateId: number;
   stateCode: VoucherStateCode;
+  stateName: string;
+  file: StoredFileSummaryResponse;
   observation?: string;
-  uploadedAt: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
-export interface VoucherReviewRequest {
-  action: 'VALIDATE' | 'OBSERVE' | 'REJECT';
+export interface VoucherCreateRequest {
+  paymentId: string;
+  stateId: number;
+  fileId: string;
+  observation?: string;
+}
+
+export interface VoucherUpdateRequest {
+  paymentId: string;
+  stateId: number;
+  fileId: string;
   observation?: string;
 }

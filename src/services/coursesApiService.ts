@@ -1,26 +1,5 @@
 import { apiFetch } from './api';
-
-// ── Tipos de respuesta ────────────────────────────────────────────────────────
-
-export interface StoredFileSummary {
-  id: string;
-  originalName: string;
-  contentType: string;
-  sizeBytes: number;
-  createdAt: string;
-}
-
-export interface CourseResponse {
-  id: string;
-  code: string;
-  name: string;
-  startDate: string;   // format: date (YYYY-MM-DD)
-  endDate: string;     // format: date (YYYY-MM-DD)
-  observations?: string;
-  syllabusFile?: StoredFileSummary;
-  createdAt: string;
-  updatedAt: string;
-}
+import type { StoredFileSummary } from './filesApiService';
 
 // ── Tipos de petición ─────────────────────────────────────────────────────────
 
@@ -31,6 +10,20 @@ export interface CourseRequest {
   endDate: string;          // format: date (YYYY-MM-DD)
   observations?: string;
   syllabusFileId?: string;  // UUID del archivo subido previamente
+}
+
+// ── Tipos de respuesta ────────────────────────────────────────────────────────
+
+export interface CourseResponse {
+  id: string;
+  code: string;
+  name: string;
+  startDate: string;   // format: date (YYYY-MM-DD)
+  endDate: string;     // format: date (YYYY-MM-DD)
+  observations?: string;
+  syllabusFile?: StoredFileSummary | null;
+  createdAt: string;
+  updatedAt: string;
 }
 
 // ── Envelope genérico ─────────────────────────────────────────────────────────
@@ -82,7 +75,7 @@ export async function updateCourse(
 
 /** DELETE /v1/courses/{id} — elimina un curso */
 export async function deleteCourse(token: string, id: string): Promise<void> {
-  await apiFetch<ApiResponse<void>>(`/v1/courses/${id}`, token, {
+  await apiFetch<void>(`/v1/courses/${id}`, token, {
     method: 'DELETE',
   });
 }
