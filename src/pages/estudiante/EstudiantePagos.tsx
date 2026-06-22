@@ -165,7 +165,7 @@ export function EstudiantePagos() {
                 <FileUpload
                   onFileSelect={(file) => setForm((prev) => ({ ...prev, file }))}
                   acceptedFormats=".pdf,.jpg,.jpeg,.png"
-                  maxSizeMB={5}
+                  maxSizeMB={20}
                   label="Arrastra el comprobante aquí o haz clic para seleccionar"
                 />
 

@@ -19,11 +19,11 @@ interface ApiResponse<T> {
   message: string | null;
 }
 
-export async function uploadFile(token: string, file: File): Promise<StoredFileResponse> {
+export async function uploadFile(token: string, file: File, purpose: 'vouchers' | 'syllabus' | 'resolutions' | 'reactualizations' = 'vouchers'): Promise<StoredFileResponse> {
   const formData = new FormData();
   formData.append('file', file);
 
-  const res = await apiFetch<ApiResponse<StoredFileResponse>>('/v1/files', token, {
+  const res = await apiFetch<ApiResponse<StoredFileResponse>>(`/v1/files/${purpose}`, token, {
     method: 'POST',
     body: formData,
   });
