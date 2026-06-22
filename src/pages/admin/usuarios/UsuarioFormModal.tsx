@@ -5,8 +5,9 @@
 // En modo edición los campos del subformulario se precargan desde el objeto usuario
 // y permanecen editables (a diferencia de la creación, donde son obligatorios).
 
-import { Loader2Icon } from 'lucide-react';
+import { Loader2Icon, AlertTriangleIcon, FileIcon } from 'lucide-react';
 import { Modal } from '../../../components/Modal';
+import { FileUpload } from '../../../components/FileUpload';
 import { UserRole } from '../../../types/auth';
 import { User, UserCreateRequest } from '../../../services/usersApiService';
 import { TeacherCategory, AcademicDegree } from '../../../services/teachersApiService';
@@ -229,6 +230,28 @@ export function UsuarioFormModal({
                   <option value="Reactualizacion">Reactualización</option>
                 </select>
               </div>
+              {studentForm.status === 'Reactualizacion' && (
+                <div className="col-span-2 space-y-3">
+                  <div className="flex items-start gap-2 px-4 py-3 bg-warning/10 border border-warning/30 rounded-lg">
+                    <AlertTriangleIcon className="w-4 h-4 text-warning flex-shrink-0 mt-0.5" />
+                    <p className="text-sm text-text">
+                      Los estudiantes en reactualización requieren adjuntar un documento PDF de sustento.
+                    </p>
+                  </div>
+                  {studentForm.reactualizationFileId && !studentForm.reactualizationFile && (
+                    <div className="flex items-center gap-2 px-3 py-2 bg-surface-alt border border-border rounded-lg text-sm text-text-muted">
+                      <FileIcon className="w-4 h-4" />
+                      Documento ya adjuntado — sube otro para reemplazarlo
+                    </div>
+                  )}
+                  <FileUpload
+                    onFileSelect={(file) => setStudentForm({ ...studentForm, reactualizationFile: file })}
+                    acceptedFormats=".pdf"
+                    maxSizeMB={20}
+                    label="Arrastra el documento PDF de reactualización aquí"
+                  />
+                </div>
+              )}
               <div className="space-y-1.5">
                 <label className="block text-sm font-medium text-text">
                   CUI {!editingUser && '*'}

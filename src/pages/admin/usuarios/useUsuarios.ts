@@ -21,6 +21,7 @@ import {
 } from '../../../services/teachersApiService';
 import { StudentResponse, listStudents } from '../../../services/studentsApiService';
 import { ApiError } from '../../../services/api';
+import { uploadReactualization } from '../../../services/filesApiService';
 
 // --- Tipos del estado de los subformularios ---
 
@@ -30,6 +31,8 @@ export type StudentFormState = {
   cui: string;
   paymentCode: string;
   phone: string;
+  reactualizationFile: File | null;
+  reactualizationFileId: string;
 };
 
 export type TeacherFormState = {
@@ -59,6 +62,8 @@ const EMPTY_STUDENT: StudentFormState = {
   cui: '',
   paymentCode: '',
   phone: '',
+  reactualizationFile: null,
+  reactualizationFileId: '',
 };
 
 const EMPTY_TEACHER: TeacherFormState = {
@@ -247,6 +252,8 @@ export function useUsuarios() {
           cui: merged.student.cui ?? '',
           paymentCode: merged.student.paymentCode ?? '',
           phone: merged.student.phone ?? '',
+          reactualizationFile: null,
+          reactualizationFileId: merged.student.reactualizationFile?.id ?? '',
         });
       } else {
         setStudentForm(EMPTY_STUDENT);
@@ -280,7 +287,14 @@ export function useUsuarios() {
         throw new Error('El rol es obligatorio para un nuevo usuario.');
       }
 
-      // 2. Armar payload de creación o edición
+      // 2. Subir archivo de reactualización si se seleccionó uno
+      let reactualizationFileId = studentForm.reactualizationFileId || undefined;
+      if (form.role === 'STUDENT' && studentForm.reactualizationFile) {
+        const uploaded = await uploadReactualization(token, studentForm.reactualizationFile);
+        reactualizationFileId = uploaded.id;
+      }
+
+      // 3. Armar payload de creación o edición
       const basePayload: UserRequest = {
         firstName: form.firstName,
         lastName: form.lastName,
@@ -310,6 +324,7 @@ export function useUsuarios() {
           updatePayload.student = {
             yearPromotion: studentForm.yearPromotion,
             status: studentForm.status,
+            reactualizationFileId,
             cui: studentForm.cui.trim() || undefined,
             paymentCode: studentForm.paymentCode.trim() || undefined,
             phone: studentForm.phone.trim() || undefined,
@@ -324,6 +339,7 @@ export function useUsuarios() {
           createPayload.student = {
             yearPromotion: studentForm.yearPromotion,
             status: studentForm.status,
+            reactualizationFileId,
             cui: studentForm.cui,
             paymentCode: studentForm.paymentCode,
             phone: studentForm.phone || undefined,
