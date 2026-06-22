@@ -373,6 +373,10 @@ export function useUsuarios() {
     }
   };
 
+  // --- Paginación ---
+  const [page, setPage] = useState(0);
+  const [pageSize, setPageSize] = useState(10);
+
   // Excluye al usuario en sesión y aplica los filtros de búsqueda y rol
   const filteredUsers = users
     .filter((u) => u.id !== authUser?.id)
@@ -391,9 +395,21 @@ export function useUsuarios() {
       return matchesSearch && matchesRole && matchesTeacherType && matchesStudentStatus;
     });
 
+  const totalPages = Math.ceil(filteredUsers.length / pageSize);
+  const paginatedUsers = filteredUsers.slice(page * pageSize, (page + 1) * pageSize);
+
+  // Resetear a página 0 cuando cambian filtros o pageSize
+  useEffect(() => { setPage(0); }, [searchTerm, filterRole, teacherTypeFilter, studentStatusFilter, pageSize]);
+
   return {
     // Lista y estados de carga
-    filteredUsers,
+    paginatedUsers,
+    filteredCount: filteredUsers.length,
+    page,
+    setPage,
+    pageSize,
+    setPageSize,
+    totalPages,
     loading,
     error,
     // Filtros

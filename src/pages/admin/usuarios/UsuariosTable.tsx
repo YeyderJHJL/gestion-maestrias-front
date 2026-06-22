@@ -36,6 +36,13 @@ interface Props {
   onTeacherTypeFilterChange: (value: string) => void;
   studentStatusFilter: string;
   onStudentStatusFilterChange: (value: string) => void;
+  // Paginación
+  filteredCount: number;
+  page: number;
+  onPageChange: (page: number) => void;
+  pageSize: number;
+  onPageSizeChange: (size: number) => void;
+  totalPages: number;
   // Oculta las acciones cuando el usuario es coordinador
   isCoordinator: boolean;
   // Callbacks para abrir los modales correspondientes
@@ -55,6 +62,12 @@ export function UsuariosTable({
   onTeacherTypeFilterChange,
   studentStatusFilter,
   onStudentStatusFilterChange,
+  filteredCount,
+  page,
+  onPageChange,
+  pageSize,
+  onPageSizeChange,
+  totalPages,
   isCoordinator,
   onEdit,
   onDelete,
@@ -233,6 +246,44 @@ export function UsuariosTable({
                 ))}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {/* Paginación */}
+        {!loading && !error && filteredCount > 0 && (
+          <div className="flex items-center justify-between px-6 py-3 border-t border-border">
+            <div className="flex items-center gap-2 text-sm text-text-muted">
+              <span>Mostrar</span>
+              <select
+                value={pageSize}
+                onChange={(e) => onPageSizeChange(Number(e.target.value))}
+                className="px-2 py-1 border border-border rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+              >
+                <option value={10}>10</option>
+                <option value={15}>15</option>
+                <option value={25}>25</option>
+              </select>
+              <span>de {filteredCount} usuarios</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <button
+                disabled={page === 0}
+                onClick={() => onPageChange(page - 1)}
+                className="px-3 py-1 text-sm border border-border rounded hover:bg-surface-alt transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                Anterior
+              </button>
+              <span className="px-3 py-1 text-sm text-text-muted">
+                {page + 1} / {totalPages}
+              </span>
+              <button
+                disabled={page >= totalPages - 1}
+                onClick={() => onPageChange(page + 1)}
+                className="px-3 py-1 text-sm border border-border rounded hover:bg-surface-alt transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                Siguiente
+              </button>
+            </div>
           </div>
         )}
       </div>

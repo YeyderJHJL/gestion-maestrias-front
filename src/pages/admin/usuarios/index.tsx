@@ -12,8 +12,14 @@ import { UsuarioFormModal } from './UsuarioFormModal';
 
 export function AdminUsuarios() {
   const {
-    // Lista
-    filteredUsers,
+    // Lista y paginación
+    paginatedUsers,
+    filteredCount,
+    page,
+    setPage,
+    pageSize,
+    setPageSize,
+    totalPages,
     loading,
     error,
     // Filtros
@@ -70,7 +76,7 @@ export function AdminUsuarios() {
 
         {/* Tabla con barra de búsqueda y filtros */}
         <UsuariosTable
-          users={filteredUsers}
+          users={paginatedUsers}
           loading={loading}
           error={error}
           searchTerm={searchTerm}
@@ -81,6 +87,12 @@ export function AdminUsuarios() {
           onTeacherTypeFilterChange={setTeacherTypeFilter}
           studentStatusFilter={studentStatusFilter}
           onStudentStatusFilterChange={setStudentStatusFilter}
+          filteredCount={filteredCount}
+          page={page}
+          onPageChange={setPage}
+          pageSize={pageSize}
+          onPageSizeChange={setPageSize}
+          totalPages={totalPages}
           isCoordinator={isCoordinator}
           onEdit={openEditModal}
           onDelete={setDeletingUser}
