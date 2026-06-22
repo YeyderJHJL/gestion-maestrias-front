@@ -1,13 +1,14 @@
 // Modal de creación y edición de usuarios.
 // Muestra un subformulario adicional según el rol seleccionado:
-//   - STUDENT: datos del estudiante (promoción, CUI, código de pago)
-//   - TEACHER: datos del docente (tipo, categoría, grado académico, etc.)
-// En modo edición los campos del subformulario se precargan desde el objeto usuario.
+//   - Estudiante: datos del estudiante (promoción, CUI, código de pago, estado)
+//   - Docente: datos del docente (tipo, categoría, grado académico, etc.)
+// En modo edición los campos del subformulario se precargan desde el objeto usuario
+// y permanecen editables (a diferencia de la creación, donde son obligatorios).
 
 import { Loader2Icon } from 'lucide-react';
 import { Modal } from '../../../components/Modal';
 import { UserRole } from '../../../types/auth';
-import { User, UserRequest } from '../../../services/usersApiService';
+import { User, UserCreateRequest } from '../../../services/usersApiService';
 import { TeacherCategory, AcademicDegree } from '../../../services/teachersApiService';
 import { StudentFormState, TeacherFormState } from './useUsuarios';
 
@@ -15,8 +16,8 @@ interface Props {
   isOpen: boolean;
   onClose: () => void;
   editingUser: User | null;
-  form: UserRequest;
-  setForm: (form: UserRequest) => void;
+  form: UserCreateRequest;
+  setForm: (form: UserCreateRequest) => void;
   studentForm: StudentFormState;
   setStudentForm: (form: StudentFormState) => void;
   teacherForm: TeacherFormState;
@@ -174,14 +175,14 @@ export function UsuarioFormModal({
                 <RadioPill
                   name="active"
                   value="true"
-                  checked={form.active}
+                  checked={form.active ?? true}
                   onChange={() => setForm({ ...form, active: true })}
                   label="Activo"
                 />
                 <RadioPill
                   name="active"
                   value="false"
-                  checked={!form.active}
+                  checked={!(form.active ?? true)}
                   onChange={() => setForm({ ...form, active: false })}
                   label="Inactivo"
                 />
@@ -190,12 +191,12 @@ export function UsuarioFormModal({
           </div>
         </div>
 
-        {/* ── Datos del estudiante (cuando el rol es STUDENT) ── */}
+        {/* ── Datos del estudiante (cuando el rol es Estudiante) ── */}
         {form.role === 'STUDENT' && (
           <div className="space-y-4">
             <SectionHeader title="Datos del estudiante" />
             <div className="grid grid-cols-2 gap-4">
-              <div className="col-span-2 space-y-1.5">
+              <div className="space-y-1.5">
                 <label className="block text-sm font-medium text-text">
                   Año de promoción {!editingUser && '*'}
                 </label>
@@ -211,6 +212,22 @@ export function UsuarioFormModal({
                   }
                   className={inputClass}
                 />
+              </div>
+              <div className="space-y-1.5">
+                <label className="block text-sm font-medium text-text">Estado académico</label>
+                <select
+                  value={studentForm.status}
+                  onChange={(e) =>
+                    setStudentForm({
+                      ...studentForm,
+                      status: e.target.value as 'Regular' | 'Reactualizacion',
+                    })
+                  }
+                  className={inputClass}
+                >
+                  <option value="Regular">Regular</option>
+                  <option value="Reactualizacion">Reactualización</option>
+                </select>
               </div>
               <div className="space-y-1.5">
                 <label className="block text-sm font-medium text-text">
@@ -243,18 +260,6 @@ export function UsuarioFormModal({
                 />
               </div>
               <div className="space-y-1.5">
-                <label className="block text-sm font-medium text-text">Estado académico</label>
-                <select
-                  value={studentForm.status}
-                  onChange={(e) => setStudentForm({ ...studentForm, status: e.target.value })}
-                  className={inputClass}
-                >
-                  <option value="">Sin especificar</option>
-                  <option value="Regular">Regular</option>
-                  <option value="Reactualizacion">Reactualización</option>
-                </select>
-              </div>
-              <div className="space-y-1.5">
                 <label className="block text-sm font-medium text-text">Teléfono</label>
                 <input
                   type="tel"
@@ -269,7 +274,7 @@ export function UsuarioFormModal({
           </div>
         )}
 
-        {/* ── Datos del docente (cuando el rol es TEACHER) ── */}
+        {/* ── Datos del docente (cuando el rol es Docente) ── */}
         {form.role === 'TEACHER' && (
           <div className="space-y-4">
             <SectionHeader title="Datos del docente" />

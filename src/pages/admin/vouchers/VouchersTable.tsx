@@ -27,7 +27,7 @@ const formatDate = (iso: string) =>
 const formatCurrency = (amount: number) => `S/ ${amount.toFixed(2)}`;
 
 const STATE_LABEL: Record<string, string> = {
-  PENDING: 'Pendiente',
+  UPLOADED: 'Pendiente',
   VALIDATED: 'Validado',
   OBSERVED: 'Observado',
   REJECTED: 'Rechazado',
@@ -110,9 +110,9 @@ export function VouchersTable({
                 {vouchers.map((voucher, index) => (
                   <tr key={voucher.id} className={index % 2 === 0 ? 'bg-surface' : 'bg-surface-alt'}>
                     <td className="px-6 py-4 text-sm text-text font-medium">{voucher.studentName}</td>
-                    <td className="px-6 py-4 text-sm text-text">{voucher.concept}</td>
-                    <td className="px-6 py-4 text-sm text-text">{formatCurrency(voucher.declaredAmount)}</td>
-                    <td className="px-6 py-4 text-sm text-text-muted">{formatDate(voucher.uploadedAt)}</td>
+                    <td className="px-6 py-4 text-sm text-text">{voucher.paymentConcept}</td>
+                    <td className="px-6 py-4 text-sm text-text">{formatCurrency(voucher.paymentAmount)}</td>
+                    <td className="px-6 py-4 text-sm text-text-muted">{formatDate(voucher.createdAt)}</td>
                     <td className="px-6 py-4">
                       <button
                         onClick={() => onSelectVoucher(voucher)}
@@ -127,7 +127,7 @@ export function VouchersTable({
                           voucher.stateCode === 'VALIDATED' ? 'validado' :
                           voucher.stateCode === 'OBSERVED'  ? 'observado' :
                           voucher.stateCode === 'REJECTED'  ? 'rechazado' :
-                          'pendiente'
+                          'en-revision'
                         }
                       >
                         {STATE_LABEL[voucher.stateCode]}

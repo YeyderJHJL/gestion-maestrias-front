@@ -35,22 +35,26 @@ export interface ColumnDef {
   hint?: string;                             // descripción extra en la guía de formato
 }
 
-interface Props<T> {
+export interface ImportFlowProps<T extends Record<string, any>> {
+  // Función que toma el File y devuelve el array de filas de tipo T
   parseFile: (file: File) => Promise<T[]>;
+  // Función que envía las filas al backend y devuelve el resultado
   submitRows: (token: string, rows: T[]) => Promise<ImportResult>;
+  // Definición de columnas para la previsualización y la guía
   columnDefs: ColumnDef[];
+  // Nombre de la entidad para textos (ej. "estudiantes", "docentes")
   entityLabel: string;
   // Validación de reglas de negocio por fila; devuelve lista de advertencias (no bloquea)
   validateRow?: (row: T) => string[];
 }
 
-export function ImportFlow<T>({
+export function ImportFlow<T extends Record<string, any>>({
   parseFile,
   submitRows,
   columnDefs,
   entityLabel,
   validateRow,
-}: Props<T>) {
+}: ImportFlowProps<T>) {
   const {
     step,
     file,

@@ -8,17 +8,19 @@ export interface AuthUser {
   dni?: string;
   role: UserRole;
   active: boolean;
-  // Presente si role === 'STUDENT'
+  // Presente si role === 'Estudiante'
   studentId?: string;
   cui?: string;
   paymentCode?: string;
-  promotionName?: string;
-  // Presente si role === 'TEACHER'
+  yearPromotion?: number;
+  studentStatus?: 'Regular' | 'Reactualizacion';
+  // Presente si role === 'Docente'
   teacherId?: string;
   teacherCategory?: string;
   teacherRegime?: string;
   academicDegree?: string;
   teacherType?: string;
   specialty?: string;
+  university?: string;
   phone?: string;
 }

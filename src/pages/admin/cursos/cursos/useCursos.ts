@@ -4,38 +4,34 @@ import { ApiError } from '../../../../services/api';
 import {
   CourseRequest,
   CourseResponse,
-  CourseType,
   createCourse,
   deleteCourse,
   listCourses,
   updateCourse,
 } from '../../../../services/coursesApiService';
-import { PromotionResponse } from '../../../../services/promotionsApiService';
-import { TeacherResponse, listTeachers } from '../../../../services/teachersApiService';
+import { uploadFile } from '../../../../services/filesApiService';
 
 export type CursoFormState = {
   code: string;
   name: string;
-  type: CourseType;
   startDate: string;
   endDate: string;
   observations: string;
-  syllabusUrl: string;
-  teacherId: string;
+  syllabusFile: File | null;
+  syllabusFileId: string;
 };
 
 const EMPTY_CURSO: CursoFormState = {
   code: '',
   name: '',
-  type: 'Regular',
   startDate: '',
   endDate: '',
   observations: '',
-  syllabusUrl: '',
-  teacherId: '',
+  syllabusFile: null,
+  syllabusFileId: '',
 };
 
-export function useCursos(selectedPromocion: PromotionResponse | null) {
+export function useCursos() {
   const { user, token } = useAuth();
   const isCoordinator = user?.role === 'COORDINATOR';
 
@@ -44,10 +40,6 @@ export function useCursos(selectedPromocion: PromotionResponse | null) {
   const [error, setError] = useState<string | null>(null);
 
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterType, setFilterType] = useState<CourseType | ''>('');
-
-  const [teachers, setTeachers] = useState<TeacherResponse[]>([]);
-  const [loadingTeachers, setLoadingTeachers] = useState(false);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<CourseResponse | null>(null);
@@ -76,23 +68,9 @@ export function useCursos(selectedPromocion: PromotionResponse | null) {
       .finally(() => setLoading(false));
   }, [token]);
 
-  const loadTeachers = useCallback(() => {
-    if (!token) return;
-    setLoadingTeachers(true);
-    listTeachers(token)
-      .then(setTeachers)
-      .catch(() => setTeachers([]))
-      .finally(() => setLoadingTeachers(false));
-  }, [token]);
-
   useEffect(() => {
     loadCursos();
   }, [loadCursos]);
-
-  useEffect(() => {
-    if (!isModalOpen) return;
-    loadTeachers();
-  }, [isModalOpen, loadTeachers]);
 
   const openCreateModal = () => {
     setEditingItem(null);
@@ -106,12 +84,11 @@ export function useCursos(selectedPromocion: PromotionResponse | null) {
     setForm({
       code: curso.code,
       name: curso.name,
-      type: curso.type,
       startDate: curso.startDate,
       endDate: curso.endDate,
       observations: curso.observations ?? '',
-      syllabusUrl: curso.syllabusUrl ?? '',
-      teacherId: '',
+      syllabusFile: null,
+      syllabusFileId: curso.syllabusFile?.id ?? '',
     });
     setFormError(null);
     setIsModalOpen(true);
@@ -122,35 +99,29 @@ export function useCursos(selectedPromocion: PromotionResponse | null) {
     setEditingItem(null);
   };
 
-  const buildPayload = (): CourseRequest | null => {
-    if (!selectedPromocion) return null;
-
-    return {
-      programId: selectedPromocion.programId,
-      promotionId: selectedPromocion.id,
-      code: form.code.trim(),
-      name: form.name.trim(),
-      type: form.type,
-      startDate: form.startDate,
-      endDate: form.endDate,
-      observations: form.observations.trim(),
-      syllabusUrl: form.syllabusUrl.trim(),
-    };
-  };
-
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!token) return;
 
-    const payload = buildPayload();
-    if (!payload) {
-      setFormError('Selecciona una promoción antes de guardar el curso.');
-      return;
-    }
-
     setSubmitting(true);
     setFormError(null);
     try {
+      let finalFileId = form.syllabusFileId || undefined;
+      
+      if (form.syllabusFile) {
+        const uploaded = await uploadFile(token, form.syllabusFile, 'syllabus');
+        finalFileId = uploaded.id;
+      }
+
+      const payload: CourseRequest = {
+        code: form.code.trim(),
+        name: form.name.trim(),
+        startDate: form.startDate,
+        endDate: form.endDate,
+        observations: form.observations.trim(),
+        syllabusFileId: finalFileId,
+      };
+
       if (editingItem) {
         const updated = await updateCourse(token, editingItem.id, payload);
         setCursos((prev) => prev.map((c) => (c.id === updated.id ? updated : c)));
@@ -183,17 +154,14 @@ export function useCursos(selectedPromocion: PromotionResponse | null) {
 
   const cursosFiltrados = useMemo(
     () =>
-      cursos
-        .filter((c) => c.promotionId === selectedPromocion?.id)
-        .filter((c) => {
-          const matchesSearch =
-            !searchTerm ||
-            c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            c.code.toLowerCase().includes(searchTerm.toLowerCase());
-          const matchesType = !filterType || c.type === filterType;
-          return matchesSearch && matchesType;
-        }),
-    [cursos, selectedPromocion?.id, searchTerm, filterType]
+      cursos.filter((c) => {
+        const matchesSearch =
+          !searchTerm ||
+          c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          c.code.toLowerCase().includes(searchTerm.toLowerCase());
+        return matchesSearch;
+      }),
+    [cursos, searchTerm]
   );
 
   return {
@@ -203,11 +171,7 @@ export function useCursos(selectedPromocion: PromotionResponse | null) {
     error,
     searchTerm,
     setSearchTerm,
-    filterType,
-    setFilterType,
     isCoordinator,
-    teachers,
-    loadingTeachers,
     isModalOpen,
     editingItem,
     form,

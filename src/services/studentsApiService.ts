@@ -1,16 +1,13 @@
 import { apiFetch } from './api';
+import { StoredFileSummaryResponse } from './filesApiService';
 
 export type StudentStatus = 'Regular' | 'Reactualizacion';
 
-export interface Promotion {
-  id: number;
-  name: string;
-  programName: string;
-}
-
 export interface StudentRequest {
   userId: string;
-  promotionId: number;
+  yearPromotion: number;
+  status?: StudentStatus;
+  reactualizationFileId?: string;
   cui: string;
   paymentCode: string;
   phone?: string;
@@ -22,8 +19,10 @@ export interface StudentResponse {
   email: string;
   firstName: string;
   lastName: string;
+  dni?: string;
   yearPromotion: number;
-  status: StudentStatus;
+  status?: StudentStatus;
+  reactualizationFile?: StoredFileSummaryResponse | null;
   cui: string;
   paymentCode: string;
   phone?: string;
@@ -37,20 +36,41 @@ interface ApiResponse<T> {
   message: string | null;
 }
 
-// stub — /v1/promotions eliminado en V4, pero usePromociones.ts importa esta función
-export async function listPromotions(_token: string): Promise<Promotion[]> {
-  return [];
-}
-
 export async function listStudents(token: string): Promise<StudentResponse[]> {
   const res = await apiFetch<ApiResponse<StudentResponse[]>>('/v1/students', token);
   return res.data;
 }
 
-export async function createStudent(token: string, request: StudentRequest): Promise<StudentResponse> {
+export async function getStudentById(token: string, id: string): Promise<StudentResponse> {
+  const res = await apiFetch<ApiResponse<StudentResponse>>(`/v1/students/${id}`, token);
+  return res.data;
+}
+
+export async function createStudent(
+  token: string,
+  request: StudentRequest
+): Promise<StudentResponse> {
   const res = await apiFetch<ApiResponse<StudentResponse>>('/v1/students', token, {
     method: 'POST',
     body: JSON.stringify(request),
   });
   return res.data;
+}
+
+export async function updateStudent(
+  token: string,
+  id: string,
+  request: StudentRequest
+): Promise<StudentResponse> {
+  const res = await apiFetch<ApiResponse<StudentResponse>>(`/v1/students/${id}`, token, {
+    method: 'PUT',
+    body: JSON.stringify(request),
+  });
+  return res.data;
+}
+
+export async function deleteStudent(token: string, id: string): Promise<void> {
+  await apiFetch<void>(`/v1/students/${id}`, token, {
+    method: 'DELETE',
+  });
 }

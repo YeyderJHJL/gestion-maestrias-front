@@ -7,7 +7,7 @@ import { StatusBadge } from '../../../components/StatusBadge';
 import { EmptyState } from '../../../components/EmptyState';
 import { User } from '../../../services/usersApiService';
 
-// Etiquetas en español para cada rol del sistema
+// Variante visual del badge según el rol
 const ROLE_LABELS: Record<string, string> = {
   ADMIN: 'Administrador',
   COORDINATOR: 'Coordinador',
@@ -15,7 +15,6 @@ const ROLE_LABELS: Record<string, string> = {
   STUDENT: 'Estudiante',
 };
 
-// Variante visual del badge según el rol
 const ROLE_BADGE_VARIANT: Record<string, 'activo' | 'en-curso' | 'validado' | 'matriculado'> = {
   ADMIN: 'activo',
   COORDINATOR: 'en-curso',
