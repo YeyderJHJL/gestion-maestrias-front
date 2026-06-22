@@ -36,6 +36,7 @@ export interface TeacherResponse {
   email: string;
   firstName: string;
   lastName: string;
+  dni?: string;
   category?: string;
   regime?: string;
   academicDegree?: string;

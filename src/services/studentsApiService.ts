@@ -19,6 +19,7 @@ export interface StudentResponse {
   email: string;
   firstName: string;
   lastName: string;
+  dni?: string;
   yearPromotion: number;
   status?: StudentStatus;
   reactualizationFile?: StoredFileSummaryResponse | null;

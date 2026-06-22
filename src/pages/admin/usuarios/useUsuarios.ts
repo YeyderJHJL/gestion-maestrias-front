@@ -71,84 +71,56 @@ const EMPTY_TEACHER: TeacherFormState = {
   phone: '',
 };
 
-// --- Cache localStorage por filtro ---
-
-const CACHE_KEYS: Record<string, string> = {
-  '':       'sga_users_all',
-  TEACHER:  'sga_users_teachers',
-  STUDENT:  'sga_users_students',
-};
-
-function getCached(key: string): UserResponse[] | null {
-  try { return JSON.parse(localStorage.getItem(key) ?? 'null'); } catch { return null; }
-}
-
-function clearAllCaches() {
-  Object.values(CACHE_KEYS).forEach((k) => localStorage.removeItem(k));
-}
-// Lookup de datos base (dni, active) desde el caché de /users
-function getUserLookup(): Map<string, UserResponse> {
-  const cached = getCached('sga_users_all');
-  return new Map(cached?.map((u) => [u.id, u]) ?? []);
-}
-
 // --- Mappers especializado → UserResponse ---
+
 function mapStudentsToUsers(students: StudentResponse[]): UserResponse[] {
-  const lookup = getUserLookup();
-  return students.map((s) => {
-    const base = lookup.get(s.userId);
-    return {
-      id: s.userId,
-      email: s.email,
-      firstName: s.firstName,
-      lastName: s.lastName,
-      dni: base?.dni,
-      role: 'STUDENT' as UserRole,
-      active: base?.active ?? true,
+  return students.map((s) => ({
+    id: s.userId,
+    email: s.email,
+    firstName: s.firstName,
+    lastName: s.lastName,
+    dni: s.dni,
+    role: 'STUDENT' as UserRole,
+    active: true,
+    createdAt: s.createdAt,
+    updatedAt: s.updatedAt,
+    student: {
+      id: s.id,
+      yearPromotion: s.yearPromotion,
+      status: s.status,
+      cui: s.cui,
+      paymentCode: s.paymentCode,
+      phone: s.phone,
       createdAt: s.createdAt,
       updatedAt: s.updatedAt,
-      student: {
-        id: s.id,
-        yearPromotion: s.yearPromotion,
-        status: s.status,
-        cui: s.cui,
-        paymentCode: s.paymentCode,
-        phone: s.phone,
-        createdAt: s.createdAt,
-        updatedAt: s.updatedAt,
-      },
-    };
-  });
+    },
+  }));
 }
 
 function mapTeachersToUsers(teachers: TeacherResponse[]): UserResponse[] {
-  const lookup = getUserLookup();
-  return teachers.map((t) => {
-    const base = lookup.get(t.userId);
-    return {
-      id: t.userId,
-      email: t.email,
-      firstName: t.firstName,
-      lastName: t.lastName,
-      dni: base?.dni,
-      role: 'TEACHER' as UserRole,
-      active: base?.active ?? true,
+  return teachers.map((t) => ({
+    id: t.userId,
+    email: t.email,
+    firstName: t.firstName,
+    lastName: t.lastName,
+    dni: t.dni,
+    role: 'TEACHER' as UserRole,
+    active: true,
+    createdAt: t.createdAt,
+    updatedAt: t.updatedAt,
+    teacher: {
+      id: t.id,
+      type: t.type as TeacherType,
+      category: t.category as TeacherCategory | undefined,
+      regime: t.regime,
+      academicDegree: t.academicDegree as AcademicDegree | undefined,
+      specialty: t.specialty,
+      phone: t.phone,
+      university: t.university,
       createdAt: t.createdAt,
       updatedAt: t.updatedAt,
-      teacher: {
-        id: t.id,
-        type: t.type as TeacherType,
-        category: t.category as TeacherCategory | undefined,
-        regime: t.regime,
-        academicDegree: t.academicDegree as AcademicDegree | undefined,
-        specialty: t.specialty,
-        phone: t.phone,
-        university: t.university,
-        createdAt: t.createdAt,
-        updatedAt: t.updatedAt,
-      },
-    };
-  });
+    },
+  }));
 }
 
 export function useUsuarios() {
@@ -197,34 +169,18 @@ export function useUsuarios() {
   const showToast = (variant: 'success' | 'error', message: string) =>
     setToast({ visible: true, variant, message });
 
-  // Obtiene la lista según el filtro activo; muestra caché inmediato si existe
   const loadUsers = useCallback(() => {
     if (!token) return;
+    setLoading(true);
     setError(null);
 
-    const cacheKey = CACHE_KEYS[filterRole] ?? 'sga_users_all';
-    const cached = getCached(cacheKey);
-    if (cached) {
-      setUsers(cached);
-      setLoading(false);
-    } else {
-      setLoading(true);
-    }
-
-    let req: Promise<UserResponse[]>;
-    if (filterRole === 'STUDENT') {
-      req = listStudents(token).then(mapStudentsToUsers);
-    } else if (filterRole === 'TEACHER') {
-      req = listTeachers(token).then(mapTeachersToUsers);
-    } else {
-      req = listUsers(token);
-    }
+    const req =
+      filterRole === 'STUDENT' ? listStudents(token).then(mapStudentsToUsers) :
+      filterRole === 'TEACHER' ? listTeachers(token).then(mapTeachersToUsers) :
+      listUsers(token);
 
     req
-      .then((data) => {
-        setUsers(data);
-        localStorage.setItem(cacheKey, JSON.stringify(data));
-      })
+      .then(setUsers)
       .catch((e: Error) => setError(e.message))
       .finally(() => setLoading(false));
   }, [token, filterRole]);
@@ -389,7 +345,7 @@ export function useUsuarios() {
         await createUser(token, createPayload);
         showToast('success', 'Usuario creado correctamente.');
       }
-      clearAllCaches();
+
       closeModal();
       loadUsers();
     } catch (e) {
@@ -405,7 +361,7 @@ export function useUsuarios() {
     try {
       await deleteUser(token, deletingUser.id);
       setUsers((prev) => prev.filter((u) => u.id !== deletingUser.id));
-      clearAllCaches();
+
       showToast(
         'success',
         `Usuario ${deletingUser.firstName} ${deletingUser.lastName} eliminado.`
