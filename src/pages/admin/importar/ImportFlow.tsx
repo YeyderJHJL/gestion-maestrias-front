@@ -239,7 +239,7 @@ export function ImportFlow<T extends Record<string, any>>({
             <div className="border border-border rounded-lg overflow-hidden">
               <div className="overflow-x-auto max-h-80 overflow-y-auto">
                 <table className="w-full text-sm">
-                  <thead className="bg-surface-alt sticky top-0">
+                  <thead className="bg-surface-alt sticky top-0 z-30">
                     <tr className="border-b border-border">
                       {columnDefs.map((col) => (
                         <th

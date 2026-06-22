@@ -53,14 +53,7 @@ const TEACHER_COLUMNS: ColumnDef[] = [
     hint: 'Solo para docentes externos' },
 ];
 
-function validateTeacherRow(row: ImportTeacherRow): string[] {
-  const warns: string[] = [];
-  if (row.type === 'Externo' && !row.university)
-    warns.push('Docente externo sin universidad asignada');
-  if (row.type === 'Interno' && !row.category)
-    warns.push('Docente interno sin categoría asignada');
-  return warns;
-}
+import { validateStudentRow, validateTeacherRow } from './useImportValidation';
 
 export function AdminImportar() {
   const [activeTab, setActiveTab] = useState<Tab>('students');
@@ -113,6 +106,7 @@ export function AdminImportar() {
             submitRows={importStudents}
             columnDefs={STUDENT_COLUMNS}
             entityLabel="estudiantes"
+            validateRow={validateStudentRow}
           />
         </div>
 
