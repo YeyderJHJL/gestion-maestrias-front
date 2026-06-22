@@ -1,11 +1,7 @@
 import { apiFetch } from './api';
+import type { StoredFileSummary } from './filesApiService';
 
-export interface AssignmentRequest {
-  courseId: string;
-  teacherId: string;
-  semesterId: number;
-  assignmentDate: string;
-}
+// ── Tipos de respuesta ────────────────────────────────────────────────────────
 
 export interface AssignmentResponse {
   id: number;
@@ -18,10 +14,35 @@ export interface AssignmentResponse {
   semesterId: number;
   semesterYear: number;
   semesterCode: string;
-  assignmentDate: string;
+  assignmentDate: string;           // YYYY-MM-DD
+  syllabusFile?: StoredFileSummary; // presente si ya se subió un sílabo
   createdAt: string;
   updatedAt: string;
 }
+
+// ── Tipos de petición ─────────────────────────────────────────────────────────
+
+export interface AssignmentRequest {
+  courseId: string;
+  teacherId: string;
+  semesterId: number;
+  assignmentDate: string;      // YYYY-MM-DD
+  syllabusFileId?: string;     // UUID — opcional
+}
+
+// ── Clave compuesta (identifica una asignación para GET / PUT / DELETE) ───────
+
+export interface AssignmentKey {
+  courseId: string;
+  teacherId: string;
+  semesterId: number;
+}
+
+function assignmentPath({ courseId, teacherId, semesterId }: AssignmentKey): string {
+  return `/v1/assignments/courses/${courseId}/teachers/${teacherId}/semesters/${semesterId}`;
+}
+
+// ── Envelope genérico ─────────────────────────────────────────────────────────
 
 interface ApiResponse<T> {
   success: boolean;
@@ -29,11 +50,24 @@ interface ApiResponse<T> {
   message: string | null;
 }
 
+// ── Endpoints ─────────────────────────────────────────────────────────────────
+
+/** GET /v1/assignments */
 export async function listAssignments(token: string): Promise<AssignmentResponse[]> {
   const res = await apiFetch<ApiResponse<AssignmentResponse[]>>('/v1/assignments', token);
   return res.data;
 }
 
+/** GET /v1/assignments/courses/{courseId}/teachers/{teacherId}/semesters/{semesterId} */
+export async function getAssignment(
+  token: string,
+  key: AssignmentKey
+): Promise<AssignmentResponse> {
+  const res = await apiFetch<ApiResponse<AssignmentResponse>>(assignmentPath(key), token);
+  return res.data;
+}
+
+/** POST /v1/assignments */
 export async function createAssignment(
   token: string,
   request: AssignmentRequest
@@ -45,35 +79,20 @@ export async function createAssignment(
   return res.data;
 }
 
+/** PUT /v1/assignments/courses/{courseId}/teachers/{teacherId}/semesters/{semesterId} */
 export async function updateAssignment(
   token: string,
-  courseId: string,
-  teacherId: string,
-  semesterId: number,
+  key: AssignmentKey,
   request: AssignmentRequest
 ): Promise<AssignmentResponse> {
-  const res = await apiFetch<ApiResponse<AssignmentResponse>>(
-    `/v1/assignments/courses/${courseId}/teachers/${teacherId}/semesters/${semesterId}`,
-    token,
-    {
-      method: 'PUT',
-      body: JSON.stringify(request),
-    }
-  );
+  const res = await apiFetch<ApiResponse<AssignmentResponse>>(assignmentPath(key), token, {
+    method: 'PUT',
+    body: JSON.stringify(request),
+  });
   return res.data;
 }
 
-export async function deleteAssignment(
-  token: string,
-  courseId: string,
-  teacherId: string,
-  semesterId: number
-): Promise<void> {
-  await apiFetch<void>(
-    `/v1/assignments/courses/${courseId}/teachers/${teacherId}/semesters/${semesterId}`,
-    token,
-    {
-      method: 'DELETE',
-    }
-  );
+/** DELETE /v1/assignments/courses/{courseId}/teachers/{teacherId}/semesters/{semesterId} */
+export async function deleteAssignment(token: string, key: AssignmentKey): Promise<void> {
+  await apiFetch<ApiResponse<void>>(assignmentPath(key), token, { method: 'DELETE' });
 }

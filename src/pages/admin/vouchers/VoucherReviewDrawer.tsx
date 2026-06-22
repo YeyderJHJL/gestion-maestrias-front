@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { XIcon, CheckIcon, AlertTriangleIcon, Loader2Icon } from 'lucide-react';
 import { VoucherResponse } from '../../../types/voucher';
-import { getFile } from '../../../services/filesApiService';
+import { getFileUrl } from '../../../services/filesApiService';
 import { useAuth } from '../../../context/AuthContext';
 
 type Decision = 'validar' | 'observar' | 'rechazar';
@@ -42,7 +42,7 @@ export function VoucherReviewDrawer({
   useEffect(() => {
     if (!voucher || !token) { setPreviewUrl(null); return; }
     setPreviewLoading(true);
-    getFile(token, voucher.file.id)
+    getFileUrl(token, voucher.file.id)
       .then((f) => setPreviewUrl(f.downloadUrl))
       .catch(() => setPreviewUrl(null))
       .finally(() => setPreviewLoading(false));

@@ -4,7 +4,7 @@ import { ApiError } from '../../services/api';
 import { VOUCHER_STATE } from '../../constants/stateIds';
 import { listMyPayments, PaymentResponse } from '../../services/paymentsApiService';
 import { listMyVouchers, createVoucher } from '../../services/vouchersApiService';
-import { uploadFile } from '../../services/filesApiService';
+import { uploadVoucher } from '../../services/filesApiService';
 import { VoucherResponse } from '../../types/voucher';
 
 export type VoucherFormState = {
@@ -61,7 +61,7 @@ export function useEstudiantePagos() {
     setSubmitting(true);
     setFormError(null);
     try {
-      const uploaded = await uploadFile(token, form.file);
+      const uploaded = await uploadVoucher(token, form.file);
 
       await createVoucher(token, {
         paymentId: form.paymentId,

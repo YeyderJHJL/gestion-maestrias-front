@@ -1,8 +1,7 @@
-import React from 'react';
 import { Loader2Icon } from 'lucide-react';
-import { Modal } from '../../../../components/Modal';
-import { SemesterResponse } from '../../../../services/semestersApiService';
-import { SemestreFormState } from './useSemestres';
+import { Modal } from '../../../../../components/Modal';
+import { SemesterResponse } from '../../../../../services/semestersApiService';
+import { SemestreFormState } from '../../hooks/useSemestres';
 
 interface Props {
   isOpen: boolean;
@@ -15,6 +14,9 @@ interface Props {
   onSubmit: (e: React.FormEvent) => void;
 }
 
+const inputClass =
+  'w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-surface text-text';
+
 export function SemestreFormModal({
   isOpen,
   onClose,
@@ -25,9 +27,6 @@ export function SemestreFormModal({
   formError,
   onSubmit,
 }: Props) {
-  const inputClass =
-    'w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary';
-
   return (
     <Modal
       isOpen={isOpen}
@@ -39,7 +38,9 @@ export function SemestreFormModal({
       <form onSubmit={onSubmit} className="space-y-6">
         <div className="space-y-4">
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-text">Año *</label>
+            <label className="block text-sm font-medium text-text">
+              Año <span className="text-accent">*</span>
+            </label>
             <input
               type="number"
               required
@@ -51,7 +52,9 @@ export function SemestreFormModal({
           </div>
 
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-text">Código *</label>
+            <label className="block text-sm font-medium text-text">
+              Código <span className="text-accent">*</span>
+            </label>
             <input
               type="text"
               required
