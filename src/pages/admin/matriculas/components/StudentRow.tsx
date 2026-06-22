@@ -38,8 +38,8 @@ export function StudentRow({ student, activeEnrollmentCount, onSelect }: Props) 
           )}
           <span className="text-xs text-text-muted">Prom. {student.yearPromotion}</span>
 
-          <StatusBadge variant={STUDENT_STATUS_VARIANT[student.status] ?? 'matriculado'}>
-            {studentStatusLabel(student.status)}
+          <StatusBadge variant={STUDENT_STATUS_VARIANT[student.status ?? 'Regular'] ?? 'matriculado'}>
+            {studentStatusLabel(student.status ?? 'Regular')}
           </StatusBadge>
 
           {isEnrolled ? (

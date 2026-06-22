@@ -31,8 +31,8 @@ export function StudentDetailPanel({ student, isCoordinator, onNewEnrollment, on
               {student.email} · Promoción {student.yearPromotion}
             </p>
             <div className="pt-1">
-              <StatusBadge variant={STUDENT_STATUS_VARIANT[student.status] ?? 'matriculado'}>
-                {studentStatusLabel(student.status)}
+              <StatusBadge variant={STUDENT_STATUS_VARIANT[student.status ?? 'Regular'] ?? 'matriculado'}>
+                {studentStatusLabel(student.status ?? 'Regular')}
               </StatusBadge>
             </div>
           </div>
