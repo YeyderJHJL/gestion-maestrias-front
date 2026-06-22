@@ -24,7 +24,7 @@ interface VouchersTableProps {
 const formatDate = (iso: string) =>
   new Date(iso).toLocaleDateString('es-PE', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
-const formatCurrency = (amount: number) => `S/ ${amount.toFixed(2)}`;
+const formatCurrency = (amount: number | null) => amount != null ? `S/ ${amount.toFixed(2)}` : '—';
 
 const STATE_LABEL: Record<string, string> = {
   UPLOADED: 'Pendiente',
