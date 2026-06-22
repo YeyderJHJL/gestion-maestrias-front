@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '../../../context/AuthContext';
 import { ApiError } from '../../../services/api';
+import { VOUCHER_STATE } from '../../../constants/stateIds';
 import { listVouchers, updateVoucher } from '../../../services/vouchersApiService';
 import { VoucherResponse, VoucherStateCode } from '../../../types/voucher';
 
@@ -14,10 +15,10 @@ const TAB_TO_STATE: Record<ActiveTab, VoucherStateCode> = {
   rechazados: 'REJECTED',
 };
 
-const DECISION_TO_STATE_CODE: Record<Decision, VoucherStateCode> = {
-  validar: 'VALIDATED',
-  observar: 'OBSERVED',
-  rechazar: 'REJECTED',
+const DECISION_TO_STATE: Record<Decision, { code: VoucherStateCode; id: number }> = {
+  validar:  { code: 'VALIDATED', id: VOUCHER_STATE.VALIDATED },
+  observar: { code: 'OBSERVED',  id: VOUCHER_STATE.OBSERVED },
+  rechazar: { code: 'REJECTED',  id: VOUCHER_STATE.REJECTED },
 };
 
 export function useAdminVouchers() {
@@ -82,14 +83,14 @@ export function useAdminVouchers() {
     if (!token || !selectedVoucher || !decision) return;
     setSubmitting(true);
     try {
-      const newStateCode = DECISION_TO_STATE_CODE[decision];
+      const target = DECISION_TO_STATE[decision];
       const updated = await updateVoucher(token, selectedVoucher.id, {
         paymentId: selectedVoucher.paymentId,
-        stateId: selectedVoucher.stateId,
+        stateId: target.id,
         fileId: selectedVoucher.file.id,
         observation: motivo || undefined,
       });
-      setAllVouchers((prev) => prev.map((v) => v.id === updated.id ? { ...updated, stateCode: newStateCode } : v));
+      setAllVouchers((prev) => prev.map((v) => v.id === updated.id ? updated : v));
       showToast('success', 'Decisión registrada correctamente.');
       closeDrawer();
     } catch (e) {

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { ApiError } from '../../services/api';
+import { VOUCHER_STATE } from '../../constants/stateIds';
 import { listMyPayments, PaymentResponse } from '../../services/paymentsApiService';
 import { listMyVouchers, createVoucher } from '../../services/vouchersApiService';
 import { uploadFile } from '../../services/filesApiService';
@@ -62,13 +63,9 @@ export function useEstudiantePagos() {
     try {
       const uploaded = await uploadFile(token, form.file);
 
-      // stateId para UPLOADED — el backend lo define en el seeder
-      // TODO: obtener dinámicamente si se agrega GET /v1/states?entityType=VOUCHER
-      const UPLOADED_STATE_ID = 4;
-
       await createVoucher(token, {
         paymentId: form.paymentId,
-        stateId: UPLOADED_STATE_ID,
+        stateId: VOUCHER_STATE.UPLOADED,
         fileId: uploaded.id,
       });
       setSubmitted(true);

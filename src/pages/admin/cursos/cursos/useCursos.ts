@@ -109,7 +109,7 @@ export function useCursos() {
       let finalFileId = form.syllabusFileId || undefined;
       
       if (form.syllabusFile) {
-        const uploaded = await uploadFile(token, form.syllabusFile);
+        const uploaded = await uploadFile(token, form.syllabusFile, 'syllabus');
         finalFileId = uploaded.id;
       }
 
