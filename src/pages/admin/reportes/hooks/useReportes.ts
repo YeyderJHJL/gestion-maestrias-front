@@ -7,7 +7,7 @@ import {
   getNotasPorEstudiante,
   getPagosPorEstudiante,
   getPagosPendientesValidados,
-} from '../services/reportesApiService';
+} from '../../../../services/reportesApiService';
 import type {
   TipoReporte,
   FilaAlumnoPorPromocion,

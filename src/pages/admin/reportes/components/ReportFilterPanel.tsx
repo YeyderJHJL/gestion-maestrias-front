@@ -1,10 +1,3 @@
-/**
- * ReportFilterPanel
- * Renderiza el formulario de filtros correspondiente al tipo de reporte activo.
- * Los selects de teacherId, courseId y studentId reciben listas desde el padre
- * (cargadas con useEffect en index.tsx) para no acoplar fetching aquí.
- */
-
 import type { TipoReporte } from '../types/reportes.types';
 import type { FiltrosState } from '../hooks/useReportes';
 import type { TeacherResponse } from '../../../../services/teachersApiService';

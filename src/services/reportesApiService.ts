@@ -1,21 +1,7 @@
-/**
- * reportesApiService.ts
- * ─────────────────────
- * Capa de datos exclusiva del módulo de reportes.
- * Orquesta llamadas a múltiples endpoints del back según el tipo de reporte.
- *
- * NOTAS sobre la API actual:
- *  - No existe GET /v1/payments (admin). El reporte de pagos usa GET /v1/vouchers,
- *    que incluye studentName, stateCode y monto. Cuando el back exponga un endpoint
- *    dedicado de pagos por alumno (admin), reemplazar listVouchersAdmin.
- *  - GET /v1/grades no soporta filtro por studentId en query params; se filtra
- *    en cliente. Si el back añade ?studentId=..., actualizar listGradesForStudent.
- */
-
-import { apiFetch } from '../../../../services/api';
-import type { StudentResponse } from '../../../../services/studentsApiService';
-import type { EnrollmentResponse } from '../../../../services/enrollmentsApiService';
-import type { AssignmentResponse } from '../../../../services/assignmentsApiService';
+import { apiFetch } from './api';
+import type { StudentResponse } from './studentsApiService';
+import type { EnrollmentResponse } from './enrollmentsApiService';
+import type { AssignmentResponse } from './assignmentsApiService';
 import type {
   FilaAlumnoPorPromocion,
   FilaCursoPorDocente,
@@ -23,9 +9,10 @@ import type {
   FilaNotaPorEstudiante,
   FilaPagoPorEstudiante,
   FilaPagoPendienteValidado,
-} from '../types/reportes.types';
-
-
+} from '../pages/admin/reportes/types/reportes.types';
+ 
+// ── Tipos locales (schemas del back no exportados en los servicios actuales) ──
+ 
 interface GradeResponse {
   id: string;
   enrollmentId: string;
@@ -41,7 +28,7 @@ interface GradeResponse {
   createdAt: string;
   updatedAt: string;
 }
-
+ 
 interface VoucherResponse {
   id: string;
   paymentId: string;
@@ -59,15 +46,15 @@ interface VoucherResponse {
   createdAt: string;
   updatedAt: string;
 }
-
+ 
 interface ApiResponse<T> {
   success: boolean;
   data: T;
   message: string | null;
 }
-
+ 
 // ── Helpers de mapeo ──────────────────────────────────────────────────────────
-
+ 
 function mapStudent(s: StudentResponse): FilaAlumnoPorPromocion {
   return {
     id: s.id,
@@ -80,7 +67,7 @@ function mapStudent(s: StudentResponse): FilaAlumnoPorPromocion {
     promocion: s.yearPromotion,
   };
 }
-
+ 
 function mapAssignmentToCurso(a: AssignmentResponse): FilaCursoPorDocente {
   return {
     courseId: a.courseId,
@@ -91,7 +78,7 @@ function mapAssignmentToCurso(a: AssignmentResponse): FilaCursoPorDocente {
     semestre: `${a.semesterYear} - ${a.semesterCode}`,
   };
 }
-
+ 
 function mapEnrollmentToEstudiante(e: EnrollmentResponse): FilaEstudiantePorCurso {
   return {
     studentId: e.studentId,
@@ -101,7 +88,7 @@ function mapEnrollmentToEstudiante(e: EnrollmentResponse): FilaEstudiantePorCurs
     fechaMatricula: e.enrollmentDate,
   };
 }
-
+ 
 function mapGrade(g: GradeResponse): FilaNotaPorEstudiante {
   return {
     gradeId: g.id,
@@ -111,7 +98,7 @@ function mapGrade(g: GradeResponse): FilaNotaPorEstudiante {
     estado: g.stateName,
   };
 }
-
+ 
 function mapVoucherToPago(v: VoucherResponse): FilaPagoPorEstudiante {
   return {
     voucherId: v.id,
@@ -124,7 +111,7 @@ function mapVoucherToPago(v: VoucherResponse): FilaPagoPorEstudiante {
     estado: v.stateName,
   };
 }
-
+ 
 function mapVoucherToPendiente(v: VoucherResponse): FilaPagoPendienteValidado {
   return {
     voucherId: v.id,
@@ -137,9 +124,9 @@ function mapVoucherToPendiente(v: VoucherResponse): FilaPagoPendienteValidado {
     observacion: v.observation,
   };
 }
-
+ 
 // ── Funciones de reporte ──────────────────────────────────────────────────────
-
+ 
 /** Reporte 1: Alumnos por promoción — GET /v1/students/promotions/{year} */
 export async function getAlumnosPorPromocion(
   token: string,
@@ -151,7 +138,7 @@ export async function getAlumnosPorPromocion(
   );
   return res.data.map(mapStudent);
 }
-
+ 
 /** Reporte 2: Cursos por docente — GET /v1/assignments/teachers/{teacherId} */
 export async function getCursosPorDocente(
   token: string,
@@ -163,19 +150,19 @@ export async function getCursosPorDocente(
   );
   return res.data.map(mapAssignmentToCurso);
 }
-
-/** Reporte 3: Estudiantes por curso — GET /v1/enrollments (filtrado cliente) */
+ 
+/** Reporte 3: Estudiantes por curso — GET /v1/courses/{id}/students */
 export async function getEstudiantesPorCurso(
   token: string,
   courseId: string
 ): Promise<FilaEstudiantePorCurso[]> {
-  // TODO: si el back expone GET /v1/enrollments?courseId=..., usar ese filtro.
-  const res = await apiFetch<ApiResponse<EnrollmentResponse[]>>('/v1/enrollments', token);
-  return res.data
-    .filter((e) => e.courseId === courseId)
-    .map(mapEnrollmentToEstudiante);
+  const res = await apiFetch<ApiResponse<EnrollmentResponse[]>>(
+    `/v1/courses/${courseId}/students`,
+    token
+  );
+  return res.data.map(mapEnrollmentToEstudiante);
 }
-
+ 
 /** Reporte 4: Notas por estudiante — GET /v1/grades (filtrado cliente) */
 export async function getNotasPorEstudiante(
   token: string,
@@ -187,7 +174,7 @@ export async function getNotasPorEstudiante(
     .filter((g) => g.studentId === studentId)
     .map(mapGrade);
 }
-
+ 
 /** Reporte 5: Pagos por estudiante — GET /v1/vouchers (filtrado cliente por nombre) */
 export async function getPagosPorEstudiante(
   token: string,
@@ -206,7 +193,7 @@ export async function getPagosPorEstudiante(
     : res.data;
   return filtered.map(mapVoucherToPago);
 }
-
+ 
 /** Reporte 6: Pagos pendientes / validados — GET /v1/vouchers (filtrado cliente por estado) */
 export async function getPagosPendientesValidados(
   token: string,
