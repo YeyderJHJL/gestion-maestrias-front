@@ -1,124 +1,170 @@
-import { ReporteFiltros, TipoReporte, EstadoReporte } from '../types/reportes.types';
+/**
+ * ReportFilterPanel
+ * Renderiza el formulario de filtros correspondiente al tipo de reporte activo.
+ * Los selects de teacherId, courseId y studentId reciben listas desde el padre
+ * (cargadas con useEffect en index.tsx) para no acoplar fetching aquí.
+ */
+
+import type { TipoReporte } from '../types/reportes.types';
+import type { FiltrosState } from '../hooks/useReportes';
+import type { TeacherResponse } from '../../../../services/teachersApiService';
+import type { CourseResponse } from '../../../../services/coursesApiService';
+import type { StudentResponse } from '../../../../services/studentsApiService';
 
 interface ReportFilterPanelProps {
-  filtros: ReporteFiltros;
+  tipo: TipoReporte;
+  filtros: FiltrosState;
   isLoading: boolean;
-  onChange: <K extends keyof ReporteFiltros>(campo: K, valor: ReporteFiltros[K]) => void;
+  teachers: TeacherResponse[];
+  courses: CourseResponse[];
+  students: StudentResponse[];
+  error: string | null;
+  onChange: <K extends keyof FiltrosState>(campo: K, valor: FiltrosState[K]) => void;
   onGenerar: () => void;
   onLimpiar: () => void;
 }
 
-const TIPOS_REPORTE: TipoReporte[] = ['Notas', 'Matrículas', 'Pagos', 'Egresados'];
-const PERIODOS = ['2024-I', '2024-II', '2023-II'];
-const PROGRAMAS = ['Maestría en Informática'];
-const ESTADOS: EstadoReporte[] = ['Todos', 'Aprobado', 'Desaprobado', 'Pendiente'];
-const CURSOS = ['Todos', 'Algoritmos Avanzados', 'Bases de Datos Distribuidas'];
-
-const selectClass =
+const inputClass =
   'w-full px-4 py-2 border border-border rounded-lg bg-surface text-text focus:outline-none focus:ring-2 focus:ring-primary';
 
+const AÑOS_PROMOCION = Array.from(
+  { length: new Date().getFullYear() - 2010 + 1 },
+  (_, i) => 2010 + i
+).reverse();
+
 export function ReportFilterPanel({
+  tipo,
   filtros,
   isLoading,
+  teachers,
+  courses,
+  students,
+  error,
   onChange,
   onGenerar,
   onLimpiar,
 }: ReportFilterPanelProps) {
   return (
     <div className="bg-surface border border-border rounded-lg p-6 space-y-4">
-      {/* Fila 1: filtros principales */}
-      <div className="grid grid-cols-3 gap-4">
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-text">Tipo de reporte</label>
-          <select
-            value={filtros.tipo}
-            onChange={(e) => onChange('tipo', e.target.value as TipoReporte)}
-            className={selectClass}
-          >
-            {TIPOS_REPORTE.map((t) => (
-              <option key={t}>{t}</option>
-            ))}
-          </select>
-        </div>
+      {/* ── Filtros dinámicos ── */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
 
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-text">Periodo</label>
-          <select
-            value={filtros.periodo}
-            onChange={(e) => onChange('periodo', e.target.value)}
-            className={selectClass}
-          >
-            {PERIODOS.map((p) => (
-              <option key={p}>{p}</option>
-            ))}
-          </select>
-        </div>
+        {/* Reporte 1: Alumnos por promoción */}
+        {tipo === 'alumnos-por-promocion' && (
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-text">Año de promoción</label>
+            <select
+              value={filtros.yearPromotion}
+              onChange={(e) => onChange('yearPromotion', Number(e.target.value))}
+              className={inputClass}
+            >
+              {AÑOS_PROMOCION.map((y) => (
+                <option key={y} value={y}>{y}</option>
+              ))}
+            </select>
+          </div>
+        )}
 
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-text">Programa</label>
-          <select
-            value={filtros.programa}
-            onChange={(e) => onChange('programa', e.target.value)}
-            className={selectClass}
-          >
-            {PROGRAMAS.map((p) => (
-              <option key={p}>{p}</option>
-            ))}
-          </select>
-        </div>
+        {/* Reporte 2: Cursos por docente */}
+        {tipo === 'cursos-por-docente' && (
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-text">Docente</label>
+            <select
+              value={filtros.teacherId}
+              onChange={(e) => onChange('teacherId', e.target.value)}
+              className={inputClass}
+            >
+              <option value="">Seleccionar docente...</option>
+              {teachers.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.firstName} {t.lastName}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        {/* Reporte 3: Estudiantes por curso */}
+        {tipo === 'estudiantes-por-curso' && (
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-text">Curso</label>
+            <select
+              value={filtros.courseId}
+              onChange={(e) => onChange('courseId', e.target.value)}
+              className={inputClass}
+            >
+              <option value="">Seleccionar curso...</option>
+              {courses.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.code} — {c.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        {/* Reporte 4: Notas por estudiante */}
+        {tipo === 'notas-por-estudiante' && (
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-text">Estudiante</label>
+            <select
+              value={filtros.studentId}
+              onChange={(e) => onChange('studentId', e.target.value)}
+              className={inputClass}
+            >
+              <option value="">Seleccionar estudiante...</option>
+              {students.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.firstName} {s.lastName} — {s.cui}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        {/* Reporte 5: Pagos por estudiante */}
+        {tipo === 'pagos-por-estudiante' && (
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-text">
+              Buscar estudiante{' '}
+              <span className="text-text-muted font-normal">(nombre, email o código)</span>
+            </label>
+            <input
+              type="text"
+              value={filtros.studentNameSearch}
+              placeholder="Ej: Juan Pérez"
+              onChange={(e) => onChange('studentNameSearch', e.target.value)}
+              className={inputClass}
+            />
+          </div>
+        )}
+
+        {/* Reporte 6: Pagos pendientes / validados */}
+        {tipo === 'pagos-pendientes-validados' && (
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-text">Estado del pago</label>
+            <select
+              value={filtros.estadoPago}
+              onChange={(e) =>
+                onChange('estadoPago', e.target.value as FiltrosState['estadoPago'])
+              }
+              className={inputClass}
+            >
+              <option value="TODOS">Todos</option>
+              <option value="PENDING">Pendientes</option>
+              <option value="VALIDATED">Validados</option>
+            </select>
+          </div>
+        )}
       </div>
 
-      {/* Fila 2: filtros opcionales */}
-      <div className="grid grid-cols-3 gap-4">
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-text">
-            Estado{' '}
-            <span className="text-text-muted font-normal">(opcional)</span>
-          </label>
-          <select
-            value={filtros.estado}
-            onChange={(e) => onChange('estado', e.target.value as EstadoReporte)}
-            className={selectClass}
-          >
-            {ESTADOS.map((e) => (
-              <option key={e}>{e}</option>
-            ))}
-          </select>
-        </div>
+      {/* ── Error de validación ── */}
+      {error && (
+        <p className="text-sm text-accent font-medium">{error}</p>
+      )}
 
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-text">
-            Estudiante{' '}
-            <span className="text-text-muted font-normal">(opcional)</span>
-          </label>
-          <input
-            type="text"
-            value={filtros.estudiante}
-            placeholder="Buscar por nombre o código"
-            onChange={(e) => onChange('estudiante', e.target.value)}
-            className={selectClass}
-          />
-        </div>
-
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-text">
-            Curso{' '}
-            <span className="text-text-muted font-normal">(opcional)</span>
-          </label>
-          <select
-            value={filtros.curso}
-            onChange={(e) => onChange('curso', e.target.value)}
-            className={selectClass}
-          >
-            {CURSOS.map((c) => (
-              <option key={c}>{c}</option>
-            ))}
-          </select>
-        </div>
-      </div>
-
-      {/* Acciones */}
-      <div className="flex gap-3">
+      {/* ── Acciones ── */}
+      <div className="flex gap-3 pt-1">
         <button
           onClick={onGenerar}
           disabled={isLoading}
