@@ -3,13 +3,13 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { FileSpreadsheetIcon, DownloadIcon } from 'lucide-react';
 import type { ResultadosReporte } from '../hooks/useReportes';
-
+ 
 interface ReportExportBarProps {
   resultados: ResultadosReporte;
 }
-
+ 
 // ── Metadatos por tipo de reporte ─────────────────────────────────────────────
-
+ 
 const REPORTE_META: Record<
   NonNullable<ResultadosReporte>['tipo'],
   { titulo: string; columnas: string[]; campos: string[] }
@@ -45,19 +45,19 @@ const REPORTE_META: Record<
     campos:   ['estudiante', 'concepto', 'monto', 'fechaPago', 'estado', 'observacion'],
   },
 };
-
+ 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-
+ 
 function formatFecha(valor: string | null | undefined): string {
   if (!valor) return '—';
   return new Date(valor).toLocaleDateString('es-PE');
 }
-
+ 
 function formatMonto(valor: unknown): string {
   if (valor === null || valor === undefined) return '—';
   return Number(valor).toFixed(2);
 }
-
+ 
 function filaToRow(fila: Record<string, unknown>, campos: string[]): string[] {
   return campos.map((campo) => {
     const valor = fila[campo];
@@ -67,24 +67,24 @@ function filaToRow(fila: Record<string, unknown>, campos: string[]): string[] {
     return String(valor);
   });
 }
-
+ 
 function getNombreArchivo(tipo: NonNullable<ResultadosReporte>['tipo']): string {
   const fecha = new Date().toISOString().slice(0, 10);
   return `${tipo}_${fecha}`;
 }
-
+ 
 // Cast seguro: pasamos por unknown para evitar el error TS2352
 // (la union de tipos tipados no es directamente asignable a Record<string, unknown>)
 function toRows(filas: NonNullable<ResultadosReporte>['filas']): Record<string, unknown>[] {
   return (filas as unknown) as Record<string, unknown>[];
 }
-
+ 
 // ── Exportación Excel ─────────────────────────────────────────────────────────
-
+ 
 function exportarExcel(resultados: NonNullable<ResultadosReporte>) {
   const meta = REPORTE_META[resultados.tipo];
   const filas = toRows(resultados.filas);
-
+ 
   const datos = filas.map((fila) => {
     const row: Record<string, string> = {};
     meta.columnas.forEach((col, i) => {
@@ -92,9 +92,9 @@ function exportarExcel(resultados: NonNullable<ResultadosReporte>) {
     });
     return row;
   });
-
+ 
   const ws = XLSX.utils.json_to_sheet(datos, { header: meta.columnas });
-
+ 
   // Ancho automático por columna
   const anchos = meta.columnas.map((col) => ({
     wch: Math.max(
@@ -103,32 +103,32 @@ function exportarExcel(resultados: NonNullable<ResultadosReporte>) {
     ) + 2,
   }));
   ws['!cols'] = anchos;
-
+ 
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, meta.titulo.slice(0, 31));
   XLSX.writeFile(wb, `${getNombreArchivo(resultados.tipo)}.xlsx`);
 }
-
+ 
 // ── Exportación PDF ───────────────────────────────────────────────────────────
-
+ 
 function exportarPdf(resultados: NonNullable<ResultadosReporte>) {
   const meta = REPORTE_META[resultados.tipo];
   const filas = toRows(resultados.filas);
   const fecha = new Date().toLocaleDateString('es-PE');
-
+ 
   const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
-
+ 
   // Encabezado
   doc.setFontSize(14);
   doc.setFont('helvetica', 'bold');
   doc.text(meta.titulo, 14, 16);
-
+ 
   doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(120);
   doc.text(`Generado: ${fecha}`, 14, 22);
   doc.setTextColor(0);
-
+ 
   // Tabla
   autoTable(doc, {
     head: [meta.columnas],
@@ -148,7 +148,7 @@ function exportarPdf(resultados: NonNullable<ResultadosReporte>) {
     },
     margin: { left: 14, right: 14 },
   });
-
+ 
   // Pie de página
   const totalPaginas = (doc.internal as unknown as { getNumberOfPages: () => number }).getNumberOfPages();
   for (let i = 1; i <= totalPaginas; i++) {
@@ -162,15 +162,15 @@ function exportarPdf(resultados: NonNullable<ResultadosReporte>) {
       { align: 'right' }
     );
   }
-
+ 
   doc.save(`${getNombreArchivo(resultados.tipo)}.pdf`);
 }
-
+ 
 // ── Componente ────────────────────────────────────────────────────────────────
-
+ 
 export function ReportExportBar({ resultados }: ReportExportBarProps) {
   if (!resultados) return null;
-
+ 
   return (
     <div className="flex gap-3 justify-end">
       <button

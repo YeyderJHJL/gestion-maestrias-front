@@ -8,59 +8,26 @@ import {
   getPagosPorEstudiante,
   getPagosPendientesValidados,
 } from '../../../../services/reportesApiService';
-import type {
-  TipoReporte,
-  FilaAlumnoPorPromocion,
-  FilaCursoPorDocente,
-  FilaEstudiantePorCurso,
-  FilaNotaPorEstudiante,
-  FilaPagoPorEstudiante,
-  FilaPagoPendienteValidado,
-} from '../types/reportes.types';
-
-// ── Estado de filtros por tipo ────────────────────────────────────────────────
-
-export interface FiltrosState {
-  // Reporte 1
-  yearPromotion: number;
-  // Reporte 2
-  teacherId: string;
-  // Reporte 3
-  courseId: string;
-  // Reporte 4
-  studentId: string;
-  // Reporte 5
-  studentNameSearch: string;
-  // Reporte 6
-  estadoPago: 'PENDING' | 'VALIDATED' | 'TODOS';
-}
+import type { TipoReporte, FiltrosState, ResultadosReporte } from '../types/reportes.types';
 
 const FILTROS_INICIALES: FiltrosState = {
+  tipo: 'alumnos-por-promocion',
+  semesterId: '',
+  programId: '',
   yearPromotion: new Date().getFullYear(),
   teacherId: '',
   courseId: '',
   studentId: '',
   studentNameSearch: '',
+  estadoNota: 'TODOS',
   estadoPago: 'TODOS',
 };
 
-// ── Resultado tipado por reporte ──────────────────────────────────────────────
-
-export type ResultadosReporte =
-  | { tipo: 'alumnos-por-promocion'; filas: FilaAlumnoPorPromocion[] }
-  | { tipo: 'cursos-por-docente'; filas: FilaCursoPorDocente[] }
-  | { tipo: 'estudiantes-por-curso'; filas: FilaEstudiantePorCurso[] }
-  | { tipo: 'notas-por-estudiante'; filas: FilaNotaPorEstudiante[] }
-  | { tipo: 'pagos-por-estudiante'; filas: FilaPagoPorEstudiante[] }
-  | { tipo: 'pagos-pendientes-validados'; filas: FilaPagoPendienteValidado[] }
-  | null;
-
-// ── Hook ──────────────────────────────────────────────────────────────────────
+export type { ResultadosReporte };
 
 export function useReportes() {
   const { token } = useAuth();
 
-  const [tipoActivo, setTipoActivo] = useState<TipoReporte>('alumnos-por-promocion');
   const [filtros, setFiltros] = useState<FiltrosState>(FILTROS_INICIALES);
   const [resultados, setResultados] = useState<ResultadosReporte>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -69,15 +36,14 @@ export function useReportes() {
   const handleFiltroChange = useCallback(
     <K extends keyof FiltrosState>(campo: K, valor: FiltrosState[K]) => {
       setFiltros((prev) => ({ ...prev, [campo]: valor }));
+      // limpiar resultados al cambiar tipo
+      if (campo === 'tipo') {
+        setResultados(null);
+        setError(null);
+      }
     },
     []
   );
-
-  const handleCambioTipo = useCallback((tipo: TipoReporte) => {
-    setTipoActivo(tipo);
-    setResultados(null);
-    setError(null);
-  }, []);
 
   const handleGenerar = useCallback(async () => {
     if (!token) return;
@@ -86,7 +52,7 @@ export function useReportes() {
     setResultados(null);
 
     try {
-      switch (tipoActivo) {
+      switch (filtros.tipo) {
         case 'alumnos-por-promocion': {
           const filas = await getAlumnosPorPromocion(token, filtros.yearPromotion);
           setResultados({ tipo: 'alumnos-por-promocion', filas });
@@ -126,7 +92,7 @@ export function useReportes() {
     } finally {
       setIsLoading(false);
     }
-  }, [token, tipoActivo, filtros]);
+  }, [token, filtros]);
 
   const handleLimpiar = useCallback(() => {
     setFiltros(FILTROS_INICIALES);
@@ -135,12 +101,10 @@ export function useReportes() {
   }, []);
 
   return {
-    tipoActivo,
     filtros,
     resultados,
     isLoading,
     error,
-    handleCambioTipo,
     handleFiltroChange,
     handleGenerar,
     handleLimpiar,

@@ -73,8 +73,6 @@ function mapAssignmentToCurso(a: AssignmentResponse): FilaCursoPorDocente {
     courseId: a.courseId,
     codigo: a.courseCode,
     nombre: a.courseName,
-    fechaInicio: '',   // no viene en AssignmentResponse; enriquecer si se necesita
-    fechaFin: '',
     semestre: `${a.semesterYear} - ${a.semesterCode}`,
   };
 }

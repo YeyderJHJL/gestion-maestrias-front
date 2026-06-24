@@ -1,4 +1,4 @@
-// ── Tipo de reporte (coincide con las vistas del DoD) ─────────────────────────
+// ── Tipo de reporte ───────────────────────────────────────────────────────────
 
 export type TipoReporte =
   | 'alumnos-por-promocion'
@@ -8,30 +8,33 @@ export type TipoReporte =
   | 'pagos-por-estudiante'
   | 'pagos-pendientes-validados';
 
-// ── Filtros por tipo ──────────────────────────────────────────────────────────
+// ── Opciones para selects cargados desde API ──────────────────────────────────
 
-export interface FiltrosAlumnosPorPromocion {
+export interface SemesterOption {
+  id: number;
+  year: number;
+  code: string;
+}
+
+export interface ProgramOption {
+  id: number;
+  name: string;
+}
+
+// ── Estado de filtros ─────────────────────────────────────────────────────────
+
+export interface FiltrosState {
+  tipo: TipoReporte;
+  semesterId: string;
+  programId: string;
+  // dinámicos por tipo
   yearPromotion: number;
-}
-
-export interface FiltrosCursosPorDocente {
   teacherId: string;
-}
-
-export interface FiltrosEstudiantesPorCurso {
   courseId: string;
-}
-
-export interface FiltrosNotasPorEstudiante {
   studentId: string;
-}
-
-export interface FiltrosPagosPorEstudiante {
-  studentName: string; // búsqueda libre sobre los vouchers
-}
-
-export interface FiltrosPagosPendientesValidados {
-  estado: 'PENDING' | 'VALIDATED' | 'TODOS';
+  studentNameSearch: string;
+  estadoNota: string;
+  estadoPago: 'PENDING' | 'VALIDATED' | 'TODOS';
 }
 
 // ── Filas de resultado por reporte ───────────────────────────────────────────
@@ -51,8 +54,6 @@ export interface FilaCursoPorDocente {
   courseId: string;
   codigo: string;
   nombre: string;
-  fechaInicio: string;
-  fechaFin: string;
   semestre: string;
 }
 
@@ -94,8 +95,6 @@ export interface FilaPagoPendienteValidado {
   observacion?: string;
 }
 
-// ── Union de resultados ───────────────────────────────────────────────────────
-
 export type FilaReporte =
   | FilaAlumnoPorPromocion
   | FilaCursoPorDocente
@@ -103,3 +102,14 @@ export type FilaReporte =
   | FilaNotaPorEstudiante
   | FilaPagoPorEstudiante
   | FilaPagoPendienteValidado;
+
+// ── Resultado tipado por reporte ──────────────────────────────────────────────
+
+export type ResultadosReporte =
+  | { tipo: 'alumnos-por-promocion';      filas: FilaAlumnoPorPromocion[] }
+  | { tipo: 'cursos-por-docente';         filas: FilaCursoPorDocente[] }
+  | { tipo: 'estudiantes-por-curso';      filas: FilaEstudiantePorCurso[] }
+  | { tipo: 'notas-por-estudiante';       filas: FilaNotaPorEstudiante[] }
+  | { tipo: 'pagos-por-estudiante';       filas: FilaPagoPorEstudiante[] }
+  | { tipo: 'pagos-pendientes-validados'; filas: FilaPagoPendienteValidado[] }
+  | null;
