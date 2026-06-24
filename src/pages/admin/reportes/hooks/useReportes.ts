@@ -8,7 +8,7 @@ import {
   getPagosPorEstudiante,
   getPagosPendientesValidados,
 } from '../../../../services/reportesApiService';
-import type { TipoReporte, FiltrosState, ResultadosReporte } from '../types/reportes.types';
+import type { FiltrosState, ResultadosReporte } from '../types/reportes.types';
 
 const FILTROS_INICIALES: FiltrosState = {
   tipo: 'alumnos-por-promocion',
