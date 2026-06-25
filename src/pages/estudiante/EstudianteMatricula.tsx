@@ -1,177 +1,156 @@
+import { useEffect, useState, useMemo } from 'react';
 import { EstudianteLayout } from '../../layouts/EstudianteLayout';
 import { StatusBadge } from '../../components/StatusBadge';
-import {
-  CalendarIcon,
-  UserIcon,
-  FileIcon } from
-'lucide-react';
+import { CalendarIcon, UserIcon, FileIcon, Loader2Icon } from 'lucide-react';
 import { motion } from 'framer-motion';
-
-const enrolledCourses = [
-{
-  nombre: 'Algoritmos Avanzados',
-  tipo: 'Regular',
-  creditos: 4,
-  docente: 'Dr. Carlos Mendoza',
-  fechaInicio: '15/03/2024',
-  fechaFin: '12/04/2024',
-  silaboDisponible: true
-},
-{
-  nombre: 'Bases de Datos Distribuidas',
-  tipo: 'Regular',
-  creditos: 4,
-  docente: 'Dra. Ana Rodríguez',
-  fechaInicio: '22/03/2024',
-  fechaFin: '19/04/2024',
-  silaboDisponible: true
-},
-{
-  nombre: 'Inteligencia Artificial',
-  tipo: 'Regular',
-  creditos: 4,
-  docente: 'Dr. Luis Fernández',
-  fechaInicio: '29/03/2024',
-  fechaFin: '26/04/2024',
-  silaboDisponible: false
-},
-{
-  nombre: 'Tesis I',
-  tipo: 'Tesis',
-  creditos: 6,
-  docente: 'Dr. Jorge Ramírez',
-  fechaInicio: '05/04/2024',
-  fechaFin: '10/05/2024',
-  silaboDisponible: true
-}];
+import { useAuth } from '../../context/AuthContext';
+import { listEnrollments, EnrollmentResponse } from '../../services/enrollmentsApiService';
+import { ApiError } from '../../services/api';
 
 export function EstudianteMatricula() {
+  const { user, token } = useAuth();
+  const [enrollments, setEnrollments] = useState<EnrollmentResponse[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!token || !user?.studentId) return;
+    
+    setLoading(true);
+    listEnrollments(token, { studentId: user.studentId })
+      .then(setEnrollments)
+      .catch((err) => {
+        if (err instanceof ApiError) setError(err.message);
+        else setError('Error al cargar matrículas');
+      })
+      .finally(() => setLoading(false));
+  }, [token, user]);
+
+  // Encontrar el semestre más reciente
+  const activeSemester = useMemo(() => {
+    if (enrollments.length === 0) return null;
+    // Ordenar descendentemente por ID de semestre o año (asumiendo que IDs mayores son más recientes)
+    const sorted = [...enrollments].sort((a, b) => b.semesterId - a.semesterId);
+    return {
+      id: sorted[0].semesterId,
+      code: sorted[0].semesterCode,
+      year: sorted[0].semesterYear,
+    };
+  }, [enrollments]);
+
+  // Filtrar solo las matrículas del semestre activo
+  const activeEnrollments = useMemo(() => {
+    if (!activeSemester) return [];
+    return enrollments.filter(e => e.semesterId === activeSemester.id);
+  }, [enrollments, activeSemester]);
+
   return (
     <EstudianteLayout>
-      
       <div className="space-y-6">
         <h1 className="text-3xl font-serif font-bold text-text">
           Mi Matrícula
         </h1>
 
-        {/* Status Banner */}
-        <motion.div
-          initial={{
-            opacity: 0,
-            y: -10
-          }}
-          animate={{
-            opacity: 1,
-            y: 0
-          }}
-          className="bg-primary/10 border border-primary rounded-lg p-4 flex items-center gap-3">
-          
-          <div className="w-10 h-10 rounded-full bg-success flex items-center justify-center flex-shrink-0">
-            <svg
-              className="w-6 h-6 text-white"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor">
-              
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M5 13l4 4L19 7" />
-              
-            </svg>
+        {loading ? (
+          <div className="flex items-center justify-center py-16 gap-2 text-text-muted">
+            <Loader2Icon className="w-5 h-5 animate-spin" />
+            <span>Cargando matrícula...</span>
           </div>
-          <div>
-            <p className="font-semibold text-text">Estado: Matriculado</p>
-            <p className="text-sm text-text-muted">
-              Tu matrícula está activa para el periodo 2024-I
-            </p>
+        ) : error ? (
+          <div className="px-4 py-3 rounded-lg bg-accent/10 border border-accent/30 text-sm text-accent">
+            {error}
           </div>
-        </motion.div>
-
-        {/* Period Header */}
-        <div className="bg-surface border border-border rounded-lg p-6">
-          <h2 className="text-xl font-serif font-bold text-text mb-2">
-            Periodo activo: 2024-I
-          </h2>
-          <p className="text-text-muted">Primer semestre 2024</p>
-        </div>
-
-        {/* Course Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {enrolledCourses.map((course, index) =>
-          <motion.div
-            key={index}
-            initial={{
-              opacity: 0,
-              y: 20
-            }}
-            animate={{
-              opacity: 1,
-              y: 0
-            }}
-            transition={{
-              delay: index * 0.1
-            }}
-            className="bg-surface border border-border rounded-lg p-6 hover:shadow-md transition-shadow">
-            
-              <div className="space-y-4">
-                <div className="flex items-start justify-between">
-                  <h3 className="font-serif font-bold text-text text-lg">
-                    {course.nombre}
-                  </h3>
-                  <StatusBadge
-                  variant={course.tipo === 'Regular' ? 'activo' : 'retiro'}>
-                  
-                    {course.tipo}
-                  </StatusBadge>
-                </div>
-
-                <div className="space-y-2 text-sm">
-                  <div className="flex items-center gap-2 text-text-muted">
-                    <UserIcon className="w-4 h-4" />
-                    <span>{course.docente}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-text-muted">
-                    <CalendarIcon className="w-4 h-4" />
-                    <span>
-                      {course.fechaInicio} - {course.fechaFin}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2 text-text-muted">
-                    <AwardIcon className="w-4 h-4" />
-                    <span>{course.creditos} créditos</span>
-                  </div>
-                </div>
-
-                {course.silaboDisponible &&
-              <button className="flex items-center gap-2 text-accent hover:text-accent-light transition-colors font-medium text-sm">
-                    <FileIcon className="w-4 h-4" />
-                    Ver sílabo
-                  </button>
-              }
+        ) : enrollments.length === 0 ? (
+           <div className="flex items-center justify-center py-16">
+            <p className="text-text-muted text-sm">No tienes matrículas registradas.</p>
+          </div>
+        ) : (
+          <>
+            {/* Status Banner */}
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-primary/10 border border-primary rounded-lg p-4 flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-success flex items-center justify-center flex-shrink-0">
+                <svg
+                  className="w-6 h-6 text-white"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <div>
+                <p className="font-semibold text-text">Estado: Matriculado</p>
+                <p className="text-sm text-text-muted">
+                  Tu matrícula está activa para el periodo {activeSemester?.code}
+                </p>
               </div>
             </motion.div>
-          )}
-        </div>
+
+            {/* Period Header */}
+            <div className="bg-surface border border-border rounded-lg p-6">
+              <h2 className="text-xl font-serif font-bold text-text mb-2">
+                Periodo activo: {activeSemester?.code}
+              </h2>
+              <p className="text-text-muted">Año {activeSemester?.year}</p>
+            </div>
+
+            {/* Course Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {activeEnrollments.map((enrollment, index) => (
+                <motion.div
+                  key={enrollment.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  className="bg-surface border border-border rounded-lg p-6 hover:shadow-md transition-shadow">
+                  <div className="space-y-4">
+                    <div className="flex items-start justify-between">
+                      <h3 className="font-serif font-bold text-text text-lg">
+                        {enrollment.courseName}
+                      </h3>
+                      <StatusBadge variant={enrollment.stateCode === 'ENROLLED' ? 'activo' : 'retiro'}>
+                        {enrollment.stateName}
+                      </StatusBadge>
+                    </div>
+
+                    <div className="space-y-2 text-sm">
+                      <div className="flex items-center gap-2 text-text-muted">
+                         <UserIcon className="w-4 h-4" />
+                         <span>Código de curso: {enrollment.courseCode}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-text-muted">
+                        <CalendarIcon className="w-4 h-4" />
+                        <span>Fecha de matrícula: {enrollment.enrollmentDate}</span>
+                      </div>
+                    </div>
+
+                    {enrollment.resolutionFile && (
+                      <button className="flex items-center gap-2 text-accent hover:text-accent-light transition-colors font-medium text-sm">
+                        <FileIcon className="w-4 h-4" />
+                        Ver resolución
+                      </button>
+                    )}
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </>
+        )}
       </div>
-    </EstudianteLayout>);
-
+    </EstudianteLayout>
+  );
 }
-function AwardIcon({ className }: {className?: string;}) {
-  return (
-    <svg
-      className={className}
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor">
-      
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
-      
-    </svg>);
 
+function AwardIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+    </svg>
+  );
 }

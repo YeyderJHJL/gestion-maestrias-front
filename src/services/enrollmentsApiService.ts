@@ -55,9 +55,24 @@ interface ApiResponse<T> {
 
 // ── Endpoints ─────────────────────────────────────────────────────────────────
 
+export interface ListEnrollmentsFilters {
+  studentId?: string;
+  courseId?: string;
+  yearPromotion?: number;
+}
+
 /** GET /v1/enrollments */
-export async function listEnrollments(token: string): Promise<EnrollmentResponse[]> {
-  const res = await apiFetch<ApiResponse<EnrollmentResponse[]>>('/v1/enrollments', token);
+export async function listEnrollments(
+  token: string,
+  filters?: ListEnrollmentsFilters
+): Promise<EnrollmentResponse[]> {
+  const params = new URLSearchParams();
+  if (filters?.studentId) params.append('studentId', filters.studentId);
+  if (filters?.courseId) params.append('courseId', filters.courseId);
+  if (filters?.yearPromotion) params.append('yearPromotion', filters.yearPromotion.toString());
+
+  const queryString = params.toString() ? `?${params.toString()}` : '';
+  const res = await apiFetch<ApiResponse<EnrollmentResponse[]>>(`/v1/enrollments${queryString}`, token);
   return res.data;
 }
 

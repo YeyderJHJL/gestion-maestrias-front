@@ -17,9 +17,25 @@ interface EstudianteLayoutProps {
   children: React.ReactNode;
 }
 
+import { useAuth } from '../context/AuthContext';
+
 export function EstudianteLayout({ children }: EstudianteLayoutProps) {
+  const { user } = useAuth();
+  const paymentCode = user?.student?.paymentCode;
+
   return (
     <DashboardLayout sidebarLinks={sidebarLinks}>
+      {paymentCode && (
+        <div className="bg-primary/10 border border-primary text-text px-4 py-3 rounded-lg shadow-sm mb-6 flex justify-between items-center">
+          <div>
+            <span className="font-semibold text-primary">Código de Pago:</span>{' '}
+            <span className="font-mono text-lg font-bold ml-2">{paymentCode}</span>
+          </div>
+          <p className="text-sm text-text-muted">
+            Usa este código para realizar tus pagos
+          </p>
+        </div>
+      )}
       {children}
     </DashboardLayout>
   );
