@@ -96,3 +96,27 @@ export async function updateAssignment(
 export async function deleteAssignment(token: string, key: AssignmentKey): Promise<void> {
   await apiFetch<ApiResponse<void>>(assignmentPath(key), token, { method: 'DELETE' });
 }
+
+/** GET /v1/assignments/me — lista las asignaciones del docente autenticado */
+export async function listMyAssignments(token: string): Promise<AssignmentResponse[]> {
+  const res = await apiFetch<ApiResponse<AssignmentResponse[]>>('/v1/assignments/me', token);
+  return res.data;
+}
+
+/** PUT /v1/assignments/courses/{courseId}/semesters/{semesterId}/syllabus */
+export async function updateAssignmentSyllabus(
+  token: string,
+  courseId: string,
+  semesterId: number,
+  request: { syllabusFileId: string }
+): Promise<AssignmentResponse> {
+  const res = await apiFetch<ApiResponse<AssignmentResponse>>(
+    `/v1/assignments/courses/${courseId}/semesters/${semesterId}/syllabus`,
+    token,
+    {
+      method: 'PUT',
+      body: JSON.stringify(request),
+    }
+  );
+  return res.data;
+}
