@@ -13,6 +13,7 @@ interface CourseTeacher {
   teacherId: string;
   teacherEmail: string;
   teacherName: string;
+  syllabusFile?: { id: string };
 }
 
 export function EstudianteCursoDetalle() {
@@ -45,10 +46,12 @@ export function EstudianteCursoDetalle() {
     .finally(() => setLoading(false));
   }, [token, id]);
 
+  const availableSyllabus = course?.syllabusFile || teachers.find(t => t.syllabusFile)?.syllabusFile;
+
   const handleDownloadSyllabus = async () => {
-    if (course?.syllabusFile?.id && token) {
+    if (availableSyllabus?.id && token) {
       try {
-        const fileData = await getFileUrl(token, course.syllabusFile.id);
+        const fileData = await getFileUrl(token, availableSyllabus.id);
         if (fileData.downloadUrl) {
           window.open(fileData.downloadUrl, '_blank');
         }
@@ -165,18 +168,18 @@ export function EstudianteCursoDetalle() {
                 
                 <button
                   onClick={handleDownloadSyllabus}
-                  disabled={!course.syllabusFile}
+                  disabled={!availableSyllabus}
                   className={`w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-semibold transition-colors shadow-sm ${
-                    course.syllabusFile 
+                    availableSyllabus 
                       ? 'bg-primary text-white hover:bg-primary-light'
                       : 'bg-surface-alt text-text-muted cursor-not-allowed border border-border'
                   }`}
                 >
                   <FileTextIcon className="w-5 h-5" />
-                  {course.syllabusFile ? 'Descargar Sílabo' : 'Sílabo no disponible'}
+                  {availableSyllabus ? 'Descargar Sílabo' : 'Sílabo no disponible'}
                 </button>
                 
-                {!course.syllabusFile && (
+                {!availableSyllabus && (
                   <p className="text-xs text-text-muted mt-3 text-center">
                     El docente o coordinador aún no ha subido el documento para este curso.
                   </p>
