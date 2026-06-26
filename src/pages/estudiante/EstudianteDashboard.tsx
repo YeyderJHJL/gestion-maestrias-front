@@ -15,6 +15,7 @@ import { listGrades, GradeResponse } from '../../services/gradesApiService';
 import { listMyVouchers } from '../../services/vouchersApiService';
 import { ApiError } from '../../services/api';
 import { VoucherResponse } from '../../types/voucher';
+import { getCourseTeachers } from '../../services/coursesApiService';
 
 export function EstudianteDashboard() {
   const { user, token } = useAuth();
@@ -22,6 +23,7 @@ export function EstudianteDashboard() {
   const [enrollments, setEnrollments] = useState<EnrollmentResponse[]>([]);
   const [grades, setGrades] = useState<GradeResponse[]>([]);
   const [vouchers, setVouchers] = useState<VoucherResponse[]>([]);
+  const [courseTeachers, setCourseTeachers] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -34,10 +36,25 @@ export function EstudianteDashboard() {
       listGrades(token),
       listMyVouchers(token)
     ])
-    .then(([enrollmentsData, gradesData, vouchersData]) => {
+    .then(async ([enrollmentsData, gradesData, vouchersData]) => {
       setEnrollments(enrollmentsData);
       setGrades(gradesData.filter(g => g.studentId === user.studentId));
       setVouchers(vouchersData);
+
+      const teachersMap: Record<string, string> = {};
+      const uniqueCourseIds = [...new Set(enrollmentsData.map(e => e.courseId))];
+      
+      await Promise.all(uniqueCourseIds.map(async courseId => {
+        try {
+          const teachersData = await getCourseTeachers(token, courseId) as any[];
+          if (teachersData && teachersData.length > 0) {
+            teachersMap[courseId] = teachersData[0].teacherName;
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      }));
+      setCourseTeachers(teachersMap);
     })
     .catch(err => {
       if (err instanceof ApiError) setError(err.message);
@@ -73,13 +90,13 @@ export function EstudianteDashboard() {
       return {
         id: enr.id,
         nombre: enr.courseName,
-        docente: '—', // Falta endpoint de asignaciones para obtener docente
+        docente: courseTeachers[enr.courseId] || '—',
         tipo: 'Regular', 
         notaFinal: grade?.value ?? null,
         estado: grade?.value != null ? (grade.value >= 14 ? 'aprobado' : 'desaprobado') : 'pendiente'
       };
     });
-  }, [activeEnrollments, gradesMap]);
+  }, [activeEnrollments, gradesMap, courseTeachers]);
 
   // Calcular estadísticas
   const stats = useMemo(() => {
