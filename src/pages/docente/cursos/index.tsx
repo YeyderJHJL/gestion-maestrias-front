@@ -23,7 +23,7 @@ export function DocenteCursoDetalle() {
     loading, error,
     activeTab, setActiveTab,
     handleSyllabusUpload,
-    syllabusUrl, loadSyllabusUrl,
+    loadSyllabusUrl,
     editingGrade, gradeValue, setGradeValue,
     gradeMotivo, setGradeMotivo,
     openEditGrade, closeEditGrade, handleSaveGrade, savingGrade,

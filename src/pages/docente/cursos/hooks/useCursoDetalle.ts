@@ -2,13 +2,13 @@ import { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '../../../../context/AuthContext';
 import { getCourse } from '../../../../services/coursesApiService';
 import { getCourseStudents } from '../../../../services/coursesApiService';
-import { listGrades, createGrade, updateGrade } from '../../../../services/gradesApiService';
+import { listGrades, updateGrade } from '../../../../services/gradesApiService';
 import { uploadSyllabus, getFileUrl } from '../../../../services/filesApiService';
 import { updateAssignmentSyllabus } from '../../../../services/assignmentsApiService';
 import type { CourseResponse } from '../../../../services/coursesApiService';
 import type { EnrollmentResponse } from '../../../../services/enrollmentsApiService';
 import type { GradeResponse } from '../../../../services/gradesApiService';
-import type { StoredFileResponse } from '../../../../services/filesApiService';
+
 
 type TabKey = 'silabo' | 'estudiantes' | 'notas';
 
