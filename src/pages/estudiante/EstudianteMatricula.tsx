@@ -3,6 +3,7 @@ import { EstudianteLayout } from '../../layouts/EstudianteLayout';
 import { StatusBadge } from '../../components/StatusBadge';
 import { CalendarIcon, UserIcon, FileIcon, Loader2Icon } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { listEnrollments, EnrollmentResponse } from '../../services/enrollmentsApiService';
 import { ApiError } from '../../services/api';
@@ -108,35 +109,40 @@ export function EstudianteMatricula() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
-                  className="bg-surface border border-border rounded-lg p-6 hover:shadow-md transition-shadow">
-                  <div className="space-y-4">
-                    <div className="flex items-start justify-between">
-                      <h3 className="font-serif font-bold text-text text-lg">
-                        {enrollment.courseName}
-                      </h3>
-                      <StatusBadge variant={enrollment.stateCode === 'ENROLLED' ? 'activo' : 'retiro'}>
-                        {enrollment.stateName}
-                      </StatusBadge>
-                    </div>
-
-                    <div className="space-y-2 text-sm">
-                      <div className="flex items-center gap-2 text-text-muted">
-                         <UserIcon className="w-4 h-4" />
-                         <span>Código de curso: {enrollment.courseCode}</span>
+                >
+                  <Link
+                    to={`/estudiante/cursos/${enrollment.courseId}`}
+                    className="block bg-surface border border-border rounded-lg p-6 hover:shadow-md hover:border-primary transition-all"
+                  >
+                    <div className="space-y-4">
+                      <div className="flex items-start justify-between">
+                        <h3 className="font-serif font-bold text-text text-lg">
+                          {enrollment.courseName}
+                        </h3>
+                        <StatusBadge variant={enrollment.stateCode === 'ENROLLED' ? 'activo' : 'retiro'}>
+                          {enrollment.stateName}
+                        </StatusBadge>
                       </div>
-                      <div className="flex items-center gap-2 text-text-muted">
-                        <CalendarIcon className="w-4 h-4" />
-                        <span>Fecha de matrícula: {enrollment.enrollmentDate}</span>
-                      </div>
-                    </div>
 
-                    {enrollment.resolutionFile && (
-                      <button className="flex items-center gap-2 text-accent hover:text-accent-light transition-colors font-medium text-sm">
-                        <FileIcon className="w-4 h-4" />
-                        Ver resolución
-                      </button>
-                    )}
-                  </div>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex items-center gap-2 text-text-muted">
+                           <UserIcon className="w-4 h-4" />
+                           <span>Código de curso: {enrollment.courseCode}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-text-muted">
+                          <CalendarIcon className="w-4 h-4" />
+                          <span>Fecha de matrícula: {enrollment.enrollmentDate}</span>
+                        </div>
+                      </div>
+
+                      {enrollment.resolutionFile && (
+                        <button className="flex items-center gap-2 text-accent hover:text-accent-light transition-colors font-medium text-sm">
+                          <FileIcon className="w-4 h-4" />
+                          Ver resolución
+                        </button>
+                      )}
+                    </div>
+                  </Link>
                 </motion.div>
               ))}
             </div>
