@@ -21,7 +21,7 @@ import { useAuth } from '../context/AuthContext';
 
 export function EstudianteLayout({ children }: EstudianteLayoutProps) {
   const { user } = useAuth();
-  const paymentCode = user?.student?.paymentCode;
+  const paymentCode = user?.paymentCode;
 
   return (
     <DashboardLayout sidebarLinks={sidebarLinks}>

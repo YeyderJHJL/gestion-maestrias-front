@@ -163,7 +163,7 @@ export function EstudianteHistorial() {
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-border">
-                            {period.cursos.map((curso, index) => (
+                            {period.cursos.map((curso) => (
                               <tr
                                 key={curso.id}
                                 className={`${
