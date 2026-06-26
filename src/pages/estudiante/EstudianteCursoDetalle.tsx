@@ -9,10 +9,10 @@ import { getFileUrl } from '../../services/filesApiService';
 
 // Define locally in case types are not exported
 interface CourseTeacher {
-  id: string;
-  email: string;
-  firstName: string;
-  lastName: string;
+  id: string | number;
+  teacherId: string;
+  teacherEmail: string;
+  teacherName: string;
 }
 
 export function EstudianteCursoDetalle() {
@@ -146,8 +146,8 @@ export function EstudianteCursoDetalle() {
                           <UserIcon className="w-5 h-5 text-primary" />
                         </div>
                         <div>
-                          <p className="font-medium text-text">{teacher.firstName} {teacher.lastName}</p>
-                          <p className="text-sm text-text-muted">{teacher.email}</p>
+                          <p className="font-medium text-text">{teacher.teacherName}</p>
+                          <p className="text-sm text-text-muted">{teacher.teacherEmail}</p>
                         </div>
                       </li>
                     ))}
