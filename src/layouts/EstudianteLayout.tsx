@@ -4,9 +4,11 @@ import {
   FileTextIcon,
   ReceiptIcon,
   FolderIcon,
+  LayoutDashboardIcon,
 } from 'lucide-react';
 
 const sidebarLinks = [
+  { to: '/estudiante/dashboard', icon: LayoutDashboardIcon, label: 'Dashboard' },
   { to: '/estudiante/matricula', icon: ClipboardListIcon, label: 'Mi Matrícula' },
   { to: '/estudiante/notas', icon: FileTextIcon, label: 'Mis Notas' },
   { to: '/estudiante/pagos', icon: ReceiptIcon, label: 'Pagos y Vouchers' },
