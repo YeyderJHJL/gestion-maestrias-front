@@ -1,4 +1,4 @@
-import { apiFetch } from './api';
+import { apiFetch, ApiResponse } from './api';
 import { StoredFileSummary } from './filesApiService';
 
 // ── Estados de matrícula (entity_type = 'ENROLLMENT') ────────────────────────
@@ -45,15 +45,6 @@ export interface EnrollmentRequest {
   observations?: string;
 }
 
-// ── Envelope genérico ─────────────────────────────────────────────────────────
-
-interface ApiResponse<T> {
-  success: boolean;
-  data: T;
-  message: string | null;
-}
-
-// ── Endpoints ─────────────────────────────────────────────────────────────────
 
 export interface ListEnrollmentsFilters {
   studentId?: string;

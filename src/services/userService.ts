@@ -1,4 +1,4 @@
-import { apiFetch } from './api';
+import { apiFetch, ApiResponse } from './api';
 import { AuthUser, UserRole } from '../types/auth';
 
 const ROLE_MAP: Record<string, UserRole> = {
@@ -43,11 +43,6 @@ interface UserResponse {
   teacher?: TeacherData;
 }
 
-interface ApiResponse<T> {
-  success: boolean;
-  data: T;
-  message: string | null;
-}
 
 export async function getMe(token: string): Promise<UserResponse> {
   const res = await apiFetch<ApiResponse<UserResponse>>('/v1/users/me', token);

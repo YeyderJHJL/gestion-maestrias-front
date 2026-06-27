@@ -1,4 +1,4 @@
-import { apiFetch } from './api';
+import { apiFetch, ApiResponse } from './api';
 import type { StudentResponse } from './studentsApiService';
 import type { EnrollmentResponse } from './enrollmentsApiService';
 import type { AssignmentResponse } from './assignmentsApiService';
@@ -47,11 +47,6 @@ interface VoucherResponse {
   updatedAt: string;
 }
  
-interface ApiResponse<T> {
-  success: boolean;
-  data: T;
-  message: string | null;
-}
  
 // ── Helpers de mapeo ──────────────────────────────────────────────────────────
  

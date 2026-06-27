@@ -1,11 +1,6 @@
-import { apiFetch } from './api';
+import { apiFetch, ApiResponse } from './api';
 import { VoucherResponse, VoucherCreateRequest, VoucherUpdateRequest } from '../types/voucher';
 
-interface ApiResponse<T> {
-  success: boolean;
-  data: T;
-  message: string | null;
-}
 
 export async function listVouchers(token: string): Promise<VoucherResponse[]> {
   const res = await apiFetch<ApiResponse<VoucherResponse[]>>('/v1/vouchers', token);

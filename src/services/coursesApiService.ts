@@ -1,4 +1,4 @@
-import { apiFetch } from './api';
+import { apiFetch, ApiResponse } from './api';
 import type { StoredFileSummary } from './filesApiService';
 import type { EnrollmentResponse } from './enrollmentsApiService';
 
@@ -27,15 +27,6 @@ export interface CourseResponse {
   updatedAt: string;
 }
 
-// ── Envelope genérico ─────────────────────────────────────────────────────────
-
-interface ApiResponse<T> {
-  success: boolean;
-  data: T;
-  message: string | null;
-}
-
-// ── Endpoints ─────────────────────────────────────────────────────────────────
 
 /** GET /v1/courses — lista todos los cursos */
 export async function listCourses(token: string): Promise<CourseResponse[]> {

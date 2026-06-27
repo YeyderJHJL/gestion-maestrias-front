@@ -1,4 +1,4 @@
-import { apiFetch } from './api';
+import { apiFetch, ApiResponse } from './api';
 import type { StoredFileSummary } from './filesApiService';
 
 // ── Tipos de respuesta ────────────────────────────────────────────────────────
@@ -44,11 +44,6 @@ function assignmentPath({ courseId, teacherId, semesterId }: AssignmentKey): str
 
 // ── Envelope genérico ─────────────────────────────────────────────────────────
 
-interface ApiResponse<T> {
-  success: boolean;
-  data: T;
-  message: string | null;
-}
 
 // ── Endpoints ─────────────────────────────────────────────────────────────────
 

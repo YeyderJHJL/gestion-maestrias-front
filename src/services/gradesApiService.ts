@@ -1,4 +1,4 @@
-import { apiFetch } from './api';
+import { apiFetch, ApiResponse } from './api';
 
 export interface GradeResponse {
   id: string;
@@ -28,11 +28,6 @@ export interface ListGradesParams {
   studentId?: string;
 }
 
-interface ApiResponse<T> {
-  success: boolean;
-  data: T;
-  message: string | null;
-}
 
 export async function listGrades(
   token: string,
