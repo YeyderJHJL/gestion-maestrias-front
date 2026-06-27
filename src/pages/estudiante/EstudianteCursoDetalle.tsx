@@ -6,7 +6,7 @@ import { getCourse, getCourseTeachers, CourseResponse } from '../../services/cou
 import { AssignmentResponse } from '../../services/assignmentsApiService';
 import { ApiError } from '../../services/api';
 import { Loader2Icon, ArrowLeftIcon, FileTextIcon, UserIcon, CalendarIcon } from 'lucide-react';
-import { getFileUrl } from '../../services/filesApiService';
+import { FilePreviewModal } from '../../components/FilePreviewModal';
 
 export function EstudianteCursoDetalle() {
   const { id } = useParams<{ id: string }>();
@@ -38,21 +38,7 @@ export function EstudianteCursoDetalle() {
   }, [token, id]);
 
   const availableSyllabus = course?.syllabusFile || teachers.find(t => t.syllabusFile)?.syllabusFile;
-
-  const handleDownloadSyllabus = async () => {
-    if (availableSyllabus?.id && token) {
-      try {
-        const fileData = await getFileUrl(token, availableSyllabus.id);
-        if (fileData.downloadUrl) {
-          window.open(fileData.downloadUrl, '_blank');
-        }
-      } catch (err) {
-        alert('Error al obtener el sílabo.');
-      }
-    } else {
-      alert('El sílabo aún no está disponible para este curso.');
-    }
-  };
+  const [syllabusPreviewOpen, setSyllabusPreviewOpen] = useState(false);
 
   return (
     <EstudianteLayout>
@@ -158,7 +144,7 @@ export function EstudianteCursoDetalle() {
                 </h3>
                 
                 <button
-                  onClick={handleDownloadSyllabus}
+                  onClick={() => setSyllabusPreviewOpen(true)}
                   disabled={!availableSyllabus}
                   className={`w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-semibold transition-colors shadow-sm ${
                     availableSyllabus 
@@ -167,7 +153,7 @@ export function EstudianteCursoDetalle() {
                   }`}
                 >
                   <FileTextIcon className="w-5 h-5" />
-                  {availableSyllabus ? 'Descargar Sílabo' : 'Sílabo no disponible'}
+                  {availableSyllabus ? 'Ver Sílabo' : 'Sílabo no disponible'}
                 </button>
                 
                 {!availableSyllabus && (
@@ -181,6 +167,11 @@ export function EstudianteCursoDetalle() {
           </div>
         )}
       </div>
+      <FilePreviewModal
+        fileId={availableSyllabus?.id ?? null}
+        isOpen={syllabusPreviewOpen}
+        onClose={() => setSyllabusPreviewOpen(false)}
+      />
     </EstudianteLayout>
   );
 }

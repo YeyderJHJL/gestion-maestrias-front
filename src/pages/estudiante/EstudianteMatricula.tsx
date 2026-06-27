@@ -7,12 +7,14 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { listEnrollments, EnrollmentResponse } from '../../services/enrollmentsApiService';
 import { ApiError } from '../../services/api';
+import { FilePreviewModal } from '../../components/FilePreviewModal';
 
 export function EstudianteMatricula() {
   const { user, token } = useAuth();
   const [enrollments, setEnrollments] = useState<EnrollmentResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [previewFileId, setPreviewFileId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!token || !user?.studentId) return;
@@ -136,7 +138,10 @@ export function EstudianteMatricula() {
                       </div>
 
                       {enrollment.resolutionFile && (
-                        <button className="flex items-center gap-2 text-accent hover:text-accent-light transition-colors font-medium text-sm">
+                        <button
+                          onClick={(e) => { e.preventDefault(); setPreviewFileId(enrollment.resolutionFile!.id); }}
+                          className="flex items-center gap-2 text-accent hover:text-accent-light transition-colors font-medium text-sm"
+                        >
                           <FileIcon className="w-4 h-4" />
                           Ver resolución
                         </button>
@@ -149,6 +154,11 @@ export function EstudianteMatricula() {
           </>
         )}
       </div>
+      <FilePreviewModal
+        fileId={previewFileId}
+        isOpen={previewFileId !== null}
+        onClose={() => setPreviewFileId(null)}
+      />
     </EstudianteLayout>
   );
 }
