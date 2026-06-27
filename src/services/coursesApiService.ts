@@ -1,5 +1,6 @@
 import { apiFetch } from './api';
 import type { StoredFileSummary } from './filesApiService';
+import type { EnrollmentResponse } from './enrollmentsApiService';
 
 // ── Tipos de petición ─────────────────────────────────────────────────────────
 
@@ -90,8 +91,8 @@ export async function getCourseTeachers(token: string, courseId: string): Promis
 }
 
 /** GET /v1/courses/{id}/students — estudiantes matriculados en el curso */
-export async function getCourseStudents(token: string, courseId: string): Promise<unknown[]> {
-  const res = await apiFetch<ApiResponse<unknown[]>>(
+export async function getCourseStudents(token: string, courseId: string): Promise<EnrollmentResponse[]> {
+  const res = await apiFetch<ApiResponse<EnrollmentResponse[]>>(
     `/v1/courses/${courseId}/students`,
     token
   );
