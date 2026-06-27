@@ -50,8 +50,8 @@ export function EstudianteDashboard() {
           if (teachersData && teachersData.length > 0) {
             teachersMap[courseId] = teachersData[0].teacherName;
           }
-        } catch (e) {
-          console.error(e);
+        } catch {
+          teachersMap[courseId] = 'Error al cargar docente';
         }
       }));
       setCourseTeachers(teachersMap);

@@ -66,8 +66,8 @@ export function useEnrollmentForm({ studentId, onSuccess, showToast }: UseEnroll
       ]);
       setCourses(coursesData);
       setSemesters(semestersData);
-    } catch (e) {
-      console.error('Error cargando dependencias:', e);
+    } catch {
+      showToast('error', 'Error al cargar cursos y semestres.');
     } finally {
       setLoadingDeps(false);
     }
