@@ -1,13 +1,12 @@
-import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { UserRole } from '../types/auth';
 
 function defaultRouteFor(role: UserRole): string {
   switch (role) {
-    case 'ADMIN':       return '/admin/dashboard';
-    case 'TEACHER':     return '/docente/dashboard';
-    case 'STUDENT':     return '/estudiante/dashboard';
+    case 'ADMIN': return '/admin/dashboard';
+    case 'TEACHER': return '/docente/dashboard';
+    case 'STUDENT': return '/estudiante/dashboard';
     case 'COORDINATOR': return '/admin/dashboard';
   }
 }

@@ -1,125 +1,224 @@
-import React from 'react';
+import { useState } from 'react';
+import { PlusIcon, BookOpenIcon, Loader2Icon } from 'lucide-react';
 import { AdminLayout } from '../../../layouts/AdminLayout';
 import { ConfirmationModal } from '../../../components/ConfirmationModal';
 import { Toast } from '../../../components/Toast';
-import { PromocionesPanel } from './promociones/PromocionesPanel';
-import { PromocionFormModal } from './promociones/PromocionFormModal';
-import { usePromociones } from './promociones/usePromociones';
-import { CursosTable } from './cursos/CursosTable';
-import { CursoFormModal } from './cursos/CursoFormModal';
-import { useCursos } from './cursos/useCursos';
+
+import { useCursos } from './hooks/useCursos';
+import { useSemestres } from './hooks/useSemestres';
+import { useAsignaciones } from './hooks/useAsignaciones';
+
+import { SemestreCard } from './components/semestres/SemestreCard';
+import { SemestreFormModal } from './components/semestres/SemestreFormModal';
+import { CursosListModal } from './components/cursos/CursosListModal';
+import { CursoFormModal } from './components/cursos/CursoFormModal';
+import { AsignacionFormModal } from './components/asignaciones/AsignacionFormModal';
 
 export function AdminCursos() {
-  const promocionesState = usePromociones();
-  const cursosState = useCursos(promocionesState.selectedPromocion);
+  const cursos = useCursos();
+  const semestres = useSemestres();
+  const asignaciones = useAsignaciones();
+
+  // Semestre expandido
+  const [expandedId, setExpandedId] = useState<number | null>(null);
+  const toggleExpanded = (id: number) =>
+    setExpandedId((prev) => (prev === id ? null : id));
+
+  // Búsqueda en modal de cursos
+  const [searchTerm, setSearchTerm] = useState('');
+  const filteredCursos = cursos.cursos.filter(
+    (c) =>
+      c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      c.code.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <AdminLayout>
-      <div className="space-y-6">
-        <h1 className="text-3xl font-serif font-bold text-text">Promociones y Cursos</h1>
+      <div className="space-y-6 p-6">
 
-        <div className="grid grid-cols-12 gap-6">
-          <div className="col-span-12 lg:col-span-3">
-            <PromocionesPanel
-              promociones={promocionesState.promociones}
-              selectedPromocion={promocionesState.selectedPromocion}
-              loading={promocionesState.loading}
-              error={promocionesState.error}
-              isCoordinator={promocionesState.isCoordinator}
-              onSelect={promocionesState.setSelectedPromocion}
-              onCreate={promocionesState.openCreateModal}
-              onEdit={promocionesState.openEditModal}
-              onDelete={promocionesState.setDeletingItem}
-            />
+        {/* ── Encabezado ──────────────────────────────────────────────────── */}
+        <div className="flex items-center justify-between flex-wrap gap-3">
+          <div>
+            <h1 className="text-2xl font-bold text-text">Cursos y Semestres</h1>
+            <p className="text-sm text-text-muted mt-1">
+              Gestiona los semestres, los cursos y sus asignaciones a docentes.
+            </p>
           </div>
-
-          <div className="col-span-12 lg:col-span-9">
-            <CursosTable
-              cursos={cursosState.cursosFiltrados}
-              selectedPromocion={promocionesState.selectedPromocion}
-              loading={cursosState.loading}
-              error={cursosState.error}
-              searchTerm={cursosState.searchTerm}
-              onSearchChange={cursosState.setSearchTerm}
-              filterType={cursosState.filterType}
-              onFilterTypeChange={cursosState.setFilterType}
-              isCoordinator={cursosState.isCoordinator}
-              onCreate={cursosState.openCreateModal}
-              onEdit={cursosState.openEditModal}
-              onDelete={cursosState.setDeletingItem}
-            />
+          <div className="flex gap-2 flex-wrap">
+            <button
+              onClick={cursos.openList}
+              className="flex items-center gap-2 px-4 py-2 border border-primary text-primary rounded-lg hover:bg-primary/5 transition-colors text-sm"
+            >
+              <BookOpenIcon className="w-4 h-4" />
+              Gestionar Cursos
+            </button>
+            {!semestres.isCoordinator && (
+              <button
+                onClick={semestres.openCreate}
+                className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-light transition-colors text-sm"
+              >
+                <PlusIcon className="w-4 h-4" />
+                Nuevo Semestre
+              </button>
+            )}
           </div>
         </div>
+
+        {/* ── Lista de semestres ───────────────────────────────────────────── */}
+        {semestres.loading ? (
+          <div className="flex items-center justify-center py-20 gap-2 text-text-muted">
+            <Loader2Icon className="w-5 h-5 animate-spin" />
+            <span className="text-sm">Cargando semestres...</span>
+          </div>
+        ) : semestres.error ? (
+          <div className="py-12 text-center text-sm text-accent">{semestres.error}</div>
+        ) : semestres.semestres.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 gap-3 text-text-muted">
+            <BookOpenIcon className="w-12 h-12 opacity-20" />
+            <p className="text-sm">No hay semestres registrados aún.</p>
+            {!semestres.isCoordinator && (
+              <button
+                onClick={semestres.openCreate}
+                className="mt-2 flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-light transition-colors text-sm"
+              >
+                <PlusIcon className="w-4 h-4" />
+                Crear primer semestre
+              </button>
+            )}
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {semestres.semestres.map((semestre) => {
+              const semesterAssignments = asignaciones.assignments.filter(
+                (a) => a.semesterId === semestre.id
+              );
+              return (
+                <SemestreCard
+                  key={semestre.id}
+                  semestre={semestre}
+                  isExpanded={expandedId === semestre.id}
+                  onToggle={() => toggleExpanded(semestre.id)}
+                  onEdit={() => semestres.openEdit(semestre)}
+                  onDelete={() => semestres.setDeletingItem(semestre)}
+                  assignments={semesterAssignments}
+                  assignmentsLoading={asignaciones.loading}
+                  onAddAssignment={() => asignaciones.openCreate(semestre.id)}
+                  onEditAssignment={(a) => asignaciones.openEdit(a)}
+                  onDeleteAssignment={(a) => asignaciones.setDeletingItem(a)}
+                  isCoordinator={asignaciones.isCoordinator}
+                />
+              );
+            })}
+          </div>
+        )}
       </div>
 
-      <PromocionFormModal
-        isOpen={promocionesState.isModalOpen}
-        onClose={promocionesState.closeModal}
-        editingItem={promocionesState.editingItem}
-        form={promocionesState.form}
-        setForm={promocionesState.setForm}
-        programs={promocionesState.programs}
-        loadingPrograms={promocionesState.loadingPrograms}
-        submitting={promocionesState.submitting}
-        formError={promocionesState.formError}
-        onSubmit={promocionesState.handleSubmit}
+      {/* ── Modal lista de cursos ────────────────────────────────────────────── */}
+      <CursosListModal
+        isOpen={cursos.isListOpen}
+        onClose={cursos.closeList}
+        cursos={filteredCursos}
+        loading={cursos.loading}
+        error={cursos.error}
+        onAdd={() => { cursos.closeList(); cursos.openCreate(); }}
+        onEdit={(curso) => { cursos.closeList(); cursos.openEdit(curso); }}
+        onDelete={(curso) => { cursos.closeList(); cursos.setDeletingItem(curso); }}
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
       />
 
+      {/* ── Modal form de curso ──────────────────────────────────────────────── */}
       <CursoFormModal
-        isOpen={cursosState.isModalOpen}
-        onClose={cursosState.closeModal}
-        editingItem={cursosState.editingItem}
-        form={cursosState.form}
-        setForm={cursosState.setForm}
-        teachers={cursosState.teachers}
-        loadingTeachers={cursosState.loadingTeachers}
-        submitting={cursosState.submitting}
-        formError={cursosState.formError}
-        onSubmit={cursosState.handleSubmit}
+        isOpen={cursos.isFormOpen}
+        onClose={cursos.closeForm}
+        editingItem={cursos.editingItem}
+        form={cursos.form}
+        setForm={cursos.setForm}
+        submitting={cursos.submitting}
+        formError={cursos.formError}
+        onSubmit={cursos.handleSubmit}
       />
 
-      <ConfirmationModal
-        isOpen={promocionesState.deletingItem !== null}
-        onClose={() => promocionesState.setDeletingItem(null)}
-        onConfirm={promocionesState.handleDelete}
-        title="Eliminar promoción"
-        message={
-          promocionesState.deletingItem
-            ? `¿Estás seguro de que deseas eliminar la promoción ${promocionesState.deletingItem.name}? Esta acción no se puede deshacer.`
-            : ''
-        }
-        confirmLabel="Eliminar"
-        variant="danger"
+      {/* ── Modal form de semestre ───────────────────────────────────────────── */}
+      <SemestreFormModal
+        isOpen={semestres.isFormOpen}
+        onClose={semestres.closeForm}
+        editingItem={semestres.editingItem}
+        form={semestres.form}
+        setForm={semestres.setForm}
+        submitting={semestres.submitting}
+        formError={semestres.formError}
+        onSubmit={semestres.handleSubmit}
       />
 
+      {/* ── Modal form de asignación ─────────────────────────────────────────── */}
+      <AsignacionFormModal
+        isOpen={asignaciones.isFormOpen}
+        onClose={asignaciones.closeForm}
+        editingItem={asignaciones.editingItem}
+        form={asignaciones.form}
+        setForm={asignaciones.setForm}
+        teachers={asignaciones.teachers}
+        courses={asignaciones.courses}
+        loadingDeps={asignaciones.loadingDeps}
+        submitting={asignaciones.submitting}
+        formError={asignaciones.formError}
+        onSubmit={asignaciones.handleSubmit}
+        existingSyllabus={asignaciones.existingSyllabus}
+        loadingSyllabus={asignaciones.loadingSyllabus}
+      />
+
+      {/* ── Confirmación eliminar curso ──────────────────────────────────────── */}
       <ConfirmationModal
-        isOpen={cursosState.deletingItem !== null}
-        onClose={() => cursosState.setDeletingItem(null)}
-        onConfirm={cursosState.handleDelete}
+        isOpen={!!cursos.deletingItem}
+        onClose={() => cursos.setDeletingItem(null)}
+        onConfirm={cursos.handleDelete}
         title="Eliminar curso"
-        message={
-          cursosState.deletingItem
-            ? `¿Estás seguro de que deseas eliminar el curso ${cursosState.deletingItem.name}? Esta acción no se puede deshacer.`
-            : ''
-        }
+        message={`¿Estás seguro de que deseas eliminar el curso "${cursos.deletingItem?.name}"? Esta acción no se puede deshacer.`}
         confirmLabel="Eliminar"
         variant="danger"
       />
 
-      <Toast
-        variant={promocionesState.toast.variant}
-        message={promocionesState.toast.message}
-        isVisible={promocionesState.toast.visible}
-        onClose={() =>
-          promocionesState.setToast((toast) => ({ ...toast, visible: false }))
-        }
+      {/* ── Confirmación eliminar semestre ───────────────────────────────────── */}
+      <ConfirmationModal
+        isOpen={!!semestres.deletingItem}
+        onClose={() => semestres.setDeletingItem(null)}
+        onConfirm={semestres.handleDelete}
+        title="Eliminar semestre"
+        message={`¿Estás seguro de que deseas eliminar el semestre "${semestres.deletingItem?.year}-${semestres.deletingItem?.code}"? Se eliminarán también sus asignaciones.`}
+        confirmLabel="Eliminar"
+        variant="danger"
       />
 
+      {/* ── Confirmación eliminar asignación ─────────────────────────────────── */}
+      <ConfirmationModal
+        isOpen={!!asignaciones.deletingItem}
+        onClose={() => asignaciones.setDeletingItem(null)}
+        onConfirm={asignaciones.handleDelete}
+        title="Eliminar asignación"
+        message={`¿Estás seguro de que deseas eliminar la asignación de "${asignaciones.deletingItem?.courseName}" a "${asignaciones.deletingItem?.teacherName}"?`}
+        confirmLabel="Eliminar"
+        variant="danger"
+      />
+
+      {/* ── Toasts ───────────────────────────────────────────────────────────── */}
       <Toast
-        variant={cursosState.toast.variant}
-        message={cursosState.toast.message}
-        isVisible={cursosState.toast.visible}
-        onClose={() => cursosState.setToast((toast) => ({ ...toast, visible: false }))}
+        isVisible={cursos.toast.visible}
+        variant={cursos.toast.variant}
+        message={cursos.toast.message}
+        onClose={() => cursos.setToast({ ...cursos.toast, visible: false })}
+      />
+      <Toast
+        isVisible={semestres.toast.visible}
+        variant={semestres.toast.variant}
+        message={semestres.toast.message}
+        onClose={() => semestres.setToast({ ...semestres.toast, visible: false })}
+      />
+      <Toast
+        isVisible={asignaciones.toast.visible}
+        variant={asignaciones.toast.variant}
+        message={asignaciones.toast.message}
+        onClose={() => asignaciones.setToast({ ...asignaciones.toast, visible: false })}
       />
     </AdminLayout>
   );

@@ -2,7 +2,6 @@
 // Actúa como orquestador: obtiene el estado del hook y
 // distribuye los datos a cada componente hijo.
 
-import React from 'react';
 import { PlusIcon } from 'lucide-react';
 import { AdminLayout } from '../../../layouts/AdminLayout';
 import { ConfirmationModal } from '../../../components/ConfirmationModal';
@@ -13,8 +12,14 @@ import { UsuarioFormModal } from './UsuarioFormModal';
 
 export function AdminUsuarios() {
   const {
-    // Lista
-    filteredUsers,
+    // Lista y paginación
+    paginatedUsers,
+    filteredCount,
+    page,
+    setPage,
+    pageSize,
+    setPageSize,
+    totalPages,
     loading,
     error,
     // Filtros
@@ -22,6 +27,10 @@ export function AdminUsuarios() {
     setSearchTerm,
     filterRole,
     setFilterRole,
+    teacherTypeFilter,
+    setTeacherTypeFilter,
+    studentStatusFilter,
+    setStudentStatusFilter,
     // Permisos
     isCoordinator,
     // Modal crear / editar
@@ -33,8 +42,6 @@ export function AdminUsuarios() {
     setStudentForm,
     teacherForm,
     setTeacherForm,
-    promotions,
-    loadingPromotions,
     submitting,
     formError,
     openCreateModal,
@@ -69,20 +76,29 @@ export function AdminUsuarios() {
 
         {/* Tabla con barra de búsqueda y filtros */}
         <UsuariosTable
-          users={filteredUsers}
+          users={paginatedUsers}
           loading={loading}
           error={error}
           searchTerm={searchTerm}
           onSearchChange={setSearchTerm}
           filterRole={filterRole}
           onFilterRoleChange={setFilterRole}
+          teacherTypeFilter={teacherTypeFilter}
+          onTeacherTypeFilterChange={setTeacherTypeFilter}
+          studentStatusFilter={studentStatusFilter}
+          onStudentStatusFilterChange={setStudentStatusFilter}
+          filteredCount={filteredCount}
+          page={page}
+          onPageChange={setPage}
+          pageSize={pageSize}
+          onPageSizeChange={setPageSize}
+          totalPages={totalPages}
           isCoordinator={isCoordinator}
           onEdit={openEditModal}
           onDelete={setDeletingUser}
         />
       </div>
 
-      {/* Modal para crear o editar un usuario */}
       <UsuarioFormModal
         isOpen={isUserModalOpen}
         onClose={closeModal}
@@ -93,8 +109,6 @@ export function AdminUsuarios() {
         setStudentForm={setStudentForm}
         teacherForm={teacherForm}
         setTeacherForm={setTeacherForm}
-        promotions={promotions}
-        loadingPromotions={loadingPromotions}
         submitting={submitting}
         formError={formError}
         onSubmit={handleSubmit}

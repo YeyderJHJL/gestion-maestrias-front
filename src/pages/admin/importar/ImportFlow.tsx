@@ -3,7 +3,7 @@
 // correspondiente a cada paso: subida, preview, procesando y resultados.
 // Se reutiliza tanto para importar estudiantes como docentes.
 
-import React from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import {
   FileSpreadsheetIcon,
@@ -16,36 +16,45 @@ import {
   PlayIcon,
   RefreshCwIcon,
   UserCheckIcon,
+  PencilIcon,
+  Trash2Icon,
+  CheckIcon,
 } from 'lucide-react';
 import { FileUpload } from '../../../components/FileUpload';
 import { StatusBadge } from '../../../components/StatusBadge';
 import { ImportResult } from '../../../services/importApiService';
 import { useImportFlow } from './useImportFlow';
 
-// Definición de cada columna: clave en el objeto, label visible y si es requerida
+// Definición de cada columna: clave en el objeto, label visible y metadatos opcionales
 export interface ColumnDef {
   key: string;
   label: string;
   required?: boolean;
+  inputType?: 'text' | 'number' | 'select'; // tipo de input para edición inline
+  options?: string[];                        // valores válidos (para select y guía de formato)
+  hint?: string;                             // descripción extra en la guía de formato
 }
 
-interface Props<T> {
-  // Función que parsea el Excel y devuelve las filas tipadas
+export interface ImportFlowProps<T extends Record<string, any>> {
+  // Función que toma el File y devuelve el array de filas de tipo T
   parseFile: (file: File) => Promise<T[]>;
-  // Función que envía las filas al backend
+  // Función que envía las filas al backend y devuelve el resultado
   submitRows: (token: string, rows: T[]) => Promise<ImportResult>;
-  // Columnas que se muestran en la tabla de preview y en la guía de formato
+  // Definición de columnas para la previsualización y la guía
   columnDefs: ColumnDef[];
-  // Etiqueta del tipo de entidad para los mensajes ("estudiantes" / "docentes")
+  // Nombre de la entidad para textos (ej. "estudiantes", "docentes")
   entityLabel: string;
+  // Validación de reglas de negocio por fila; devuelve lista de advertencias (no bloquea)
+  validateRow?: (row: T) => string[];
 }
 
-export function ImportFlow<T extends Record<string, unknown>>({
+export function ImportFlow<T extends Record<string, any>>({
   parseFile,
   submitRows,
   columnDefs,
   entityLabel,
-}: Props<T>) {
+  validateRow,
+}: ImportFlowProps<T>) {
   const {
     step,
     file,
@@ -55,16 +64,55 @@ export function ImportFlow<T extends Record<string, unknown>>({
     uploadKey,
     handleFileSelect,
     handleConfirm,
+    updateRow,
+    deleteRow,
     reset,
   } = useImportFlow<T>({ parseFile, submitRows });
 
+  // Estado de edición inline en la tabla de preview
+  const [editingIdx, setEditingIdx] = useState<number | null>(null);
+  const [editDraft, setEditDraft] = useState<Record<string, unknown>>({});
+
+  const startEdit = (idx: number, row: T) => {
+    setEditingIdx(idx);
+    setEditDraft({ ...(row as Record<string, unknown>) });
+  };
+
+  const saveEdit = () => {
+    if (editingIdx === null) return;
+    updateRow(editingIdx, editDraft);
+    setEditingIdx(null);
+    setEditDraft({});
+  };
+
+  const cancelEdit = () => {
+    setEditingIdx(null);
+    setEditDraft({});
+  };
+
   return (
     <div className="space-y-6">
-      {/* Banner de error global (parseo o envío) */}
+      {/* Tarjeta de error (parseo o envío) */}
       {error && (
-        <div className="bg-accent/5 border border-accent/30 text-accent px-4 py-3 rounded-lg text-sm flex items-start gap-3">
-          <XCircleIcon className="w-5 h-5 flex-shrink-0 mt-0.5" />
-          <p>{error}</p>
+        <div className="bg-accent/5 border border-accent/30 rounded-lg p-5 space-y-4">
+          <div className="flex items-start gap-3">
+            <XCircleIcon className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
+            <div className="space-y-2">
+              <p className="font-semibold text-accent text-sm">Error al leer el archivo</p>
+              <ul className="space-y-1 list-disc list-inside">
+                {error.split('\n').map((line, i) => (
+                  <li key={i} className="text-sm text-text leading-relaxed">{line}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+          <button
+            onClick={reset}
+            className="flex items-center gap-2 px-4 py-2 border border-accent text-accent rounded-lg hover:bg-accent/10 transition-colors text-sm font-semibold"
+          >
+            <RefreshCwIcon className="w-4 h-4" />
+            Intentar de nuevo
+          </button>
         </div>
       )}
 
@@ -100,27 +148,32 @@ export function ImportFlow<T extends Record<string, unknown>>({
                 <h4>Formato requerido</h4>
               </div>
               <p className="text-sm text-text-muted leading-relaxed">
-                La primera hoja debe tener exactamente estas columnas:
+                La primera fila del Excel (cabecera) debe tener estas columnas:
               </p>
               <div className="space-y-2">
                 {columnDefs.map((col) => (
-                  <div
-                    key={col.key}
-                    className="text-xs border-b border-border pb-1.5 flex justify-between items-center"
-                  >
-                    <span className="font-mono text-accent font-semibold">{col.key}</span>
-                    <span className="text-text-muted">
-                      {col.label}
-                      {col.required && (
-                        <span className="ml-1 text-accent font-bold">*</span>
-                      )}
-                    </span>
+                  <div key={col.key} className="text-xs border-b border-border pb-2 space-y-0.5">
+                    <div className="flex items-center gap-1">
+                      <span className="font-semibold text-text">{col.label}</span>
+                      {col.required
+                        ? <span className="text-accent font-bold">*</span>
+                        : <span className="text-text-muted">(opcional)</span>
+                      }
+                    </div>
+                    {col.options && (
+                      <p className="text-text-muted pl-1">
+                        Valores: <span className="font-mono">{col.options.join(' | ')}</span>
+                      </p>
+                    )}
+                    {col.hint && (
+                      <p className="text-text-muted pl-1 italic">{col.hint}</p>
+                    )}
                   </div>
                 ))}
               </div>
               <p className="text-xs text-text-muted bg-surface-alt p-3 rounded-lg border border-border">
-                <strong>*</strong> Campos obligatorios. Los correos duplicados o IDs
-                inválidos se reportarán como errores sin interrumpir el resto.
+                <strong>*</strong> Campos obligatorios. Los registros con errores se
+                reportan al final sin interrumpir el resto de la importación.
               </p>
             </div>
           </div>
@@ -166,11 +219,27 @@ export function ImportFlow<T extends Record<string, unknown>>({
               </div>
             </div>
 
+            {/* Banner de advertencias de reglas de negocio */}
+            {(() => {
+              const warnCount = validateRow
+                ? rows.filter((r) => validateRow(r).length > 0).length
+                : 0;
+              return warnCount > 0 ? (
+                <div className="flex items-center gap-2 px-4 py-2.5 bg-amber-500/10 border border-amber-500/30 rounded-lg text-sm">
+                  <AlertTriangleIcon className="w-4 h-4 text-amber-500 flex-shrink-0" />
+                  <span className="text-amber-700">
+                    <strong>{warnCount}</strong> {warnCount === 1 ? 'fila tiene' : 'filas tienen'} advertencias —
+                    revísalas antes de confirmar. Pasa el cursor sobre <strong>⚠</strong> para ver el detalle.
+                  </span>
+                </div>
+              ) : null;
+            })()}
+
             {/* Tabla de preview con los datos parseados */}
             <div className="border border-border rounded-lg overflow-hidden">
               <div className="overflow-x-auto max-h-80 overflow-y-auto">
                 <table className="w-full text-sm">
-                  <thead className="bg-surface-alt sticky top-0">
+                  <thead className="bg-surface-alt sticky top-0 z-30">
                     <tr className="border-b border-border">
                       {columnDefs.map((col) => (
                         <th
@@ -180,18 +249,120 @@ export function ImportFlow<T extends Record<string, unknown>>({
                           {col.label}
                         </th>
                       ))}
+                      <th className="px-4 py-2.5 text-left text-xs font-semibold text-text-muted uppercase whitespace-nowrap">
+                        Acciones
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
-                    {rows.map((row, idx) => (
-                      <tr key={idx} className="hover:bg-surface-alt transition-colors">
-                        {columnDefs.map((col) => (
-                          <td key={col.key} className="px-4 py-2.5 text-text-muted whitespace-nowrap">
-                            {String(row[col.key] ?? '—')}
+                    {rows.map((row, idx) => {
+                      const isEditing = editingIdx === idx;
+                      const warnings = validateRow ? validateRow(row) : [];
+                      const hasWarning = warnings.length > 0;
+                      return (
+                        <tr
+                          key={idx}
+                          className={
+                            isEditing
+                              ? 'bg-primary/5'
+                              : hasWarning
+                                ? 'bg-amber-500/5 hover:bg-amber-500/10 transition-colors'
+                                : 'hover:bg-surface-alt transition-colors'
+                          }
+                        >
+                          {columnDefs.map((col) => (
+                            <td key={col.key} className="px-2 py-1.5 whitespace-nowrap">
+                              {isEditing ? (
+                                col.inputType === 'select' && col.options ? (
+                                  <select
+                                    value={String(editDraft[col.key] ?? '')}
+                                    onChange={(e) => setEditDraft((d) => ({ ...d, [col.key]: e.target.value }))}
+                                    className="w-full border border-border rounded px-2 py-1 text-xs bg-surface text-text focus:outline-none focus:border-primary"
+                                  >
+                                    <option value="">—</option>
+                                    {col.options.map((o) => (
+                                      <option key={o} value={o}>{o}</option>
+                                    ))}
+                                  </select>
+                                ) : (
+                                  <input
+                                    type={col.inputType === 'number' ? 'number' : 'text'}
+                                    value={String(editDraft[col.key] ?? '')}
+                                    onChange={(e) =>
+                                      setEditDraft((d) => ({
+                                        ...d,
+                                        [col.key]: col.inputType === 'number' ? Number(e.target.value) : e.target.value,
+                                      }))
+                                    }
+                                    className="w-full border border-border rounded px-2 py-1 text-xs bg-surface text-text focus:outline-none focus:border-primary"
+                                  />
+                                )
+                              ) : (
+                                <span className="px-2 text-text-muted">
+                                  {String((row as Record<string, unknown>)[col.key] ?? '—')}
+                                </span>
+                              )}
+                            </td>
+                          ))}
+                          <td className="px-3 py-1.5 whitespace-nowrap">
+                            {isEditing ? (
+                              <div className="flex gap-1">
+                                <button
+                                  onClick={saveEdit}
+                                  title="Guardar"
+                                  className="p-1.5 rounded bg-success/10 text-success hover:bg-success/20 transition-colors"
+                                >
+                                  <CheckIcon className="w-3.5 h-3.5" />
+                                </button>
+                                <button
+                                  onClick={cancelEdit}
+                                  title="Cancelar"
+                                  className="p-1.5 rounded bg-border text-text-muted hover:bg-surface-alt transition-colors"
+                                >
+                                  <XCircleIcon className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-1">
+                                {hasWarning && (
+                                  <div className="relative group">
+                                    <button
+                                      className="p-1.5 rounded text-amber-500 hover:bg-amber-500/10 transition-colors"
+                                    >
+                                      <AlertTriangleIcon className="w-3.5 h-3.5" />
+                                    </button>
+                                    <div className="absolute right-0 bottom-full mb-1 w-56 bg-surface border border-amber-500/30 rounded-lg p-2.5 hidden group-hover:block z-20 shadow-lg">
+                                      <ul className="space-y-1.5">
+                                        {warnings.map((w, i) => (
+                                          <li key={i} className="flex items-start gap-1.5 text-xs text-text">
+                                            <span className="text-amber-500 font-bold mt-0.5">•</span>
+                                            {w}
+                                          </li>
+                                        ))}
+                                      </ul>
+                                    </div>
+                                  </div>
+                                )}
+                                <button
+                                  onClick={() => startEdit(idx, row)}
+                                  title="Editar fila"
+                                  className="p-1.5 rounded text-text-muted hover:bg-primary/10 hover:text-primary transition-colors"
+                                >
+                                  <PencilIcon className="w-3.5 h-3.5" />
+                                </button>
+                                <button
+                                  onClick={() => deleteRow(idx)}
+                                  title="Eliminar fila"
+                                  className="p-1.5 rounded text-text-muted hover:bg-accent/10 hover:text-accent transition-colors"
+                                >
+                                  <Trash2Icon className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            )}
                           </td>
-                        ))}
-                      </tr>
-                    ))}
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -281,9 +452,9 @@ export function ImportFlow<T extends Record<string, unknown>>({
                     >
                       <div>
                         <p className="font-semibold text-text">
-                          {String(row['firstName'] ?? '')} {String(row['lastName'] ?? '')}
+                          {String((row as Record<string, unknown>)['firstName'] ?? '')} {String((row as Record<string, unknown>)['lastName'] ?? '')}
                         </p>
-                        <p className="text-xs text-text-muted">{String(row['email'] ?? '')}</p>
+                        <p className="text-xs text-text-muted">{String((row as Record<string, unknown>)['email'] ?? '')}</p>
                       </div>
                       <StatusBadge variant="activo">Importado</StatusBadge>
                     </div>

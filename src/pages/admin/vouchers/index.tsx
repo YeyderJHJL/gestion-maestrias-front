@@ -1,9 +1,8 @@
-import React from 'react';
 import { AdminLayout } from '../../../layouts/AdminLayout';
 import { Toast } from '../../../components/Toast';
 import { useAdminVouchers } from './useAdminVouchers';
 import { VouchersTable } from './VouchersTable';
-import { VoucherReviewDrawer } from './VoucherReviewDrawer';
+import { VoucherReviewModal } from './VoucherReviewModal';
 
 export function AdminVouchers() {
   const {
@@ -43,7 +42,7 @@ export function AdminVouchers() {
         />
       </div>
 
-      <VoucherReviewDrawer
+      <VoucherReviewModal
         voucher={selectedVoucher}
         decision={decision}
         setDecision={setDecision}

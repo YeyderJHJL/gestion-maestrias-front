@@ -2,13 +2,12 @@
 // Recibe la lista ya filtrada desde el hook y delega las acciones
 // de edición y eliminación al componente padre.
 
-import React from 'react';
 import { SearchIcon, EditIcon, XIcon, UsersIcon, Loader2Icon } from 'lucide-react';
 import { StatusBadge } from '../../../components/StatusBadge';
 import { EmptyState } from '../../../components/EmptyState';
 import { User } from '../../../services/usersApiService';
 
-// Etiquetas en español para cada rol del sistema
+// Variante visual del badge según el rol
 const ROLE_LABELS: Record<string, string> = {
   ADMIN: 'Administrador',
   COORDINATOR: 'Coordinador',
@@ -16,7 +15,6 @@ const ROLE_LABELS: Record<string, string> = {
   STUDENT: 'Estudiante',
 };
 
-// Variante visual del badge según el rol
 const ROLE_BADGE_VARIANT: Record<string, 'activo' | 'en-curso' | 'validado' | 'matriculado'> = {
   ADMIN: 'activo',
   COORDINATOR: 'en-curso',
@@ -34,6 +32,17 @@ interface Props {
   onSearchChange: (value: string) => void;
   filterRole: string;
   onFilterRoleChange: (value: string) => void;
+  teacherTypeFilter: string;
+  onTeacherTypeFilterChange: (value: string) => void;
+  studentStatusFilter: string;
+  onStudentStatusFilterChange: (value: string) => void;
+  // Paginación
+  filteredCount: number;
+  page: number;
+  onPageChange: (page: number) => void;
+  pageSize: number;
+  onPageSizeChange: (size: number) => void;
+  totalPages: number;
   // Oculta las acciones cuando el usuario es coordinador
   isCoordinator: boolean;
   // Callbacks para abrir los modales correspondientes
@@ -49,24 +58,60 @@ export function UsuariosTable({
   onSearchChange,
   filterRole,
   onFilterRoleChange,
+  teacherTypeFilter,
+  onTeacherTypeFilterChange,
+  studentStatusFilter,
+  onStudentStatusFilterChange,
+  filteredCount,
+  page,
+  onPageChange,
+  pageSize,
+  onPageSizeChange,
+  totalPages,
   isCoordinator,
   onEdit,
   onDelete,
 }: Props) {
   return (
     <>
-      {/* Barra de búsqueda y filtro por rol */}
+      {/* Barra de búsqueda y filtros */}
       <div className="bg-surface border border-border rounded-lg p-4 flex gap-4">
         <div className="flex-1 relative">
           <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-text-muted" />
           <input
             type="text"
-            placeholder="Buscar por nombre o correo..."
+            placeholder={
+              filterRole === 'STUDENT'
+                ? 'Buscar por nombre, correo, DNI o CUI...'
+                : 'Buscar por nombre, correo o DNI...'
+            }
             value={searchTerm}
             onChange={(e) => onSearchChange(e.target.value)}
             className="w-full pl-10 pr-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
           />
         </div>
+        {filterRole === 'TEACHER' && (
+          <select
+            value={teacherTypeFilter}
+            onChange={(e) => onTeacherTypeFilterChange(e.target.value)}
+            className="px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+          >
+            <option value="">Todos los tipos</option>
+            <option value="Interno">Interno</option>
+            <option value="Externo">Externo</option>
+          </select>
+        )}
+        {filterRole === 'STUDENT' && (
+          <select
+            value={studentStatusFilter}
+            onChange={(e) => onStudentStatusFilterChange(e.target.value)}
+            className="px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+          >
+            <option value="">Todos los estados</option>
+            <option value="Regular">Regular</option>
+            <option value="Reactualizacion">Reactualización</option>
+          </select>
+        )}
         <select
           value={filterRole}
           onChange={(e) => onFilterRoleChange(e.target.value)}
@@ -113,8 +158,25 @@ export function UsuariosTable({
                     Correo institucional
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">
+                    DNI
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">
                     Rol
                   </th>
+                  {filterRole === 'TEACHER' ? (
+                    <>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">Tipo</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">Categoría</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">Grado académico</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">Universidad</th>
+                    </>
+                  ) : filterRole === 'STUDENT' ? (
+                    <>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">CUI</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">Año promoción</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">Estado académico</th>
+                    </>
+                  ) : null}
                   <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">
                     Estado
                   </th>
@@ -135,11 +197,26 @@ export function UsuariosTable({
                       {user.firstName} {user.lastName}
                     </td>
                     <td className="px-6 py-4 text-sm text-text-muted">{user.email}</td>
+                    <td className="px-6 py-4 text-sm text-text-muted">{user.dni ?? '—'}</td>
                     <td className="px-6 py-4">
                       <StatusBadge variant={ROLE_BADGE_VARIANT[user.role] ?? 'activo'}>
                         {ROLE_LABELS[user.role] ?? user.role}
                       </StatusBadge>
                     </td>
+                    {filterRole === 'TEACHER' ? (
+                      <>
+                        <td className="px-6 py-4 text-sm text-text-muted">{user.teacher?.type ?? '—'}</td>
+                        <td className="px-6 py-4 text-sm text-text-muted">{user.teacher?.category ?? '—'}</td>
+                        <td className="px-6 py-4 text-sm text-text-muted">{user.teacher?.academicDegree ?? '—'}</td>
+                        <td className="px-6 py-4 text-sm text-text-muted">{user.teacher?.university ?? '—'}</td>
+                      </>
+                    ) : filterRole === 'STUDENT' ? (
+                      <>
+                        <td className="px-6 py-4 text-sm text-text-muted">{user.student?.cui ?? '—'}</td>
+                        <td className="px-6 py-4 text-sm text-text-muted">{user.student?.yearPromotion ?? '—'}</td>
+                        <td className="px-6 py-4 text-sm text-text-muted">{user.student?.status ?? '—'}</td>
+                      </>
+                    ) : null}
                     <td className="px-6 py-4">
                       <StatusBadge variant={user.active ? 'activo' : 'inactivo'}>
                         {user.active ? 'Activo' : 'Inactivo'}
@@ -169,6 +246,44 @@ export function UsuariosTable({
                 ))}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {/* Paginación */}
+        {!loading && !error && filteredCount > 0 && (
+          <div className="flex items-center justify-between px-6 py-3 border-t border-border">
+            <div className="flex items-center gap-2 text-sm text-text-muted">
+              <span>Mostrar</span>
+              <select
+                value={pageSize}
+                onChange={(e) => onPageSizeChange(Number(e.target.value))}
+                className="px-2 py-1 border border-border rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+              >
+                <option value={10}>10</option>
+                <option value={15}>15</option>
+                <option value={25}>25</option>
+              </select>
+              <span>de {filteredCount} usuarios</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <button
+                disabled={page === 0}
+                onClick={() => onPageChange(page - 1)}
+                className="px-3 py-1 text-sm border border-border rounded hover:bg-surface-alt transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                Anterior
+              </button>
+              <span className="px-3 py-1 text-sm text-text-muted">
+                {page + 1} / {totalPages}
+              </span>
+              <button
+                disabled={page >= totalPages - 1}
+                onClick={() => onPageChange(page + 1)}
+                className="px-3 py-1 text-sm border border-border rounded hover:bg-surface-alt transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                Siguiente
+              </button>
+            </div>
           </div>
         )}
       </div>

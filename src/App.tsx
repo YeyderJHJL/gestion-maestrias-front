@@ -1,4 +1,3 @@
-import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
@@ -18,6 +17,7 @@ import { EstudianteMatricula } from './pages/estudiante/EstudianteMatricula';
 import { EstudianteNotas } from './pages/estudiante/EstudianteNotas';
 import { EstudiantePagos } from './pages/estudiante/EstudiantePagos';
 import { EstudianteHistorial } from './pages/estudiante/EstudianteHistorial';
+import { EstudianteCursoDetalle } from './pages/estudiante/EstudianteCursoDetalle';
 
 export function App() {
   return (
@@ -56,6 +56,7 @@ export function App() {
             <Route path="/estudiante/notas" element={<EstudianteNotas />} />
             <Route path="/estudiante/pagos" element={<EstudiantePagos />} />
             <Route path="/estudiante/historial" element={<EstudianteHistorial />} />
+            <Route path="/estudiante/cursos/:id" element={<EstudianteCursoDetalle />} />
           </Route>
 
           {/* 404 */}

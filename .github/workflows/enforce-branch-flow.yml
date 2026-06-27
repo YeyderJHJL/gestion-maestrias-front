@@ -7,6 +7,7 @@ on:
 permissions:
   contents: read
   issues: write
+  pull-requests: write
 
 jobs:
   validate-branch-flow:
@@ -127,6 +128,9 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
+
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
 
           git fetch --no-tags --prune "https://x-access-token:${GITHUB_TOKEN}@github.com/${BASE_REPO}.git" "$BASE_BRANCH"
 

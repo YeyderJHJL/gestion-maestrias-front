@@ -1,7 +1,9 @@
-import React from 'react';
+import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { XIcon, CheckIcon, AlertTriangleIcon } from 'lucide-react';
+import { XIcon, CheckIcon, AlertTriangleIcon, Loader2Icon } from 'lucide-react';
 import { VoucherResponse } from '../../../types/voucher';
+import { getFileUrl } from '../../../services/filesApiService';
+import { useAuth } from '../../../context/AuthContext';
 
 type Decision = 'validar' | 'observar' | 'rechazar';
 
@@ -20,7 +22,7 @@ interface VoucherReviewDrawerProps {
 const formatDate = (iso: string) =>
   new Date(iso).toLocaleDateString('es-PE', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
-const formatCurrency = (amount: number) => `S/ ${amount.toFixed(2)}`;
+const formatCurrency = (amount: number | null) => amount != null ? `S/ ${amount.toFixed(2)}` : '—';
 
 export function VoucherReviewDrawer({
   voucher,
@@ -33,6 +35,21 @@ export function VoucherReviewDrawer({
   onClose,
   onConfirm,
 }: VoucherReviewDrawerProps) {
+  const { token } = useAuth();
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+
+  useEffect(() => {
+    if (!voucher || !token) { setPreviewUrl(null); return; }
+    setPreviewLoading(true);
+    getFileUrl(token, voucher.file.id)
+      .then((f) => setPreviewUrl(f.downloadUrl))
+      .catch(() => setPreviewUrl(null))
+      .finally(() => setPreviewLoading(false));
+  }, [voucher?.id, token]);
+
+  const isPdf = voucher?.file.contentType?.includes('pdf');
+
   return (
     <AnimatePresence>
       {voucher && (
@@ -61,19 +78,23 @@ export function VoucherReviewDrawer({
                 </button>
               </div>
 
-              {/*
-                TODO: renderizar fileUrl cuando el backend defina cómo sirve el archivo.
-                - Signed URL (GCS directo):
-                    const isPdf = voucher.fileUrl.toLowerCase().includes('.pdf');
-                    isPdf
-                      ? <iframe src={voucher.fileUrl} className="w-full h-[280px] rounded-lg border border-border" />
-                      : <img src={voucher.fileUrl} alt="Voucher" className="w-full h-[280px] object-contain rounded-lg border border-border" />
-                - Proxy backend (requiere JWT):
-                    usar useEffect para fetch(voucher.fileUrl, { headers: { Authorization: `Bearer ${token}` } })
-                    → .blob() → URL.createObjectURL(blob) → guardar en estado local → usar como src
-              */}
-              <div className="h-[280px] bg-surface-alt rounded-lg flex items-center justify-center border border-border">
-                <p className="text-text-muted">Vista previa del voucher</p>
+              <div className="h-[280px] rounded-lg border border-border overflow-hidden bg-surface-alt">
+                {previewLoading ? (
+                  <div className="w-full h-full flex items-center justify-center gap-2 text-text-muted">
+                    <Loader2Icon className="w-5 h-5 animate-spin" />
+                    <span className="text-sm">Cargando vista previa...</span>
+                  </div>
+                ) : previewUrl ? (
+                  isPdf ? (
+                    <iframe src={previewUrl} className="w-full h-full" title="Vista previa del voucher" />
+                  ) : (
+                    <img src={previewUrl} alt="Voucher" className="w-full h-full object-contain" />
+                  )
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <p className="text-text-muted text-sm">No se pudo cargar la vista previa</p>
+                  </div>
+                )}
               </div>
 
               {/* Info grid */}
@@ -88,15 +109,15 @@ export function VoucherReviewDrawer({
                 </div>
                 <div>
                   <p className="text-xs text-text-muted mb-1">Monto declarado</p>
-                  <p className="text-sm font-medium text-text">{formatCurrency(voucher.declaredAmount)}</p>
+                  <p className="text-sm font-medium text-text">{formatCurrency(voucher.paymentAmount)}</p>
                 </div>
                 <div>
                   <p className="text-xs text-text-muted mb-1">Fecha subida</p>
-                  <p className="text-sm font-medium text-text">{formatDate(voucher.uploadedAt)}</p>
+                  <p className="text-sm font-medium text-text">{formatDate(voucher.createdAt)}</p>
                 </div>
                 <div className="col-span-2">
-                  <p className="text-xs text-text-muted mb-1">Pago asociado</p>
-                  <p className="text-sm font-medium text-text">{voucher.concept}</p>
+                  <p className="text-xs text-text-muted mb-1">Concepto</p>
+                  <p className="text-sm font-medium text-text">{voucher.paymentConcept}</p>
                 </div>
                 {voucher.observation && (
                   <div className="col-span-2">

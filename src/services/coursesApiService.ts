@@ -1,35 +1,32 @@
 import { apiFetch } from './api';
+import type { StoredFileSummary } from './filesApiService';
 
-export type CourseType = 'Regular' | 'Tesis' | 'Topicos';
+// ── Tipos de petición ─────────────────────────────────────────────────────────
+
+export interface CourseRequest {
+  code: string;
+  name: string;
+  startDate: string;        // format: date (YYYY-MM-DD)
+  endDate: string;          // format: date (YYYY-MM-DD)
+  observations?: string;
+  syllabusFileId?: string;  // UUID del archivo subido previamente
+}
+
+// ── Tipos de respuesta ────────────────────────────────────────────────────────
 
 export interface CourseResponse {
   id: string;
-  programId: number;
-  programName: string;
-  promotionId: number;
-  promotionName: string;
   code: string;
   name: string;
-  type: CourseType;
-  startDate: string;
-  endDate: string;
-  observations: string;
-  syllabusUrl: string;
+  startDate: string;   // format: date (YYYY-MM-DD)
+  endDate: string;     // format: date (YYYY-MM-DD)
+  observations?: string;
+  syllabusFile?: StoredFileSummary | null;
   createdAt: string;
   updatedAt: string;
 }
 
-export interface CourseRequest {
-  programId: number;
-  promotionId: number;
-  code: string;
-  name: string;
-  type: CourseType;
-  startDate: string;
-  endDate: string;
-  observations: string;
-  syllabusUrl: string;
-}
+// ── Envelope genérico ─────────────────────────────────────────────────────────
 
 interface ApiResponse<T> {
   success: boolean;
@@ -37,11 +34,21 @@ interface ApiResponse<T> {
   message: string | null;
 }
 
+// ── Endpoints ─────────────────────────────────────────────────────────────────
+
+/** GET /v1/courses — lista todos los cursos */
 export async function listCourses(token: string): Promise<CourseResponse[]> {
   const res = await apiFetch<ApiResponse<CourseResponse[]>>('/v1/courses', token);
   return res.data;
 }
 
+/** GET /v1/courses/{id} — obtiene un curso por ID */
+export async function getCourse(token: string, id: string): Promise<CourseResponse> {
+  const res = await apiFetch<ApiResponse<CourseResponse>>(`/v1/courses/${id}`, token);
+  return res.data;
+}
+
+/** POST /v1/courses — crea un nuevo curso */
 export async function createCourse(
   token: string,
   request: CourseRequest
@@ -53,6 +60,7 @@ export async function createCourse(
   return res.data;
 }
 
+/** PUT /v1/courses/{id} — actualiza un curso existente */
 export async function updateCourse(
   token: string,
   id: string,
@@ -65,8 +73,39 @@ export async function updateCourse(
   return res.data;
 }
 
+/** DELETE /v1/courses/{id} — elimina un curso */
 export async function deleteCourse(token: string, id: string): Promise<void> {
-  await apiFetch<ApiResponse<void>>(`/v1/courses/${id}`, token, {
+  await apiFetch<void>(`/v1/courses/${id}`, token, {
     method: 'DELETE',
   });
+}
+
+/** GET /v1/courses/{id}/teachers — docentes asignados al curso */
+export async function getCourseTeachers(token: string, courseId: string): Promise<unknown[]> {
+  const res = await apiFetch<ApiResponse<unknown[]>>(
+    `/v1/courses/${courseId}/teachers`,
+    token
+  );
+  return res.data;
+}
+
+/** GET /v1/courses/{id}/students — estudiantes matriculados en el curso */
+export async function getCourseStudents(token: string, courseId: string): Promise<unknown[]> {
+  const res = await apiFetch<ApiResponse<unknown[]>>(
+    `/v1/courses/${courseId}/students`,
+    token
+  );
+  return res.data;
+}
+
+/** GET /v1/courses/by-teacher/{teacherId} — cursos de un docente específico */
+export async function getCoursesByTeacher(
+  token: string,
+  teacherId: string
+): Promise<CourseResponse[]> {
+  const res = await apiFetch<ApiResponse<CourseResponse[]>>(
+    `/v1/courses/by-teacher/${teacherId}`,
+    token
+  );
+  return res.data;
 }
