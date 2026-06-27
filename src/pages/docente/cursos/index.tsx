@@ -19,14 +19,16 @@ const TABS: { key: TabKey; label: string }[] = [
 export function DocenteCursoDetalle() {
   const { id } = useParams<{ id: string }>();
   const {
-    course, students, grades,
+    course, students,
+    syllabusFile,
+    mergedRows,
     loading, error,
     activeTab, setActiveTab,
     handleSyllabusUpload,
     loadSyllabusUrl,
     editingGrade, gradeValue, setGradeValue,
     gradeMotivo, setGradeMotivo,
-    openEditGrade, closeEditGrade, handleSaveGrade, savingGrade,
+    openEditGrade, openCreateGrade, closeEditGrade, handleSaveGrade, savingGrade,
     toast, setToast,
     notasRegistradas, totalEstudiantes,
   } = useCursoDetalle(id ?? '');
@@ -51,7 +53,7 @@ export function DocenteCursoDetalle() {
     );
   }
 
-  const hasSyllabus = !!course.syllabusFile;
+  const hasSyllabus = !!syllabusFile;
 
   return (
     <DocenteLayout>
@@ -89,12 +91,12 @@ export function DocenteCursoDetalle() {
             {activeTab === 'silabo' && (
               <SyllabusTab
                 hasSyllabus={hasSyllabus}
-                syllabusFileName={course.syllabusFile?.originalName}
+                syllabusFileName={syllabusFile?.originalName}
                 uploading={false}
                 onUpload={handleSyllabusUpload}
                 onView={() => {
-                  if (course.syllabusFile?.id) {
-                    loadSyllabusUrl(course.syllabusFile.id);
+                  if (syllabusFile?.id) {
+                    loadSyllabusUrl(syllabusFile.id);
                   }
                 }}
                 onReplace={() => {}}
@@ -108,8 +110,9 @@ export function DocenteCursoDetalle() {
             {activeTab === 'notas' && (
               <div className="space-y-6">
                 <GradesTable
-                  grades={grades}
+                  rows={mergedRows}
                   onEditGrade={(grade, studentName) => openEditGrade(grade, studentName)}
+                  onCreateGrade={(enrollment) => openCreateGrade(enrollment)}
                 />
 
                 <div className="sticky bottom-0 bg-surface border-t border-border p-4 flex items-center justify-between">

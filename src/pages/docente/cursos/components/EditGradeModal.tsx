@@ -25,11 +25,14 @@ export function EditGradeModal({
 }: EditGradeModalProps) {
   if (!editingGrade) return null;
 
+  const isEditing = !!editingGrade.gradeId;
+  const title = isEditing ? 'Modificar nota' : 'Registrar nota';
+
   return (
     <Modal
       isOpen={!!editingGrade}
       onClose={onClose}
-      title="Modificar nota"
+      title={title}
       size="sm"
       accentBorder
     >
@@ -42,13 +45,17 @@ export function EditGradeModal({
             <p className="text-sm text-text-muted mb-1">
               Estudiante: {editingGrade.studentName}
             </p>
-            <p className="text-sm text-text-muted mb-1">Nota actual</p>
-            <p className="text-2xl font-bold text-text">{editingGrade.currentValue}</p>
+            {isEditing && (
+              <>
+                <p className="text-sm text-text-muted mb-1">Nota actual</p>
+                <p className="text-2xl font-bold text-text">{editingGrade.currentValue}</p>
+              </>
+            )}
           </div>
 
           <div className="space-y-2">
             <label className="block text-sm font-medium text-text">
-              Nueva nota <span className="text-accent">*</span>
+              {isEditing ? 'Nueva nota' : 'Nota'} <span className="text-accent">*</span>
             </label>
             <input
               type="number"
@@ -63,14 +70,14 @@ export function EditGradeModal({
 
           <div className="space-y-2">
             <label className="block text-sm font-medium text-text">
-              Motivo de la modificación <span className="text-accent">*</span>
+              {isEditing ? 'Motivo de la modificación' : 'Motivo'} <span className="text-accent">*</span>
             </label>
             <textarea
               rows={4}
               value={gradeMotivo}
               onChange={(e) => onGradeMotivoChange(e.target.value)}
               className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-              placeholder="Describe el motivo del cambio..."
+              placeholder="Describe el motivo..."
             />
           </div>
 
@@ -78,7 +85,9 @@ export function EditGradeModal({
             <div className="flex items-start gap-2">
               <AlertTriangleIcon className="w-5 h-5 text-warning flex-shrink-0 mt-0.5" />
               <p className="text-sm text-text">
-                Esta modificación quedará registrada en el historial de auditoría.
+                {isEditing
+                  ? 'Esta modificación quedará registrada en el historial de auditoría.'
+                  : 'Esta nota quedará registrada en el sistema.'}
               </p>
             </div>
           </div>
@@ -97,7 +106,7 @@ export function EditGradeModal({
             disabled={saving || !gradeValue || !gradeMotivo}
             className="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary-light transition-colors disabled:opacity-50"
           >
-            {saving ? 'Guardando...' : 'Guardar modificación'}
+            {saving ? 'Guardando...' : (isEditing ? 'Guardar modificación' : 'Registrar nota')}
           </button>
         </div>
       </form>

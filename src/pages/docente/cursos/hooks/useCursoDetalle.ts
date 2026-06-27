@@ -2,20 +2,32 @@ import { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '../../../../context/AuthContext';
 import { getCourse } from '../../../../services/coursesApiService';
 import { getCourseStudents } from '../../../../services/coursesApiService';
-import { listGrades, updateGrade } from '../../../../services/gradesApiService';
+import {
+  listGrades,
+  createGrade,
+  updateGrade,
+} from '../../../../services/gradesApiService';
+import type { GradeResponse, GradeRequest } from '../../../../services/gradesApiService';
 import { uploadSyllabus, getFileUrl } from '../../../../services/filesApiService';
-import { updateAssignmentSyllabus } from '../../../../services/assignmentsApiService';
+import { listMyAssignments, updateAssignmentSyllabus } from '../../../../services/assignmentsApiService';
 import type { CourseResponse } from '../../../../services/coursesApiService';
 import type { EnrollmentResponse } from '../../../../services/enrollmentsApiService';
-import type { GradeResponse } from '../../../../services/gradesApiService';
+import type { StoredFileSummary } from '../../../../services/filesApiService';
 
 
 type TabKey = 'silabo' | 'estudiantes' | 'notas';
 
 export interface EditingGrade {
-  gradeId: string;
+  gradeId?: string;
+  enrollmentId: string;
+  studentId: string;
   studentName: string;
-  currentValue: number;
+  currentValue?: number;
+}
+
+export interface StudentGradeRow {
+  enrollment: EnrollmentResponse;
+  grade: GradeResponse | null;
 }
 
 export function useCursoDetalle(courseId: string) {
@@ -29,6 +41,7 @@ export function useCursoDetalle(courseId: string) {
 
   const [activeTab, setActiveTab] = useState<TabKey>('silabo');
   const [silaboUploading, setSilaboUploading] = useState(false);
+  const [syllabusFile, setSyllabusFile] = useState<StoredFileSummary | null>(null);
   const [syllabusUrl, setSyllabusUrl] = useState<string | null>(null);
   const [loadingSyllabus, setLoadingSyllabus] = useState(false);
 
@@ -49,14 +62,21 @@ export function useCursoDetalle(courseId: string) {
     setLoading(true);
     setError(null);
     try {
-      const [courseData, studentsData, gradesData] = await Promise.all([
+      const [courseData, studentsData, gradesData, assignmentsData] = await Promise.all([
         getCourse(token, courseId),
         getCourseStudents(token, courseId),
-        listGrades(token),
+        listGrades(token, { courseId }),
+        listMyAssignments(token),
       ]);
       setCourse(courseData);
       setStudents(studentsData);
-      setGrades(gradesData.filter((g) => g.courseId === courseId));
+      setGrades(gradesData);
+
+      const semesterId = studentsData[0]?.semesterId;
+      const matching = assignmentsData.find(
+        (a) => a.courseId === courseId && (!semesterId || a.semesterId === semesterId)
+      );
+      setSyllabusFile(matching?.syllabusFile ?? null);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Error al cargar datos del curso');
     } finally {
@@ -100,8 +120,24 @@ export function useCursoDetalle(courseId: string) {
   }, [token]);
 
   const openEditGrade = (grade: GradeResponse, studentName: string) => {
-    setEditingGrade({ gradeId: grade.id, studentName, currentValue: grade.value });
+    setEditingGrade({
+      gradeId: grade.id,
+      enrollmentId: grade.enrollmentId,
+      studentId: grade.studentId,
+      studentName,
+      currentValue: grade.value,
+    });
     setGradeValue(String(grade.value));
+    setGradeMotivo('');
+  };
+
+  const openCreateGrade = (enrollment: EnrollmentResponse) => {
+    setEditingGrade({
+      enrollmentId: enrollment.id,
+      studentId: enrollment.studentId,
+      studentName: enrollment.studentName,
+    });
+    setGradeValue('');
     setGradeMotivo('');
   };
 
@@ -111,36 +147,56 @@ export function useCursoDetalle(courseId: string) {
     setGradeMotivo('');
   };
 
+  const gradesByStudentId = new Map<string, GradeResponse>();
+  grades.forEach((g) => gradesByStudentId.set(g.studentId, g));
+
+  const mergedRows: StudentGradeRow[] = students
+    .filter((s) => s.stateId === 5)
+    .map((enrollment) => ({
+      enrollment,
+      grade: gradesByStudentId.get(enrollment.studentId) ?? null,
+    }));
+
   const handleSaveGrade = async () => {
     if (!token || !editingGrade) return;
     setSavingGrade(true);
     try {
-      await updateGrade(token, editingGrade.gradeId, {
-        enrollmentId: '',
+      const request: GradeRequest = {
+        enrollmentId: editingGrade.enrollmentId,
         stateId: Number(gradeValue) >= 11 ? 3 : 4,
         value: Number(gradeValue),
-      });
-      showToast('success', 'Nota actualizada correctamente');
+      };
+
+      if (editingGrade.gradeId) {
+        await updateGrade(token, editingGrade.gradeId, request);
+        showToast('success', 'Nota actualizada correctamente');
+      } else {
+        await createGrade(token, request);
+        showToast('success', 'Nota registrada correctamente');
+      }
+
       closeEditGrade();
       loadData();
     } catch (e) {
-      showToast('error', 'Error al actualizar la nota');
+      showToast('error', 'Error al guardar la nota');
     } finally {
       setSavingGrade(false);
     }
   };
 
-  const notasRegistradas = grades.length;
-  const totalEstudiantes = students.length;
+  const notasRegistradas = mergedRows.filter((r) => r.grade !== null).length;
+  const totalEstudiantes = mergedRows.length;
 
   return {
     course, students, grades,
+    syllabusFile,
+    mergedRows,
     loading, error,
     activeTab, setActiveTab,
     silaboUploading, handleSyllabusUpload,
     syllabusUrl, loadingSyllabus, loadSyllabusUrl,
     editingGrade, gradeValue, setGradeValue, gradeMotivo, setGradeMotivo,
-    openEditGrade, closeEditGrade, handleSaveGrade, savingGrade,
+    openEditGrade, openCreateGrade, closeEditGrade, handleSaveGrade, savingGrade,
     toast, setToast,
     notasRegistradas, totalEstudiantes,
   };
