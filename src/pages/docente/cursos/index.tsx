@@ -7,6 +7,8 @@ import { StudentsTable } from './components/StudentsTable';
 import { GradesTable } from './components/GradesTable';
 import { EditGradeModal } from './components/EditGradeModal';
 import { useCursoDetalle } from './hooks/useCursoDetalle';
+import { FilePreviewModal } from '../../../components/FilePreviewModal';
+import { useState } from 'react';
 
 type TabKey = 'silabo' | 'estudiantes' | 'notas';
 
@@ -25,12 +27,13 @@ export function DocenteCursoDetalle() {
     loading, error,
     activeTab, setActiveTab,
     handleSyllabusUpload,
-    loadSyllabusUrl,
     editingGrade, gradeValue, setGradeValue,
     openEditGrade, openCreateGrade, closeEditGrade, handleSaveGrade, savingGrade,
     toast, setToast,
     notasRegistradas, totalEstudiantes,
   } = useCursoDetalle(id ?? '');
+
+  const [syllabusPreviewOpen, setSyllabusPreviewOpen] = useState(false);
 
   if (loading) {
     return (
@@ -96,11 +99,7 @@ export function DocenteCursoDetalle() {
                 syllabusFileName={syllabusFile?.originalName}
                 uploading={false}
                 onUpload={handleSyllabusUpload}
-                onView={() => {
-                  if (syllabusFile?.id) {
-                    loadSyllabusUrl(syllabusFile.id);
-                  }
-                }}
+                onView={() => setSyllabusPreviewOpen(true)}
                 onReplace={() => {}}
               />
             )}
@@ -142,6 +141,12 @@ export function DocenteCursoDetalle() {
         message={toast.message}
         isVisible={toast.visible}
         onClose={() => setToast({ ...toast, visible: false })}
+      />
+
+      <FilePreviewModal
+        fileId={syllabusFile?.id ?? null}
+        isOpen={syllabusPreviewOpen}
+        onClose={() => setSyllabusPreviewOpen(false)}
       />
     </DocenteLayout>
   );
