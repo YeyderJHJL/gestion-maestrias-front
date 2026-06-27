@@ -46,7 +46,7 @@ export function EstudianteDashboard() {
       
       await Promise.all(uniqueCourseIds.map(async courseId => {
         try {
-          const teachersData = await getCourseTeachers(token, courseId) as any[];
+          const teachersData = await getCourseTeachers(token, courseId);
           if (teachersData && teachersData.length > 0) {
             teachersMap[courseId] = teachersData[0].teacherName;
           }

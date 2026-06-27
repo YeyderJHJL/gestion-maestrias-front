@@ -3,18 +3,10 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { EstudianteLayout } from '../../layouts/EstudianteLayout';
 import { useAuth } from '../../context/AuthContext';
 import { getCourse, getCourseTeachers, CourseResponse } from '../../services/coursesApiService';
+import { AssignmentResponse } from '../../services/assignmentsApiService';
 import { ApiError } from '../../services/api';
 import { Loader2Icon, ArrowLeftIcon, FileTextIcon, UserIcon, CalendarIcon } from 'lucide-react';
 import { getFileUrl } from '../../services/filesApiService';
-
-// Define locally in case types are not exported
-interface CourseTeacher {
-  id: string | number;
-  teacherId: string;
-  teacherEmail: string;
-  teacherName: string;
-  syllabusFile?: { id: string };
-}
 
 export function EstudianteCursoDetalle() {
   const { id } = useParams<{ id: string }>();
@@ -22,7 +14,7 @@ export function EstudianteCursoDetalle() {
   const { token } = useAuth();
 
   const [course, setCourse] = useState<CourseResponse | null>(null);
-  const [teachers, setTeachers] = useState<CourseTeacher[]>([]);
+  const [teachers, setTeachers] = useState<AssignmentResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -36,8 +28,7 @@ export function EstudianteCursoDetalle() {
     ])
     .then(([courseData, teachersData]) => {
       setCourse(courseData);
-      // Asumimos que teachersData viene con el formato de CourseTeacher (TeacherResponse)
-      setTeachers(teachersData as CourseTeacher[]);
+      setTeachers(teachersData);
     })
     .catch(err => {
       if (err instanceof ApiError) setError(err.message);
