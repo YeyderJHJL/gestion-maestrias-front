@@ -1,9 +1,7 @@
-import { useEffect, useState } from 'react';
 import { XIcon, CheckIcon, AlertTriangleIcon, Loader2Icon } from 'lucide-react';
 import { Modal } from '../../../components/Modal';
 import { VoucherResponse } from '../../../types/voucher';
-import { getFileUrl } from '../../../services/filesApiService';
-import { useAuth } from '../../../context/AuthContext';
+import { useFilePreview } from '../../../hooks/useFilePreview';
 
 type Decision = 'validar' | 'observar' | 'rechazar';
 
@@ -35,20 +33,10 @@ export function VoucherReviewModal({
   onClose,
   onConfirm,
 }: VoucherReviewModalProps) {
-  const { token } = useAuth();
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [previewLoading, setPreviewLoading] = useState(false);
-
-  useEffect(() => {
-    if (!voucher || !token) { setPreviewUrl(null); return; }
-    setPreviewLoading(true);
-    getFileUrl(token, voucher.file.id)
-      .then((res) => setPreviewUrl(res.downloadUrl))
-      .catch(() => setPreviewUrl(null))
-      .finally(() => setPreviewLoading(false));
-  }, [voucher?.id, token]);
-
-  const isPdf = voucher?.file.contentType?.includes('pdf');
+  const { previewUrl, isPdf, loading: previewLoading } = useFilePreview(
+    voucher?.file.id ?? null,
+    voucher !== null
+  );
 
   return (
     <Modal
