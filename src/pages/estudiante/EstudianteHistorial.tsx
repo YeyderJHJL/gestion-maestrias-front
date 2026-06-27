@@ -7,6 +7,10 @@ import { listEnrollments, EnrollmentResponse } from '../../services/enrollmentsA
 import { listGrades, GradeResponse } from '../../services/gradesApiService';
 import { ApiError } from '../../services/api';
 
+// Placeholders — el backend no devuelve créditos por curso ni total del plan aún
+const CREDITS_PER_COURSE = 4;
+const TOTAL_PLAN_CREDITS = 48;
+
 export function EstudianteHistorial() {
   const { user, token } = useAuth();
   
@@ -73,7 +77,7 @@ export function EstudianteHistorial() {
         tipo: 'Regular',
         notaFinal: grade?.value ?? null,
         estado: grade?.value != null ? (isApproved ? 'aprobado' : 'desaprobado') : 'pendiente',
-        creditos: 4 // Asumimos 4 créditos por curso para la demo
+        creditos: CREDITS_PER_COURSE
       });
     });
 
@@ -93,7 +97,7 @@ export function EstudianteHistorial() {
     return history.reduce((sum, p) => sum + p.creditos, 0);
   }, [history]);
 
-  const totalCreditosPlan = 48;
+  const totalCreditosPlan = TOTAL_PLAN_CREDITS;
   const progressPercentage = (totalCreditos / totalCreditosPlan) * 100;
   const periodosCompletados = history.length;
 
