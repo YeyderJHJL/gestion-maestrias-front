@@ -7,7 +7,7 @@ import { useDashboard } from './hooks/useDashboard';
 
 export function DocenteDashboard() {
   const { user } = useAuth();
-  const { assignments, loading, error } = useDashboard();
+  const { assignments, courseStats, loading, error } = useDashboard();
 
   if (loading) {
     return (
@@ -47,16 +47,19 @@ export function DocenteDashboard() {
 
         {assignments.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {assignments.map((assignment, index) => (
-              <CourseCard
-                key={assignment.id}
-                assignment={assignment}
-                index={index}
-                notasRegistradas={0}
-                totalEstudiantes={0}
-                estado={assignment.syllabusFile ? 'en-curso' : 'pendiente'}
-              />
-            ))}
+            {assignments.map((assignment, index) => {
+              const stats = courseStats[assignment.courseId] ?? { notasRegistradas: 0, totalEstudiantes: 0 };
+              return (
+                <CourseCard
+                  key={assignment.id}
+                  assignment={assignment}
+                  index={index}
+                  notasRegistradas={stats.notasRegistradas}
+                  totalEstudiantes={stats.totalEstudiantes}
+                  estado={assignment.syllabusFile ? 'en-curso' : 'pendiente'}
+                />
+              );
+            })}
           </div>
         ) : (
           <div className="bg-surface border border-border rounded-lg p-12 text-center">

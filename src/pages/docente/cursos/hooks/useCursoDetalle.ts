@@ -47,7 +47,6 @@ export function useCursoDetalle(courseId: string) {
 
   const [editingGrade, setEditingGrade] = useState<EditingGrade | null>(null);
   const [gradeValue, setGradeValue] = useState('');
-  const [gradeMotivo, setGradeMotivo] = useState('');
   const [savingGrade, setSavingGrade] = useState(false);
 
   const [toast, setToast] = useState<{
@@ -128,7 +127,6 @@ export function useCursoDetalle(courseId: string) {
       currentValue: grade.value,
     });
     setGradeValue(String(grade.value));
-    setGradeMotivo('');
   };
 
   const openCreateGrade = (enrollment: EnrollmentResponse) => {
@@ -138,13 +136,11 @@ export function useCursoDetalle(courseId: string) {
       studentName: enrollment.studentName,
     });
     setGradeValue('');
-    setGradeMotivo('');
   };
 
   const closeEditGrade = () => {
     setEditingGrade(null);
     setGradeValue('');
-    setGradeMotivo('');
   };
 
   const gradesByStudentId = new Map<string, GradeResponse>();
@@ -195,7 +191,7 @@ export function useCursoDetalle(courseId: string) {
     activeTab, setActiveTab,
     silaboUploading, handleSyllabusUpload,
     syllabusUrl, loadingSyllabus, loadSyllabusUrl,
-    editingGrade, gradeValue, setGradeValue, gradeMotivo, setGradeMotivo,
+    editingGrade, gradeValue, setGradeValue,
     openEditGrade, openCreateGrade, closeEditGrade, handleSaveGrade, savingGrade,
     toast, setToast,
     notasRegistradas, totalEstudiantes,

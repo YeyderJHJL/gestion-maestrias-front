@@ -12,18 +12,6 @@ interface CourseCardProps {
   estado: 'completo' | 'en-curso' | 'pendiente';
 }
 
-function getTypeColor(tipo: string) {
-  if (tipo === 'Regular') return 'bg-primary';
-  if (tipo === 'Tesis') return 'bg-accent';
-  return 'bg-warning';
-}
-
-function getTipoVariant(tipo: string) {
-  if (tipo === 'Regular') return 'activo' as const;
-  if (tipo === 'Tesis') return 'retiro' as const;
-  return 'observado' as const;
-}
-
 function getEstadoVariant(estado: string) {
   if (estado === 'completo') return 'aprobado' as const;
   if (estado === 'en-curso') return 'en-curso' as const;
@@ -52,16 +40,16 @@ export function CourseCard({
       transition={{ delay: index * 0.1 }}
       className="bg-surface border border-border rounded-lg overflow-hidden hover:shadow-lg transition-shadow"
     >
-      <div className={getTypeColor(assignment.courseName)} style={{ height: 4 }} />
+      <div className="bg-primary" style={{ height: 4 }} />
       <div className="p-6 space-y-4">
         <div className="space-y-2">
-          <div className="flex items-start justify-between">
-            <h3 className="font-serif font-bold text-text text-lg">
+          <div className="flex items-start justify-between gap-2">
+            <h3 className="font-serif font-bold text-text text-lg leading-tight">
               {assignment.courseName}
             </h3>
-            <StatusBadge variant={getTipoVariant(assignment.courseName)}>
-              {assignment.courseName}
-            </StatusBadge>
+            <span className="shrink-0 text-xs font-mono font-semibold text-text-muted bg-surface-alt px-2 py-0.5 rounded border border-border">
+              {assignment.courseCode}
+            </span>
           </div>
           <p className="text-sm text-text-muted">
             Promoción {assignment.semesterYear}-{assignment.semesterCode}
@@ -73,22 +61,22 @@ export function CourseCard({
           <span>{assignment.assignmentDate}</span>
         </div>
 
-        <div className="space-y-2">
+        <div className="bg-surface-alt rounded-lg p-3 space-y-2">
           <div className="flex justify-between text-sm">
             <span className="text-text-muted">Notas registradas</span>
-            <span className="font-semibold text-text">
+            <span className="font-semibold text-text tabular-nums">
               {notasRegistradas} / {totalEstudiantes}
             </span>
           </div>
-          <div className="w-full bg-surface-alt rounded-full h-2">
+          <div className="w-full bg-border rounded-full h-2">
             <div
               className="bg-primary h-2 rounded-full transition-all"
-              style={{ width: `${progress}%` }}
+              style={{ width: `${Math.max(progress, 4)}%` }}
             />
           </div>
         </div>
 
-        <div className="flex items-center justify-between pt-2">
+        <div className="flex items-center justify-between pt-1">
           <StatusBadge variant={getEstadoVariant(estado)}>
             {getEstadoLabel(estado)}
           </StatusBadge>
