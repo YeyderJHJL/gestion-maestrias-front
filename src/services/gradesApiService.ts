@@ -73,3 +73,7 @@ export async function updateGrade(
   });
   return res.data;
 }
+
+export async function deleteGrade(token: string, id: string): Promise<void> {
+  await apiFetch<ApiResponse<void>>(`/v1/grades/${id}`, token, { method: 'DELETE' });
+}
