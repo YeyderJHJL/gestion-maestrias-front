@@ -1,4 +1,4 @@
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { DocenteLayout } from '../../../layouts/DocenteLayout';
 import { Toast } from '../../../components/Toast';
 import { CourseHeader } from './components/CourseHeader';
@@ -27,7 +27,6 @@ export function DocenteCursoDetalle() {
     handleSyllabusUpload,
     loadSyllabusUrl,
     editingGrade, gradeValue, setGradeValue,
-    gradeMotivo, setGradeMotivo,
     openEditGrade, openCreateGrade, closeEditGrade, handleSaveGrade, savingGrade,
     toast, setToast,
     notasRegistradas, totalEstudiantes,
@@ -58,9 +57,12 @@ export function DocenteCursoDetalle() {
   return (
     <DocenteLayout>
       <div className="space-y-6">
-        <div className="text-sm text-text-muted">
-          <span className="text-text">{course.name}</span>
-        </div>
+        <Link
+          to="/docente/dashboard"
+          className="inline-flex items-center gap-1 text-sm text-text-muted hover:text-text transition-colors"
+        >
+          ← Mis cursos
+        </Link>
 
         <CourseHeader
           course={course}
@@ -129,10 +131,8 @@ export function DocenteCursoDetalle() {
       <EditGradeModal
         editingGrade={editingGrade}
         gradeValue={gradeValue}
-        gradeMotivo={gradeMotivo}
         saving={savingGrade}
         onGradeValueChange={setGradeValue}
-        onGradeMotivoChange={setGradeMotivo}
         onSave={handleSaveGrade}
         onClose={closeEditGrade}
       />
