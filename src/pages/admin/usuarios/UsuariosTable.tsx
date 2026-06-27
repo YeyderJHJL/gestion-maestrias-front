@@ -15,6 +15,11 @@ const ROLE_LABELS: Record<string, string> = {
   STUDENT: 'Estudiante',
 };
 
+const STUDENT_STATUS_LABELS: Record<string, string> = {
+  Regular: 'Regular',
+  Reactualizacion: 'Reactualización',
+};
+
 const ROLE_BADGE_VARIANT: Record<string, 'activo' | 'en-curso' | 'validado' | 'matriculado'> = {
   ADMIN: 'activo',
   COORDINATOR: 'en-curso',
@@ -214,7 +219,7 @@ export function UsuariosTable({
                       <>
                         <td className="px-6 py-4 text-sm text-text-muted">{user.student?.cui ?? '—'}</td>
                         <td className="px-6 py-4 text-sm text-text-muted">{user.student?.yearPromotion ?? '—'}</td>
-                        <td className="px-6 py-4 text-sm text-text-muted">{user.student?.status ?? '—'}</td>
+                        <td className="px-6 py-4 text-sm text-text-muted">{STUDENT_STATUS_LABELS[user.student?.status ?? ''] ?? '—'}</td>
                       </>
                     ) : null}
                     <td className="px-6 py-4">

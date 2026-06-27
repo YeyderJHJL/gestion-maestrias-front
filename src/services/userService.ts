@@ -1,5 +1,6 @@
 import { apiFetch, ApiResponse } from './api';
 import { AuthUser, UserRole } from '../types/auth';
+import type { StudentStatus } from './studentsApiService';
 
 const ROLE_MAP: Record<string, UserRole> = {
   ADMIN: 'ADMIN', Administrador: 'ADMIN',
@@ -17,7 +18,7 @@ interface StudentData {
   cui: string;
   paymentCode: string;
   yearPromotion: number;
-  status?: 'Regular' | 'Reactualizacion';
+  status?: StudentStatus;
 }
 
 interface TeacherData {
