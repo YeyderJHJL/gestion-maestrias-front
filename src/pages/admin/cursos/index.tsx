@@ -125,6 +125,7 @@ export function AdminCursos() {
         onDelete={(curso) => { cursos.closeList(); cursos.setDeletingItem(curso); }}
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
+        isCoordinator={cursos.isCoordinator}
       />
 
       {/* ── Modal form de curso ──────────────────────────────────────────────── */}
