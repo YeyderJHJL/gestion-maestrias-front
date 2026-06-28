@@ -1,4 +1,4 @@
-import { apiFetch } from './api';
+import { apiFetch, ApiResponse } from './api';
 
 // ── Tipos de petición ─────────────────────────────────────────────────────────
 
@@ -19,11 +19,6 @@ export interface SemesterResponse {
 
 // ── Envelope genérico ─────────────────────────────────────────────────────────
 
-interface ApiResponse<T> {
-  success: boolean;
-  data: T;
-  message: string | null;
-}
 
 // ── Endpoints ─────────────────────────────────────────────────────────────────
 

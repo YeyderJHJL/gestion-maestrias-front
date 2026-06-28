@@ -1,4 +1,4 @@
-import { apiFetch } from './api';
+import { apiFetch, ApiResponse } from './api';
 import { StoredFileSummaryResponse } from './filesApiService';
 import { UserRole } from '../types/auth';
 import { AcademicDegree, TeacherCategory, TeacherType } from './teachersApiService';
@@ -113,11 +113,6 @@ export interface UserResponse {
   teacher?: TeacherProfileResponse | null;
 }
 
-interface ApiResponse<T> {
-  success: boolean;
-  data: T;
-  message: string | null;
-}
 
 export async function listUsers(token: string): Promise<UserResponse[]> {
   const res = await apiFetch<ApiResponse<UserResponse[]>>('/v1/users', token);

@@ -92,8 +92,8 @@ export function useAsignaciones() {
       ]);
       setTeachers(teachersData);
       setCourses(coursesData);
-    } catch (e) {
-      console.error('Error cargando dependencias:', e);
+    } catch {
+      showToast('error', 'Error al cargar docentes y cursos.');
     } finally {
       setLoadingDeps(false);
     }
@@ -108,9 +108,9 @@ export function useAsignaciones() {
     try {
       const file = await getFileUrl(token, fileId);
       setExistingSyllabus(file);
-    } catch (e) {
-      console.error('Error cargando sílabo:', e);
+    } catch {
       setExistingSyllabus(null);
+      showToast('error', 'Error al cargar el sílabo. Intenta de nuevo.');
     } finally {
       setLoadingSyllabus(false);
     }

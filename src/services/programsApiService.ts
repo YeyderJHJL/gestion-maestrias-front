@@ -1,4 +1,4 @@
-import { apiFetch } from './api';
+import { apiFetch, ApiResponse } from './api';
 
 export interface ProgramResponse {
   id: number;
@@ -11,11 +11,6 @@ export interface ProgramRequest {
   name: string;
 }
 
-interface ApiResponse<T> {
-  success: boolean;
-  data: T;
-  message: string | null;
-}
 
 export async function listPrograms(token: string): Promise<ProgramResponse[]> {
   const res = await apiFetch<ApiResponse<ProgramResponse[]>>('/v1/programs', token);

@@ -5,7 +5,7 @@ interface ModalProps {
   onClose: () => void;
   title: string;
   children: React.ReactNode;
-  size?: 'sm' | 'md' | 'lg' | 'xl';
+  size?: 'sm' | 'md' | 'lg' | 'xl' | 'full';
   accentBorder?: boolean;
 }
 export function Modal({
@@ -20,7 +20,8 @@ export function Modal({
     sm: 'max-w-md',
     md: 'max-w-2xl',
     lg: 'max-w-4xl',
-    xl: 'max-w-6xl'
+    xl: 'max-w-6xl',
+    full: 'max-w-[95vw]'
   };
   return (
     <AnimatePresence>
@@ -39,7 +40,7 @@ export function Modal({
           className="fixed inset-0 bg-black/50 z-50"
           onClick={onClose} />
         
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-2 md:p-4 overflow-y-auto">
             <motion.div
             initial={{
               opacity: 0,
@@ -53,24 +54,21 @@ export function Modal({
               opacity: 0,
               scale: 0.95
             }}
-            className={`bg-surface rounded-lg shadow-xl w-full ${sizeClasses[size]} my-8 max-h-[90vh] flex flex-col ${accentBorder ? 'border-t-4 border-accent' : ''}`}
+            className={`bg-surface rounded-lg shadow-xl w-full max-w-[95vw] ${sizeClasses[size]} my-2 md:my-8 max-h-[95vh] md:max-h-[90vh] flex flex-col ${accentBorder ? 'border-t-4 border-accent' : ''}`}
             onClick={(e) => e.stopPropagation()}>
 
-              {/* Encabezado fijo — nunca se desplaza */}
-              <div className="flex items-center justify-between px-6 py-4 border-b border-border flex-shrink-0">
-                <h2 className="text-xl font-serif font-bold text-text">
+              <div className="flex items-center justify-between px-4 md:px-6 py-3 md:py-4 border-b border-border flex-shrink-0">
+                <h2 className="text-lg md:text-xl font-serif font-bold text-text">
                   {title}
                 </h2>
                 <button
                 onClick={onClose}
                 className="text-text-muted hover:text-text transition-colors"
                 aria-label="Cerrar">
-
                   <XIcon className="w-6 h-6" />
                 </button>
               </div>
-              {/* Contenido desplazable cuando supera el alto de la ventana */}
-              <div className="p-6 overflow-y-auto flex-1">{children}</div>
+              <div className="p-4 md:p-6 overflow-y-auto flex-1">{children}</div>
             </motion.div>
           </div>
         </>

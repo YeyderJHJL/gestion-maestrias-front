@@ -1,7 +1,9 @@
-import { apiFetch } from './api';
+import { apiFetch, ApiResponse } from './api';
 import type { StudentResponse } from './studentsApiService';
 import type { EnrollmentResponse } from './enrollmentsApiService';
 import type { AssignmentResponse } from './assignmentsApiService';
+import type { GradeResponse } from './gradesApiService';
+import type { VoucherResponse } from '../types/voucher';
 import type {
   FilaAlumnoPorPromocion,
   FilaCursoPorDocente,
@@ -11,47 +13,6 @@ import type {
   FilaPagoPendienteValidado,
 } from '../pages/admin/reportes/types/reportes.types';
  
-// ── Tipos locales (schemas del back no exportados en los servicios actuales) ──
- 
-interface GradeResponse {
-  id: string;
-  enrollmentId: string;
-  studentId: string;
-  studentEmail: string;
-  courseId: string;
-  courseCode: string;
-  courseName: string;
-  stateId: number;
-  stateCode: string;
-  stateName: string;
-  value: number;
-  createdAt: string;
-  updatedAt: string;
-}
- 
-interface VoucherResponse {
-  id: string;
-  paymentId: string;
-  paymentNumber: number;
-  paymentConcept: string;
-  paymentAmount: number;
-  paymentDate: string | null;
-  studentName: string;
-  studentEmail: string;
-  studentPaymentCode: string;
-  stateId: number;
-  stateCode: string;
-  stateName: string;
-  observation?: string;
-  createdAt: string;
-  updatedAt: string;
-}
- 
-interface ApiResponse<T> {
-  success: boolean;
-  data: T;
-  message: string | null;
-}
  
 // ── Helpers de mapeo ──────────────────────────────────────────────────────────
  
@@ -103,20 +64,20 @@ function mapVoucherToPago(v: VoucherResponse): FilaPagoPorEstudiante {
     estudiante: v.studentName,
     email: v.studentEmail,
     codigoPago: v.studentPaymentCode,
-    concepto: v.paymentConcept,
-    monto: v.paymentAmount,
+    concepto: v.paymentConcept ?? '',
+    monto: v.paymentAmount ?? 0,
     fechaPago: v.paymentDate,
     estado: v.stateName,
   };
 }
- 
+
 function mapVoucherToPendiente(v: VoucherResponse): FilaPagoPendienteValidado {
   return {
     voucherId: v.id,
     estudiante: v.studentName,
     email: v.studentEmail,
-    concepto: v.paymentConcept,
-    monto: v.paymentAmount,
+    concepto: v.paymentConcept ?? '',
+    monto: v.paymentAmount ?? 0,
     fechaPago: v.paymentDate,
     estado: v.stateName,
     observacion: v.observation,

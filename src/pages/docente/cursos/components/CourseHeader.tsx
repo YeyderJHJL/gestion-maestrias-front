@@ -1,4 +1,5 @@
 import { StatusBadge } from '../../../../components/StatusBadge';
+import { WelcomeBanner } from '../../../../components/WelcomeBanner';
 import type { CourseResponse } from '../../../../services/coursesApiService';
 
 interface CourseHeaderProps {
@@ -9,19 +10,13 @@ interface CourseHeaderProps {
 
 export function CourseHeader({ course, semesterLabel, teacherName }: CourseHeaderProps) {
   return (
-    <div className="bg-primary text-white rounded-lg p-6">
-      <div className="flex items-start justify-between">
-        <div className="space-y-2">
-          <div className="flex items-center gap-3">
-            <h1 className="text-3xl font-serif font-bold">{course.name}</h1>
-            <StatusBadge variant="activo">Regular</StatusBadge>
-          </div>
-          <p className="text-white/90">{semesterLabel}</p>
-          <p className="text-white/80 text-sm">
-            {course.startDate} - {course.endDate} · {teacherName}
-          </p>
-        </div>
+    <WelcomeBanner title={course.name} subtitle={semesterLabel}>
+      <div className="flex items-center gap-3 mt-1">
+        <StatusBadge variant="activo">Regular</StatusBadge>
       </div>
-    </div>
+      <p className="text-white/80 text-sm mt-1">
+        {course.startDate} - {course.endDate} · {teacherName}
+      </p>
+    </WelcomeBanner>
   );
 }

@@ -1,4 +1,4 @@
-import { ApiError } from './api';
+import { ApiError, ApiResponse } from './api';
 
 const BASE_URL = import.meta.env.VITE_API_URL ?? '/api';
 
@@ -24,11 +24,6 @@ export interface StoredFileResponse extends StoredFileSummary {
   downloadUrl: string;
 }
 
-interface ApiResponse<T> {
-  success: boolean;
-  data: T;
-  message: string | null;
-}
 
 // ── Helper multipart (no usa Content-Type: application/json) ──────────────────
 

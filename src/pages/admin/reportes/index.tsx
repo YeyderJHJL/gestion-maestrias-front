@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { FileTextIcon } from 'lucide-react';
 import { AdminLayout } from '../../../layouts/AdminLayout';
+import { PageHeader } from '../../../components/PageHeader';
 import { EmptyState } from '../../../components/EmptyState';
 import { ReportFilterPanel } from './components/ReportFilterPanel';
 import { ReportResultsTable } from './components/ReportResultsTable';
@@ -59,11 +60,7 @@ export function AdminReportes() {
       <div className="space-y-6">
 
         {/* Encabezado */}
-        <div className="border-b-2 border-accent pb-2">
-          <h1 className="text-3xl font-serif font-bold text-text">
-            Reportes académicos
-          </h1>
-        </div>
+        <PageHeader title="Reportes académicos" />
 
         {/* Panel de filtros */}
         <ReportFilterPanel

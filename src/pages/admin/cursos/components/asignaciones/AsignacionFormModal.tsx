@@ -1,5 +1,6 @@
-import { useRef } from 'react';
-import { Loader2Icon, FileTextIcon, UploadCloudIcon, ExternalLinkIcon, XCircleIcon } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { Loader2Icon, FileTextIcon, UploadCloudIcon, EyeIcon, XCircleIcon } from 'lucide-react';
+import { FilePreviewModal } from '../../../../../components/FilePreviewModal';
 import { Modal } from '../../../../../components/Modal';
 import { AssignmentResponse } from '../../../../../services/assignmentsApiService';
 import { StoredFileResponse } from '../../../../../services/filesApiService';
@@ -52,6 +53,7 @@ export function AsignacionFormModal({
 }: Props) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isEditing = !!editingItem;
+  const [syllabusPreviewOpen, setSyllabusPreviewOpen] = useState(false);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] ?? null;
@@ -64,6 +66,7 @@ export function AsignacionFormModal({
   };
 
   return (
+    <>
     <Modal
       isOpen={isOpen}
       onClose={onClose}
@@ -166,15 +169,13 @@ export function AsignacionFormModal({
                         ({formatBytes(existingSyllabus.sizeBytes)})
                       </span>
                     </div>
-                    <a
-                      href={existingSyllabus.downloadUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-1 text-primary hover:underline shrink-0"
+                    <button
+                      onClick={() => setSyllabusPreviewOpen(true)}
+                      className="flex items-center gap-1 text-primary hover:text-primary-light transition-colors shrink-0"
                     >
-                      <ExternalLinkIcon className="w-3.5 h-3.5" />
+                      <EyeIcon className="w-3.5 h-3.5" />
                       Ver
-                    </a>
+                    </button>
                   </div>
                 ) : (
                   <p className="text-sm text-text-muted py-1">Sin sílabo registrado.</p>
@@ -249,5 +250,12 @@ export function AsignacionFormModal({
         </div>
       </form>
     </Modal>
+
+      <FilePreviewModal
+        fileId={existingSyllabus?.id ?? null}
+        isOpen={syllabusPreviewOpen}
+        onClose={() => setSyllabusPreviewOpen(false)}
+      />
+    </>
   );
 }

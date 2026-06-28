@@ -1,4 +1,4 @@
-import { apiFetch } from './api';
+import { apiFetch, ApiResponse } from './api';
 import type { StoredFileSummary } from './filesApiService';
 
 export type StudentStatus = 'Regular' | 'Reactualizacion';
@@ -44,11 +44,6 @@ export interface StudentFilters {
 
 // ── Envelope genérico ─────────────────────────────────────────────────────────
 
-interface ApiResponse<T> {
-  success: boolean;
-  data: T;
-  message: string | null;
-}
 
 // ── Endpoints ─────────────────────────────────────────────────────────────────
 

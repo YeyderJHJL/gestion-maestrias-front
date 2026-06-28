@@ -47,7 +47,7 @@ export function useMatriculas() {
       const data = await listEnrollments(token);
       setEnrollments(data);
     } catch (err) {
-      console.error('Error refrescando matrículas:', err);
+      setError(err instanceof Error ? err.message : 'Error al cargar matrículas.');
     }
   }, [token]);
 

@@ -1,4 +1,6 @@
-import { PencilIcon, Trash2Icon, FileTextIcon } from 'lucide-react';
+import { useState } from 'react';
+import { PencilIcon, Trash2Icon, EyeIcon } from 'lucide-react';
+import { FilePreviewModal } from '../../../../components/FilePreviewModal';
 import { EnrollmentResponse } from '../../../../services/enrollmentsApiService';
 import { EnrollmentStateTag } from './EnrollmentStateTag';
 import { formatDate } from '../utils/studentFormat';
@@ -11,7 +13,11 @@ interface Props {
 }
 
 export function EnrollmentRow({ enrollment: e, isCoordinator, onEdit, onDelete }: Props) {
+  const [previewOpen, setPreviewOpen] = useState(false);
+
   return (
+    <>
+
     <div className="flex items-start justify-between gap-4 px-6 py-4 hover:bg-surface-alt transition-colors">
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2 flex-wrap">
@@ -25,10 +31,14 @@ export function EnrollmentRow({ enrollment: e, isCoordinator, onEdit, onDelete }
           </span>
           <span>Fecha: {formatDate(e.enrollmentDate)}</span>
           {e.resolutionFile && (
-            <span className="flex items-center gap-1">
-              <FileTextIcon className="w-3.5 h-3.5" />
+            <button
+              onClick={() => setPreviewOpen(true)}
+              className="flex items-center gap-1 text-primary hover:text-primary-light transition-colors"
+              title="Ver resolución"
+            >
+              <EyeIcon className="w-3.5 h-3.5" />
               {e.resolutionFile.originalName}
-            </span>
+            </button>
           )}
         </div>
         {e.observations && <p className="text-xs text-text-muted italic mt-1">{e.observations}</p>}
@@ -44,5 +54,12 @@ export function EnrollmentRow({ enrollment: e, isCoordinator, onEdit, onDelete }
         </div>
       )}
     </div>
+
+      <FilePreviewModal
+        fileId={e.resolutionFile?.id ?? null}
+        isOpen={previewOpen}
+        onClose={() => setPreviewOpen(false)}
+      />
+    </>
   );
 }

@@ -36,7 +36,7 @@ export function CursoFormModal({
       accentBorder
     >
       <form onSubmit={onSubmit} className="space-y-6">
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Nombre */}
           <div className="col-span-2 space-y-2">
             <label className="block text-sm font-medium text-text">
