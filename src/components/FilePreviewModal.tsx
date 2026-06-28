@@ -40,10 +40,9 @@ export function FilePreviewModal({ fileId, isOpen, onClose }: FilePreviewModalPr
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={title} size="full">
-      <div className="grid grid-cols-12 gap-6">
-        {/* Preview — 9/12 */}
-        <div className="col-span-9">
-          <div className="rounded-lg border border-border overflow-hidden bg-surface-alt" style={{ height: '78vh' }}>
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-6">
+        <div className="md:col-span-9">
+          <div className="rounded-lg border border-border overflow-hidden bg-surface-alt" style={{ height: 'clamp(40vh, 60vh, 78vh)' }}>
             {loading ? (
               <div className="w-full h-full flex items-center justify-center gap-2 text-text-muted">
                 <Loader2Icon className="w-6 h-6 animate-spin" />
@@ -75,8 +74,7 @@ export function FilePreviewModal({ fileId, isOpen, onClose }: FilePreviewModalPr
           </div>
         </div>
 
-        {/* Metadatos + acciones — 3/12 */}
-        <div className="col-span-3 space-y-5">
+        <div className="md:col-span-3 space-y-5">
           {file && (
             <>
               <div className="space-y-3">
