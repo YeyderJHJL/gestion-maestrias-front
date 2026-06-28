@@ -51,7 +51,7 @@ function FilaDinamica({
   const tipo = filtros.tipo;
 
   return (
-    <div className="grid grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 
       {/* Col 1 */}
       {tipo === 'alumnos-por-promocion' && (
@@ -198,7 +198,7 @@ export function ReportFilterPanel({
     <div className="bg-surface border border-border rounded-lg shadow-sm p-6 space-y-4">
 
       {/* Fila 1: filtros principales siempre visibles */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
           <label className={labelClass}>Tipo de reporte</label>
           <select

@@ -111,7 +111,7 @@ export function UsuarioFormModal({
         {/* ── Datos personales (comunes a todos los roles) ── */}
         <div className="space-y-4">
           <SectionHeader title="Datos personales" />
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <label className="block text-sm font-medium text-text">Nombres *</label>
               <input
@@ -201,7 +201,7 @@ export function UsuarioFormModal({
         {form.role === 'STUDENT' && (
           <div className="space-y-4">
             <SectionHeader title="Datos del estudiante" />
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <label className="block text-sm font-medium text-text">
                   Año de promoción {!editingUser && '*'}
@@ -316,7 +316,7 @@ export function UsuarioFormModal({
         {form.role === 'TEACHER' && (
           <div className="space-y-4">
             <SectionHeader title="Datos del docente" />
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
               {/* Tipo: Interno / Externo como pills */}
               <div className="col-span-2 space-y-1.5">

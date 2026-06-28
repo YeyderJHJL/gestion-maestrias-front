@@ -46,7 +46,7 @@ export function VouchersTable({
     <div>
       {/* Tabs */}
       <div className="border-b border-border">
-        <div className="flex gap-8">
+        <div className="flex gap-4 md:gap-8 overflow-x-auto">
           {tabs.map((tab) => (
             <button
               key={tab.key}
