@@ -2,9 +2,11 @@
 // Recibe la lista ya filtrada desde el hook y delega las acciones
 // de edición y eliminación al componente padre.
 
-import { SearchIcon, EditIcon, XIcon, UsersIcon, Loader2Icon } from 'lucide-react';
+import { useState } from 'react';
+import { SearchIcon, EditIcon, XIcon, UsersIcon, Loader2Icon, EyeIcon } from 'lucide-react';
 import { StatusBadge } from '../../../components/StatusBadge';
 import { EmptyState } from '../../../components/EmptyState';
+import { FilePreviewModal } from '../../../components/FilePreviewModal';
 import { User } from '../../../services/usersApiService';
 
 // Variante visual del badge según el rol
@@ -77,6 +79,8 @@ export function UsuariosTable({
   onEdit,
   onDelete,
 }: Props) {
+  const [previewFileId, setPreviewFileId] = useState<string | null>(null);
+
   return (
     <>
       {/* Barra de búsqueda y filtros */}
@@ -219,7 +223,20 @@ export function UsuariosTable({
                       <>
                         <td className="px-6 py-4 text-sm text-text-muted">{user.student?.cui ?? '—'}</td>
                         <td className="px-6 py-4 text-sm text-text-muted">{user.student?.yearPromotion ?? '—'}</td>
-                        <td className="px-6 py-4 text-sm text-text-muted">{STUDENT_STATUS_LABELS[user.student?.status ?? ''] ?? '—'}</td>
+                        <td className="px-6 py-4 text-sm text-text-muted">
+                          <span className="flex items-center gap-1.5">
+                            {STUDENT_STATUS_LABELS[user.student?.status ?? ''] ?? '—'}
+                            {user.student?.status === 'Reactualizacion' && user.student?.reactualizationFile && (
+                              <button
+                                onClick={() => setPreviewFileId(user.student!.reactualizationFile!.id)}
+                                className="text-primary hover:text-primary-light transition-colors"
+                                title="Ver documento de reactualización"
+                              >
+                                <EyeIcon className="w-4 h-4" />
+                              </button>
+                            )}
+                          </span>
+                        </td>
                       </>
                     ) : null}
                     <td className="px-6 py-4">
@@ -292,6 +309,12 @@ export function UsuariosTable({
           </div>
         )}
       </div>
+
+      <FilePreviewModal
+        fileId={previewFileId}
+        isOpen={previewFileId !== null}
+        onClose={() => setPreviewFileId(null)}
+      />
     </>
   );
 }
