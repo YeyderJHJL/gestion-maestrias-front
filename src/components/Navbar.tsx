@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { LogOutIcon, ChevronDownIcon, UserIcon, CreditCardIcon, HashIcon } from 'lucide-react';
+import { LogOutIcon, ChevronDownIcon, UserIcon, CreditCardIcon, HashIcon, MenuIcon } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { UserRole } from '../types/auth';
 
@@ -16,12 +16,15 @@ function initials(firstName: string, lastName: string): string {
   return `${firstName[0] ?? ''}${lastName[0] ?? ''}`.toUpperCase();
 }
 
-export function Navbar() {
+interface NavbarProps {
+  onToggleSidebar?: () => void;
+}
+
+export function Navbar({ onToggleSidebar }: NavbarProps) {
   const { user, logout } = useAuth();
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Cierra el dropdown al hacer click fuera
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
@@ -35,19 +38,28 @@ export function Navbar() {
   if (!user) return null;
 
   return (
-    <nav className="bg-[#1A2F5A] text-white px-6 h-14 flex items-center justify-between shadow-md">
-      <div className="font-serif font-bold text-lg">SGA Maestría · UNSA</div>
+    <nav className="bg-[#1A2F5A] text-white px-4 md:px-6 h-14 flex items-center justify-between shadow-md flex-shrink-0">
+      <div className="flex items-center gap-3">
+        {onToggleSidebar && (
+          <button
+            onClick={onToggleSidebar}
+            className="p-1.5 hover:bg-[#2E5FA3] rounded-lg transition-colors md:hidden"
+          >
+            <MenuIcon className="w-5 h-5" />
+          </button>
+        )}
+        <div className="font-serif font-bold text-base md:text-lg">SGA Maestría · UNSA</div>
+      </div>
 
-      {/* Área de perfil con dropdown */}
       <div className="relative" ref={dropdownRef}>
         <button
           onClick={() => setOpen((prev) => !prev)}
-          className="flex items-center gap-3 hover:bg-[#2E5FA3] px-3 py-1.5 rounded-lg transition-colors">
-          {/* Avatar con iniciales */}
+          className="flex items-center gap-2 md:gap-3 hover:bg-[#2E5FA3] px-2 md:px-3 py-1.5 rounded-lg transition-colors"
+        >
           <div className="w-9 h-9 rounded-full bg-[#2E5FA3] border border-white/20 flex items-center justify-center text-sm font-semibold flex-shrink-0">
             {initials(user.firstName, user.lastName)}
           </div>
-          <div className="flex flex-col items-start">
+          <div className="hidden sm:flex flex-col items-start">
             <span className="text-sm font-semibold leading-tight">
               {user.firstName} {user.lastName}
             </span>
@@ -56,14 +68,12 @@ export function Navbar() {
             </span>
           </div>
           <ChevronDownIcon
-            className={`w-4 h-4 text-white/70 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+            className={`w-4 h-4 text-white/70 transition-transform duration-200 hidden sm:block ${open ? 'rotate-180' : ''}`}
           />
         </button>
 
-        {/* Dropdown */}
         {open && (
-          <div className="absolute right-0 top-full mt-2 w-72 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-50">
-            {/* Cabecera del perfil */}
+          <div className="absolute right-0 top-full mt-2 w-72 max-w-[calc(100vw-2rem)] bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-50">
             <div className="px-5 py-4 bg-[#1A2F5A]/5 border-b border-gray-100">
               <div className="flex items-center gap-3">
                 <div className="w-11 h-11 rounded-full bg-[#1A2F5A] flex items-center justify-center text-white font-bold text-base flex-shrink-0">
@@ -81,7 +91,6 @@ export function Navbar() {
               </div>
             </div>
 
-            {/* Datos exclusivos del estudiante */}
             {user.role === 'STUDENT' && (
               <div className="px-5 py-3 border-b border-gray-100 space-y-2">
                 <div className="flex items-center gap-2 text-sm text-gray-700">
@@ -104,10 +113,10 @@ export function Navbar() {
               </div>
             )}
 
-            {/* Cerrar sesión */}
             <button
               onClick={() => { setOpen(false); logout(); }}
-              className="w-full flex items-center gap-3 px-5 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors">
+              className="w-full flex items-center gap-3 px-5 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors"
+            >
               <LogOutIcon className="w-4 h-4" />
               Cerrar sesión
             </button>
