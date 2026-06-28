@@ -1,4 +1,5 @@
 import { EstudianteLayout } from '../../../layouts/EstudianteLayout';
+import { PageHeader } from '../../../components/PageHeader';
 import { StatusBadge } from '../../../components/StatusBadge';
 import { ChevronDownIcon, DownloadIcon, Loader2Icon } from 'lucide-react';
 import { useHistorial } from './hooks/useHistorial';
@@ -12,9 +13,7 @@ export function EstudianteHistorial() {
   return (
     <EstudianteLayout>
       <div className="space-y-6">
-        <div className="border-b-2 border-accent pb-3">
-          <h1 className="text-3xl font-serif font-bold text-text">Historial Académico</h1>
-        </div>
+        <PageHeader title="Historial Académico" />
 
         {loading ? (
           <div className="flex items-center justify-center py-16 gap-2 text-text-muted">

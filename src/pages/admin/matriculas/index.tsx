@@ -1,4 +1,5 @@
 import { AdminLayout } from '../../../layouts/AdminLayout';
+import { PageHeader } from '../../../components/PageHeader';
 import { ConfirmationModal } from '../../../components/ConfirmationModal';
 import { Toast } from '../../../components/Toast';
 
@@ -27,9 +28,7 @@ export function AdminMatriculas() {
   return (
     <AdminLayout>
       <div className="space-y-6">
-        <div className="border-b-2 border-accent pb-3">
-          <h1 className="text-3xl font-serif font-bold text-text">Gestión de Matrículas</h1>
-        </div>
+        <PageHeader title="Gestión de Matrículas" />
 
         <SearchBar
           value={mat.searchInput}

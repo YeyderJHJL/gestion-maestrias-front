@@ -1,4 +1,5 @@
 import { EstudianteLayout } from '../../../layouts/EstudianteLayout';
+import { PageHeader } from '../../../components/PageHeader';
 import { StatusBadge } from '../../../components/StatusBadge';
 import { InfoIcon, Loader2Icon } from 'lucide-react';
 import { useNotas } from './hooks/useNotas';
@@ -12,9 +13,7 @@ export function EstudianteNotas() {
   return (
     <EstudianteLayout>
       <div className="space-y-6">
-        <div className="border-b-2 border-accent pb-3">
-          <h1 className="text-3xl font-serif font-bold text-text">Mis Notas</h1>
-        </div>
+        <PageHeader title="Mis Notas" />
 
         {loading ? (
           <div className="flex items-center justify-center py-16 gap-2 text-text-muted">

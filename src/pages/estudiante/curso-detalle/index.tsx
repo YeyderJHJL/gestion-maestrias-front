@@ -1,6 +1,7 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { EstudianteLayout } from '../../../layouts/EstudianteLayout';
 import { FilePreviewModal } from '../../../components/FilePreviewModal';
+import { PageHeader } from '../../../components/PageHeader';
 import { Loader2Icon, ArrowLeftIcon, FileTextIcon, UserIcon, CalendarIcon } from 'lucide-react';
 import { useCursoDetalle } from './hooks/useCursoDetalle';
 
@@ -15,16 +16,18 @@ export function EstudianteCursoDetalle() {
   return (
     <EstudianteLayout>
       <div className="space-y-6">
-        <div className="flex items-center gap-4 border-b-2 border-accent pb-3">
-          <button
-            onClick={() => navigate('/estudiante/matricula')}
-            className="p-2 hover:bg-surface border border-border rounded-lg transition-colors text-text-muted"
-            title="Volver a Mi Matrícula"
-          >
-            <ArrowLeftIcon className="w-5 h-5" />
-          </button>
-          <h1 className="text-3xl font-serif font-bold text-text">Detalle del Curso</h1>
-        </div>
+        <PageHeader
+          title="Detalle del Curso"
+          actions={
+            <button
+              onClick={() => navigate('/estudiante/matricula')}
+              className="p-2 hover:bg-surface border border-border rounded-lg transition-colors text-text-muted"
+              title="Volver a Mi Matrícula"
+            >
+              <ArrowLeftIcon className="w-5 h-5" />
+            </button>
+          }
+        />
 
         {loading ? (
           <div className="flex items-center justify-center py-16 gap-2 text-text-muted">

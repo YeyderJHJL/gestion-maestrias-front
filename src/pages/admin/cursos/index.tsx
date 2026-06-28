@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { PlusIcon, BookOpenIcon, Loader2Icon } from 'lucide-react';
 import { AdminLayout } from '../../../layouts/AdminLayout';
+import { PageHeader } from '../../../components/PageHeader';
 import { ConfirmationModal } from '../../../components/ConfirmationModal';
 import { Toast } from '../../../components/Toast';
 
@@ -36,33 +37,30 @@ export function AdminCursos() {
     <AdminLayout>
       <div className="space-y-6 p-6">
 
-        {/* ── Encabezado ──────────────────────────────────────────────────── */}
-        <div className="flex items-center justify-between flex-wrap gap-3 border-b-2 border-accent pb-3">
-          <div>
-            <h1 className="text-3xl font-serif font-bold text-text">Cursos y Semestres</h1>
-            <p className="text-sm text-text-muted mt-1">
-              Gestiona los semestres, los cursos y sus asignaciones a docentes.
-            </p>
-          </div>
-          <div className="flex gap-2 flex-wrap">
-            <button
-              onClick={cursos.openList}
-              className="flex items-center gap-2 px-4 py-2 border border-primary text-primary rounded-lg hover:bg-primary/5 transition-colors text-sm"
-            >
-              <BookOpenIcon className="w-4 h-4" />
-              Gestionar Cursos
-            </button>
-            {!semestres.isCoordinator && (
+        <PageHeader
+          title="Cursos y Semestres"
+          subtitle="Gestiona los semestres, los cursos y sus asignaciones a docentes."
+          actions={
+            <>
               <button
-                onClick={semestres.openCreate}
-                className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-light transition-colors text-sm"
+                onClick={cursos.openList}
+                className="flex items-center gap-2 px-4 py-2 border border-primary text-primary rounded-lg hover:bg-primary/5 transition-colors text-sm"
               >
-                <PlusIcon className="w-4 h-4" />
-                Nuevo Semestre
+                <BookOpenIcon className="w-4 h-4" />
+                Gestionar Cursos
               </button>
-            )}
-          </div>
-        </div>
+              {!semestres.isCoordinator && (
+                <button
+                  onClick={semestres.openCreate}
+                  className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-light transition-colors text-sm"
+                >
+                  <PlusIcon className="w-4 h-4" />
+                  Nuevo Semestre
+                </button>
+              )}
+            </>
+          }
+        />
 
         {/* ── Lista de semestres ───────────────────────────────────────────── */}
         {semestres.loading ? (

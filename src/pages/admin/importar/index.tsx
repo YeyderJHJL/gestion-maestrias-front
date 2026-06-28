@@ -9,6 +9,7 @@
 import { useState } from 'react';
 import { FileSpreadsheetIcon } from 'lucide-react';
 import { AdminLayout } from '../../../layouts/AdminLayout';
+import { PageHeader } from '../../../components/PageHeader';
 import { ImportFlow, ColumnDef } from './ImportFlow';
 import { parseStudentsExcel } from '../../../utils/excelParser';
 import { parseTeachersExcel } from '../../../utils/excelParser';
@@ -62,18 +63,13 @@ export function AdminImportar() {
     <AdminLayout>
       <div className="space-y-6">
 
-        {/* Encabezado de la página */}
-        <div className="flex items-center justify-between border-b-2 border-accent pb-3">
-          <div>
-            <h1 className="text-3xl font-serif font-bold text-text">Migración de Datos</h1>
-            <p className="text-sm text-text-muted mt-0.5">
-              {activeTab === 'students'
-                ? 'Importación masiva de estudiantes mediante archivo Excel'
-                : 'Importación masiva de docentes mediante archivo Excel'}
-            </p>
-          </div>
-          <FileSpreadsheetIcon className="w-10 h-10 text-primary opacity-80" />
-        </div>
+        <PageHeader
+          title="Migración de Datos"
+          subtitle={activeTab === 'students'
+            ? 'Importación masiva de estudiantes mediante archivo Excel'
+            : 'Importación masiva de docentes mediante archivo Excel'}
+          actions={<FileSpreadsheetIcon className="w-10 h-10 text-primary opacity-80" />}
+        />
 
         {/* Selector de tabs */}
         <div className="flex border-b border-border">
