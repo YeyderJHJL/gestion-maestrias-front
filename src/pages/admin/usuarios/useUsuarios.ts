@@ -93,6 +93,7 @@ function mapStudentsToUsers(students: StudentResponse[]): UserResponse[] {
       id: s.id,
       yearPromotion: s.yearPromotion,
       status: s.status,
+      reactualizationFile: s.reactualizationFile,
       cui: s.cui,
       paymentCode: s.paymentCode,
       phone: s.phone,
