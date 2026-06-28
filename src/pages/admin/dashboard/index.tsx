@@ -30,12 +30,12 @@ export function AdminDashboard() {
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="space-y-1"
+          className="bg-primary text-white rounded-lg p-6"
         >
-          <h1 className="text-3xl font-serif font-bold text-text">
+          <h1 className="text-3xl font-serif font-bold">
             {greeting}, {userName}
           </h1>
-          <p className="text-text-muted capitalize">{currentDate}</p>
+          <p className="text-white/90 mt-1 capitalize">{currentDate}</p>
         </motion.div>
 
         <StatsCards stats={stats} loading={loading} />
