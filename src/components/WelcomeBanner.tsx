@@ -9,9 +9,9 @@ interface WelcomeBannerProps {
 
 export function WelcomeBanner({ title, subtitle, animated = true, children }: WelcomeBannerProps) {
   const content = (
-    <div className="bg-primary text-white rounded-lg p-6">
-      <h1 className="text-3xl font-serif font-bold">{title}</h1>
-      {subtitle && <p className="text-white/90 mt-1">{subtitle}</p>}
+    <div className="bg-primary text-white rounded-lg p-4 md:p-6">
+      <h1 className="text-2xl md:text-3xl font-serif font-bold">{title}</h1>
+      {subtitle && <p className="text-white/90 mt-1 text-sm md:text-base">{subtitle}</p>}
       {children}
     </div>
   );
