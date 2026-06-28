@@ -63,7 +63,7 @@ export function AdminImportar() {
       <div className="space-y-6">
 
         {/* Encabezado de la página */}
-        <div className="flex items-center justify-between border-b-2 border-accent pb-3">
+        <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-serif font-bold text-text">Migración de Datos</h1>
             <p className="text-sm text-text-muted mt-0.5">

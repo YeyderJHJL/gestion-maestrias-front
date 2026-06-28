@@ -39,7 +39,7 @@ export function AdminCursos() {
         {/* ── Encabezado ──────────────────────────────────────────────────── */}
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div>
-            <h1 className="text-2xl font-bold text-text">Cursos y Semestres</h1>
+            <h1 className="text-3xl font-serif font-bold text-text">Cursos y Semestres</h1>
             <p className="text-sm text-text-muted mt-1">
               Gestiona los semestres, los cursos y sus asignaciones a docentes.
             </p>

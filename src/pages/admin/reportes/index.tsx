@@ -59,11 +59,9 @@ export function AdminReportes() {
       <div className="space-y-6">
 
         {/* Encabezado */}
-        <div className="border-b-2 border-accent pb-2">
-          <h1 className="text-3xl font-serif font-bold text-text">
-            Reportes académicos
-          </h1>
-        </div>
+        <h1 className="text-3xl font-serif font-bold text-text">
+          Reportes académicos
+        </h1>
 
         {/* Panel de filtros */}
         <ReportFilterPanel
