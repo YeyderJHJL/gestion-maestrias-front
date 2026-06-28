@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
-import { useAuth } from '../../context/AuthContext';
-import { ApiError } from '../../services/api';
-import { VOUCHER_STATE } from '../../constants/stateIds';
-import { listMyPayments, PaymentResponse } from '../../services/paymentsApiService';
-import { listMyVouchers, createVoucher } from '../../services/vouchersApiService';
-import { uploadVoucher } from '../../services/filesApiService';
-import { VoucherResponse } from '../../types/voucher';
+import { useAuth } from '../../../../context/AuthContext';
+import { ApiError } from '../../../../services/api';
+import { VOUCHER_STATE } from '../../../../constants/stateIds';
+import { listMyPayments, PaymentResponse } from '../../../../services/paymentsApiService';
+import { listMyVouchers, createVoucher } from '../../../../services/vouchersApiService';
+import { uploadVoucher } from '../../../../services/filesApiService';
+import { VoucherResponse } from '../../../../types/voucher';
 
 export type VoucherFormState = {
   paymentId: string;
@@ -17,7 +17,7 @@ const EMPTY_FORM: VoucherFormState = {
   file: null,
 };
 
-export function useEstudiantePagos() {
+export function usePagos() {
   const { token } = useAuth();
 
   const [payments, setPayments] = useState<PaymentResponse[]>([]);
