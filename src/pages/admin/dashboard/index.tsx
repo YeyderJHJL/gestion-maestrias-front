@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { AdminLayout } from '../../../layouts/AdminLayout';
+import { WelcomeBanner } from '../../../components/WelcomeBanner';
 import { useAuth } from '../../../context/AuthContext';
 import { useDashboard } from './useDashboard';
 import { StatsCards } from './StatsCards';
@@ -27,16 +28,10 @@ export function AdminDashboard() {
   return (
     <AdminLayout>
       <div className="space-y-8">
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-primary text-white rounded-lg p-6"
-        >
-          <h1 className="text-3xl font-serif font-bold">
-            {greeting}, {userName}
-          </h1>
-          <p className="text-white/90 mt-1 capitalize">{currentDate}</p>
-        </motion.div>
+        <WelcomeBanner
+          title={`${greeting}, ${userName}`}
+          subtitle={currentDate}
+        />
 
         <StatsCards stats={stats} loading={loading} />
 

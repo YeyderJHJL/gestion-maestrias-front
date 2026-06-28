@@ -2,6 +2,7 @@ import { EstudianteLayout } from '../../../layouts/EstudianteLayout';
 import { StatusBadge } from '../../../components/StatusBadge';
 import { Loader2Icon } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { WelcomeBanner } from '../../../components/WelcomeBanner';
 import { useDashboard } from './hooks/useDashboard';
 
 export function EstudianteDashboard() {
@@ -31,17 +32,10 @@ export function EstudianteDashboard() {
   return (
     <EstudianteLayout>
       <div className="space-y-8">
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-primary text-white rounded-lg p-6">
-          <h1 className="text-3xl font-serif font-bold">
-            Bienvenido/a, {user?.firstName}
-          </h1>
-          <p className="text-white/90 mt-1">
-            Periodo activo: {activeSemester ? `${activeSemester.code} · Año ${activeSemester.year}` : 'Sin periodo activo'}
-          </p>
-        </motion.div>
+        <WelcomeBanner
+          title={`Bienvenido/a, ${user?.firstName}`}
+          subtitle={`Periodo activo: ${activeSemester ? `${activeSemester.code} · Año ${activeSemester.year}` : 'Sin periodo activo'}`}
+        />
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {stats.map((stat, index) => {

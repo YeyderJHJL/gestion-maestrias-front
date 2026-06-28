@@ -1,7 +1,7 @@
 import { BookOpenIcon } from 'lucide-react';
 import { DocenteLayout } from '../../../layouts/DocenteLayout';
+import { WelcomeBanner } from '../../../components/WelcomeBanner';
 import { useAuth } from '../../../context/AuthContext';
-import { PeriodBanner } from './components/PeriodBanner';
 import { CourseCard } from './components/CourseCard';
 import { useDashboard } from './hooks/useDashboard';
 
@@ -26,17 +26,15 @@ export function DocenteDashboard() {
     <DocenteLayout>
       <div className="space-y-6">
         {hasActiveSemester && semester ? (
-          <PeriodBanner
-            semesterCode={semester.semesterCode}
-            semesterYear={semester.semesterYear}
+          <WelcomeBanner
+            title={`Periodo activo: ${semester.semesterYear}-${semester.semesterCode}`}
+            subtitle={`${semester.semesterCode === 'I' ? 'Primer' : 'Segundo'} semestre ${semester.semesterYear}`}
           />
         ) : (
-          <div className="bg-primary text-white rounded-lg p-6">
-            <h1 className="text-2xl font-serif font-bold">
-              Bienvenido, {user?.firstName}
-            </h1>
-            <p className="text-white/90 mt-1">No hay periodo activo asignado</p>
-          </div>
+          <WelcomeBanner
+            title={`Bienvenido, ${user?.firstName}`}
+            subtitle="No hay periodo activo asignado"
+          />
         )}
 
         {error && (
