@@ -16,7 +16,7 @@ const CARDS = [
     colorIcon: 'text-primary',
     colorBg: 'bg-primary/10',
     warning: false,
-    href: null,
+    href: '/admin/matriculas',
   },
   {
     key: 'activeCourses' as const,
