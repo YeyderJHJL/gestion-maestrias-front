@@ -29,7 +29,9 @@ export function AdminVouchers() {
   return (
     <AdminLayout>
       <div className="space-y-6">
-        <h1 className="text-3xl font-serif font-bold text-text">Gestión de Vouchers</h1>
+        <div className="border-b-2 border-accent pb-3">
+          <h1 className="text-3xl font-serif font-bold text-text">Gestión de Vouchers</h1>
+        </div>
 
         <VouchersTable
           vouchers={vouchers}

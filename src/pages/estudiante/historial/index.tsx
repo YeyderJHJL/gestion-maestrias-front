@@ -12,7 +12,9 @@ export function EstudianteHistorial() {
   return (
     <EstudianteLayout>
       <div className="space-y-6">
-        <h1 className="text-3xl font-serif font-bold text-text">Historial Académico</h1>
+        <div className="border-b-2 border-accent pb-3">
+          <h1 className="text-3xl font-serif font-bold text-text">Historial Académico</h1>
+        </div>
 
         {loading ? (
           <div className="flex items-center justify-center py-16 gap-2 text-text-muted">

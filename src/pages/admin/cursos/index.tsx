@@ -37,7 +37,7 @@ export function AdminCursos() {
       <div className="space-y-6 p-6">
 
         {/* ── Encabezado ──────────────────────────────────────────────────── */}
-        <div className="flex items-center justify-between flex-wrap gap-3">
+        <div className="flex items-center justify-between flex-wrap gap-3 border-b-2 border-accent pb-3">
           <div>
             <h1 className="text-3xl font-serif font-bold text-text">Cursos y Semestres</h1>
             <p className="text-sm text-text-muted mt-1">

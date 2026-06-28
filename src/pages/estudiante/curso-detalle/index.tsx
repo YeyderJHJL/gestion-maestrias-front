@@ -15,7 +15,7 @@ export function EstudianteCursoDetalle() {
   return (
     <EstudianteLayout>
       <div className="space-y-6">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 border-b-2 border-accent pb-3">
           <button
             onClick={() => navigate('/estudiante/matricula')}
             className="p-2 hover:bg-surface border border-border rounded-lg transition-colors text-text-muted"

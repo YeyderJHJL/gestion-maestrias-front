@@ -61,7 +61,7 @@ export function AdminUsuarios() {
     <AdminLayout>
       <div className="space-y-6">
         {/* Encabezado con título y botón de nuevo usuario */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between border-b-2 border-accent pb-3">
           <h1 className="text-3xl font-serif font-bold text-text">Gestión de Usuarios</h1>
           {!isCoordinator && (
             <button
