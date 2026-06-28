@@ -21,23 +21,36 @@ function formatBytes(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+async function downloadBlob(url: string, filename: string) {
+  const res = await fetch(url);
+  const blob = await res.blob();
+  const blobUrl = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = blobUrl;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(blobUrl);
+}
+
 export function FilePreviewModal({ fileId, isOpen, onClose }: FilePreviewModalProps) {
   const { file, previewUrl, isPdf, isImage, loading, error, retry } = useFilePreview(fileId, isOpen);
   const title = file ? (PURPOSE_LABELS[file.purpose] ?? 'Vista previa') : 'Vista previa';
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={title} size="xl">
-      <div className="grid grid-cols-10 gap-6">
-        {/* Preview — 70% */}
-        <div className="col-span-7">
-          <div className="rounded-lg border border-border overflow-hidden bg-surface-alt" style={{ height: '70vh' }}>
+    <Modal isOpen={isOpen} onClose={onClose} title={title} size="full">
+      <div className="grid grid-cols-12 gap-6">
+        {/* Preview — 9/12 */}
+        <div className="col-span-9">
+          <div className="rounded-lg border border-border overflow-hidden bg-surface-alt" style={{ height: '78vh' }}>
             {loading ? (
-              <div className="w-full h-full flex items-center justify-center gap-2 text-text-muted" style={{ height: '70vh' }}>
+              <div className="w-full h-full flex items-center justify-center gap-2 text-text-muted">
                 <Loader2Icon className="w-6 h-6 animate-spin" />
                 <span className="text-sm">Cargando vista previa...</span>
               </div>
             ) : error ? (
-              <div className="w-full h-full flex flex-col items-center justify-center gap-3" style={{ height: '70vh' }}>
+              <div className="w-full h-full flex flex-col items-center justify-center gap-3">
                 <p className="text-text-muted text-sm">No se pudo cargar el archivo</p>
                 <button
                   onClick={retry}
@@ -48,11 +61,11 @@ export function FilePreviewModal({ fileId, isOpen, onClose }: FilePreviewModalPr
               </div>
             ) : previewUrl ? (
               isPdf ? (
-                <iframe src={previewUrl} className="w-full" style={{ height: '70vh' }} title={title} />
+                <iframe src={`${previewUrl}#navpanes=0`} className="w-full h-full" title={title} />
               ) : isImage ? (
-                <img src={previewUrl} alt={file?.originalName} className="w-full object-contain" style={{ maxHeight: '70vh' }} />
+                <img src={previewUrl} alt={file?.originalName} className="w-full h-full object-contain" />
               ) : (
-                <div className="w-full h-full flex flex-col items-center justify-center gap-3 text-text-muted" style={{ height: '70vh' }}>
+                <div className="w-full h-full flex flex-col items-center justify-center gap-3 text-text-muted">
                   <FileIcon className="w-12 h-12" />
                   <p className="text-sm">Vista previa no disponible para este tipo de archivo</p>
                   <p className="text-xs">Usa los botones para abrir o descargar</p>
@@ -62,7 +75,7 @@ export function FilePreviewModal({ fileId, isOpen, onClose }: FilePreviewModalPr
           </div>
         </div>
 
-        {/* Metadatos + acciones — 30% */}
+        {/* Metadatos + acciones — 3/12 */}
         <div className="col-span-3 space-y-5">
           {file && (
             <>
@@ -93,14 +106,13 @@ export function FilePreviewModal({ fileId, isOpen, onClose }: FilePreviewModalPr
                   <ExternalLinkIcon className="w-4 h-4" />
                   Abrir en pestaña nueva
                 </button>
-                <a
-                  href={file.downloadUrl}
-                  download={file.originalName}
+                <button
+                  onClick={() => downloadBlob(file.downloadUrl, file.originalName)}
                   className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-primary text-white rounded-lg hover:bg-primary-light transition-colors text-sm"
                 >
                   <DownloadIcon className="w-4 h-4" />
                   Descargar
-                </a>
+                </button>
               </div>
             </>
           )}
