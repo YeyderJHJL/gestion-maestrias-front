@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ReceiptIcon, BookOpenIcon, ClipboardListIcon } from 'lucide-react';
+import { ReceiptIcon, BookOpenIcon, ClipboardListIcon, ExternalLinkIcon, DownloadIcon } from 'lucide-react';
 import { ActivityItem, ActivityType } from '../../../../../services/dashboardApiService';
 import { useAuth } from '../../../../../context/AuthContext';
 import { getFileUrl } from '../../../../../services/filesApiService';
@@ -48,6 +48,12 @@ function relativeTime(timestamp: string): string {
   return 'ahora mismo';
 }
 
+const formatSize = (bytes: number) => {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+};
+
 export function RecentActivity({ activity }: Props) {
   const navigate = useNavigate();
   const { token } = useAuth();
@@ -55,6 +61,7 @@ export function RecentActivity({ activity }: Props) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalTitle, setModalTitle] = useState('');
   const [modalContent, setModalContent] = useState<React.ReactNode>(null);
+  const [modalSize, setModalSize] = useState<'sm' | 'md' | 'lg' | 'xl' | 'full'>('sm');
   const [isLoadingFile, setIsLoadingFile] = useState(false);
 
   const handleRowClick = async (item: ActivityItem) => {
@@ -64,12 +71,56 @@ export function RecentActivity({ activity }: Props) {
         const fileData = await getFileUrl(token, item.fileId);
         setModalTitle(item.description);
         setModalContent(
-          <iframe 
-            src={fileData.downloadUrl} 
-            className="w-full h-[70vh] border-0 rounded" 
-            title={item.description}
-          />
+          <div className="flex flex-col md:flex-row gap-6 h-[70vh]">
+            <div className="flex-1 bg-surface-alt rounded overflow-hidden">
+              <iframe 
+                src={fileData.downloadUrl} 
+                className="w-full h-full border-0" 
+                title={item.description}
+              />
+            </div>
+            <div className="w-full md:w-80 flex flex-col gap-6">
+              <div className="space-y-4 text-sm">
+                <div>
+                  <p className="text-text-muted text-xs">Nombre del archivo</p>
+                  <p className="text-text font-medium break-all">{fileData.originalName}</p>
+                </div>
+                <div>
+                  <p className="text-text-muted text-xs">Tipo</p>
+                  <p className="text-text">{fileData.purpose}</p>
+                </div>
+                <div>
+                  <p className="text-text-muted text-xs">Tamaño</p>
+                  <p className="text-text">{formatSize(fileData.sizeBytes)}</p>
+                </div>
+                <div>
+                  <p className="text-text-muted text-xs">Formato</p>
+                  <p className="text-text">{fileData.contentType}</p>
+                </div>
+              </div>
+              <div className="space-y-3 mt-auto">
+                <a
+                  href={fileData.downloadUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 w-full py-2 px-4 border border-border text-text rounded-lg hover:bg-surface-alt transition-colors font-medium text-sm"
+                >
+                  <ExternalLinkIcon className="w-4 h-4" />
+                  Abrir en pestaña nueva
+                </a>
+                <a
+                  href={fileData.downloadUrl}
+                  download={fileData.originalName}
+                  className="flex items-center justify-center gap-2 w-full py-2 px-4 bg-primary text-white rounded-lg hover:bg-primary-light transition-colors font-medium text-sm"
+                >
+                  <DownloadIcon className="w-4 h-4" />
+                  Descargar
+                </a>
+              </div>
+            </div>
+          </div>
         );
+        setModalSize('xl');
         setIsModalOpen(true);
       } catch (err) {
         console.error('Error fetching file URL:', err);
@@ -92,6 +143,7 @@ export function RecentActivity({ activity }: Props) {
           </div>
         </div>
       );
+      setModalSize('sm');
       setIsModalOpen(true);
       return;
     }
@@ -171,7 +223,7 @@ export function RecentActivity({ activity }: Props) {
       isOpen={isModalOpen}
       onClose={() => setIsModalOpen(false)}
       title={modalTitle}
-      size={modalContent && (modalContent as any).type === 'iframe' ? 'xl' : 'sm'}
+      size={modalSize}
       accentBorder
     >
       {modalContent}
