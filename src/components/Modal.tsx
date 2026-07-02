@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { XIcon } from 'lucide-react';
 interface ModalProps {
@@ -23,37 +24,22 @@ export function Modal({
     xl: 'max-w-6xl',
     full: 'max-w-[95vw]'
   };
-  return (
+  return createPortal(
     <AnimatePresence>
       {isOpen &&
       <>
           <motion.div
-          initial={{
-            opacity: 0
-          }}
-          animate={{
-            opacity: 1
-          }}
-          exit={{
-            opacity: 0
-          }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
           className="fixed inset-0 bg-black/50 z-50"
           onClick={onClose} />
-        
+
           <div className="fixed inset-0 z-50 flex items-center justify-center p-2 md:p-4 overflow-y-auto">
             <motion.div
-            initial={{
-              opacity: 0,
-              scale: 0.95
-            }}
-            animate={{
-              opacity: 1,
-              scale: 1
-            }}
-            exit={{
-              opacity: 0,
-              scale: 0.95
-            }}
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
             className={`bg-surface rounded-lg shadow-xl w-full max-w-[95vw] ${sizeClasses[size]} my-2 md:my-8 max-h-[95vh] md:max-h-[90vh] flex flex-col ${accentBorder ? 'border-t-4 border-accent' : ''}`}
             onClick={(e) => e.stopPropagation()}>
 
@@ -73,6 +59,7 @@ export function Modal({
           </div>
         </>
       }
-    </AnimatePresence>);
-
+    </AnimatePresence>,
+    document.body
+  );
 }
