@@ -74,7 +74,7 @@ export function useDashboard() {
         description: `Nota registrada — ${g.courseName}`,
         actor: g.studentEmail,
         timestamp: g.createdAt,
-        href: `/admin/reportes?tipo=notas-por-estudiante&studentId=${g.studentId}&auto=true`,
+        gradeValue: g.value,
       }));
 
       const allActivity = [...voucherItems, ...silaboItems, ...gradeItems]

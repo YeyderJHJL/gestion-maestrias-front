@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ReceiptIcon, BookOpenIcon, ClipboardListIcon } from 'lucide-react';
 import { ActivityItem, ActivityType } from '../../../../../services/dashboardApiService';
 import { useAuth } from '../../../../../context/AuthContext';
 import { getFileUrl } from '../../../../../services/filesApiService';
+import { Modal } from '../../../../../components/Modal';
 
 interface Props {
   activity: ActivityItem[];
@@ -50,24 +51,59 @@ function relativeTime(timestamp: string): string {
 export function RecentActivity({ activity }: Props) {
   const navigate = useNavigate();
   const { token } = useAuth();
+  
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalTitle, setModalTitle] = useState('');
+  const [modalContent, setModalContent] = useState<React.ReactNode>(null);
+  const [isLoadingFile, setIsLoadingFile] = useState(false);
 
   const handleRowClick = async (item: ActivityItem) => {
     if (item.fileId && token) {
       try {
+        setIsLoadingFile(true);
         const fileData = await getFileUrl(token, item.fileId);
-        window.open(fileData.downloadUrl, '_blank');
-        return;
+        setModalTitle(item.description);
+        setModalContent(
+          <iframe 
+            src={fileData.downloadUrl} 
+            className="w-full h-[70vh] border-0 rounded" 
+            title={item.description}
+          />
+        );
+        setIsModalOpen(true);
       } catch (err) {
         console.error('Error fetching file URL:', err);
+      } finally {
+        setIsLoadingFile(false);
       }
+      return;
     }
+    
+    if (item.type === 'nota' && item.gradeValue !== undefined) {
+      setModalTitle('Detalle de Calificación');
+      setModalContent(
+        <div className="text-center py-8">
+          <p className="text-text-muted text-sm mb-2">{item.description}</p>
+          <p className="text-lg text-text">
+            El estudiante <span className="font-semibold">{item.actor}</span> ha obtenido la nota:
+          </p>
+          <div className="text-6xl font-bold text-accent mt-6">
+            {item.gradeValue}
+          </div>
+        </div>
+      );
+      setIsModalOpen(true);
+      return;
+    }
+
     if (item.href) {
       navigate(item.href);
     }
   };
 
   return (
-    <div className="bg-surface border border-border rounded-lg shadow-sm overflow-hidden">
+    <>
+    <div className={`bg-surface border border-border rounded-lg shadow-sm overflow-hidden ${isLoadingFile ? 'opacity-70 pointer-events-none' : ''}`}>
       <div className="px-6 py-4 border-b border-border">
         <h2 className="text-xl font-serif font-bold text-text">Actividad reciente</h2>
       </div>
@@ -100,7 +136,7 @@ export function RecentActivity({ activity }: Props) {
                 const cfg = TYPE_CONFIG[item.type];
                 const Icon = cfg.Icon;
                 const baseRowClass = index % 2 === 0 ? 'bg-surface' : 'bg-surface-alt';
-                const clickableClass = (item.href || item.fileId) ? 'cursor-pointer hover:bg-surface-hover transition-colors' : '';
+                const clickableClass = (item.href || item.fileId || item.type === 'nota') ? 'cursor-pointer hover:bg-surface-hover transition-colors' : '';
                 
                 return (
                   <tr
@@ -131,5 +167,15 @@ export function RecentActivity({ activity }: Props) {
         </div>
       )}
     </div>
+    <Modal
+      isOpen={isModalOpen}
+      onClose={() => setIsModalOpen(false)}
+      title={modalTitle}
+      size={modalContent && (modalContent as any).type === 'iframe' ? 'xl' : 'sm'}
+      accentBorder
+    >
+      {modalContent}
+    </Modal>
+    </>
   );
 }
