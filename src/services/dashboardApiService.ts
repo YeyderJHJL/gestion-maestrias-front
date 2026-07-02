@@ -10,6 +10,9 @@ export interface ActivityItem {
   description: string;
   actor: string;
   timestamp: string; // ISO-8601
+  href?: string;
+  fileId?: string;
+  gradeValue?: number;
 }
 
 export interface DashboardStats {
