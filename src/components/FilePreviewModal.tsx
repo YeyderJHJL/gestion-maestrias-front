@@ -1,4 +1,5 @@
-import { Loader2Icon, ExternalLinkIcon, DownloadIcon, FileIcon } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Loader2Icon, ExternalLinkIcon, DownloadIcon, FileIcon, SmartphoneIcon } from 'lucide-react';
 import { Modal } from './Modal';
 import { useFilePreview } from '../hooks/useFilePreview';
 
@@ -38,49 +39,66 @@ export function FilePreviewModal({ fileId, isOpen, onClose }: FilePreviewModalPr
   const { file, previewUrl, isPdf, isImage, loading, error, retry } = useFilePreview(fileId, isOpen);
   const title = file ? (PURPOSE_LABELS[file.purpose] ?? 'Vista previa') : 'Vista previa';
 
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handler);
+    return () => window.removeEventListener('resize', handler);
+  }, []);
+
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={title} size="full">
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-6">
-        <div className="md:col-span-9">
-          <div className="rounded-lg border border-border overflow-hidden bg-surface-alt" style={{ height: 'clamp(40vh, 60vh, 78vh)' }}>
-            {loading ? (
-              <div className="w-full h-full flex items-center justify-center gap-2 text-text-muted">
-                <Loader2Icon className="w-6 h-6 animate-spin" />
-                <span className="text-sm">Cargando vista previa...</span>
-              </div>
-            ) : error ? (
-              <div className="w-full h-full flex flex-col items-center justify-center gap-3">
-                <p className="text-text-muted text-sm">No se pudo cargar el archivo</p>
-                <button
-                  onClick={retry}
-                  className="px-4 py-2 text-sm border border-primary text-primary rounded-lg hover:bg-primary/5 transition-colors"
-                >
-                  Reintentar
-                </button>
-              </div>
-            ) : previewUrl ? (
-              isPdf ? (
-                <iframe src={`${previewUrl}#navpanes=0`} className="w-full h-full" title={title} />
-              ) : isImage ? (
-                <img src={previewUrl} alt={file?.originalName} className="w-full h-full object-contain" />
-              ) : (
-                <div className="w-full h-full flex flex-col items-center justify-center gap-3 text-text-muted">
-                  <FileIcon className="w-12 h-12" />
-                  <p className="text-sm">Vista previa no disponible para este tipo de archivo</p>
-                  <p className="text-xs">Usa los botones para abrir o descargar</p>
+      <div className={`flex gap-5 ${isMobile && isPdf ? 'flex-col' : 'flex-col md:flex-row'}`}>
+        {!(isMobile && isPdf) && (
+          <div className="flex-1 min-w-0">
+            <div className="rounded-lg border border-border overflow-hidden bg-surface-alt" style={{ height: 'calc(90vh - 8rem)' }}>
+              {loading ? (
+                <div className="w-full h-full flex items-center justify-center gap-2 text-text-muted">
+                  <Loader2Icon className="w-6 h-6 animate-spin" />
+                  <span className="text-sm">Cargando vista previa...</span>
                 </div>
-              )
-            ) : null}
+              ) : error ? (
+                <div className="w-full h-full flex flex-col items-center justify-center gap-3">
+                  <p className="text-text-muted text-sm">No se pudo cargar el archivo</p>
+                  <button
+                    onClick={retry}
+                    className="px-4 py-2 text-sm border border-primary text-primary rounded-lg hover:bg-primary/5 transition-colors"
+                  >
+                    Reintentar
+                  </button>
+                </div>
+              ) : previewUrl ? (
+                isPdf ? (
+                  <iframe src={`${previewUrl}#navpanes=0`} className="w-full h-full" title={title} />
+                ) : isImage ? (
+                  <img src={previewUrl} alt={file?.originalName} className="w-full h-full object-contain" />
+                ) : (
+                  <div className="w-full h-full flex flex-col items-center justify-center gap-3 text-text-muted">
+                    <FileIcon className="w-12 h-12" />
+                    <p className="text-sm">Vista previa no disponible para este tipo de archivo</p>
+                    <p className="text-xs">Usa los botones para abrir o descargar</p>
+                  </div>
+                )
+              ) : null}
+            </div>
           </div>
-        </div>
+        )}
 
-        <div className="md:col-span-3 space-y-5">
+        <div className={`flex-shrink-0 overflow-y-auto ${isMobile && isPdf ? 'w-full' : 'w-full md:w-56'}`}>
+          {isMobile && isPdf && !loading && !error && previewUrl && (
+            <div className="flex flex-col items-center gap-2 py-6 px-4 rounded-lg border border-border bg-surface-alt mb-5 text-center">
+              <SmartphoneIcon className="w-8 h-8 text-primary/50" />
+              <p className="text-sm font-medium text-text">Vista previa no disponible en móvil</p>
+              <p className="text-xs text-text-muted">Usa los botones de abajo para abrir o descargar el archivo</p>
+            </div>
+          )}
+          <div className="space-y-5">
           {file && (
             <>
               <div className="space-y-3">
                 <div>
                   <p className="text-xs text-text-muted mb-1">Nombre del archivo</p>
-                  <p className="text-sm font-medium text-text break-all">{file.originalName}</p>
+                  <p className="text-sm font-medium text-text truncate" title={file.originalName}>{file.originalName}</p>
                 </div>
                 <div>
                   <p className="text-xs text-text-muted mb-1">Tipo</p>
@@ -114,6 +132,7 @@ export function FilePreviewModal({ fileId, isOpen, onClose }: FilePreviewModalPr
               </div>
             </>
           )}
+          </div>
         </div>
       </div>
     </Modal>
