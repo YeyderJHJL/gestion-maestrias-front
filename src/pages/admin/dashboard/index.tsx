@@ -2,9 +2,9 @@ import { motion } from 'framer-motion';
 import { AdminLayout } from '../../../layouts/AdminLayout';
 import { WelcomeBanner } from '../../../components/WelcomeBanner';
 import { useAuth } from '../../../context/AuthContext';
-import { useDashboard } from './useDashboard';
-import { StatsCards } from './StatsCards';
-import { RecentActivity } from './RecentActivity';
+import { useDashboard } from './hooks/useDashboard';
+import { StatsCards } from './components/StatsCards';
+import { RecentActivity } from './components/RecentActivity';
 
 export function AdminDashboard() {
   const { user } = useAuth();

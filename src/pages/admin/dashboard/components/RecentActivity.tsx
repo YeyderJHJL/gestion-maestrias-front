@@ -1,6 +1,9 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ReceiptIcon, BookOpenIcon, ClipboardListIcon } from 'lucide-react';
-import { ActivityItem, ActivityType } from '../../../services/dashboardApiService';
+import { ActivityItem, ActivityType } from '../../../../services/dashboardApiService';
+import { useAuth } from '../../../../context/AuthContext';
+import { getFileUrl } from '../../../../services/filesApiService';
 
 interface Props {
   activity: ActivityItem[];
@@ -45,6 +48,24 @@ function relativeTime(timestamp: string): string {
 }
 
 export function RecentActivity({ activity }: Props) {
+  const navigate = useNavigate();
+  const { token } = useAuth();
+
+  const handleRowClick = async (item: ActivityItem) => {
+    if (item.fileId && token) {
+      try {
+        const fileData = await getFileUrl(token, item.fileId);
+        window.open(fileData.downloadUrl, '_blank');
+        return;
+      } catch (err) {
+        console.error('Error fetching file URL:', err);
+      }
+    }
+    if (item.href) {
+      navigate(item.href);
+    }
+  };
+
   return (
     <div className="bg-surface border border-border rounded-lg shadow-sm overflow-hidden">
       <div className="px-6 py-4 border-b border-border">
@@ -78,10 +99,14 @@ export function RecentActivity({ activity }: Props) {
               {activity.map((item, index) => {
                 const cfg = TYPE_CONFIG[item.type];
                 const Icon = cfg.Icon;
+                const baseRowClass = index % 2 === 0 ? 'bg-surface' : 'bg-surface-alt';
+                const clickableClass = (item.href || item.fileId) ? 'cursor-pointer hover:bg-surface-hover transition-colors' : '';
+                
                 return (
                   <tr
                     key={index}
-                    className={index % 2 === 0 ? 'bg-surface' : 'bg-surface-alt'}
+                    className={`${baseRowClass} ${clickableClass}`}
+                    onClick={() => handleRowClick(item)}
                   >
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold ${cfg.badgeCls}`}>

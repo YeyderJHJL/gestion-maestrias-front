@@ -1,13 +1,13 @@
 import { useEffect, useState, useCallback } from 'react';
-import { useAuth } from '../../../context/AuthContext';
-import { ActivityItem, DashboardStats } from '../../../services/dashboardApiService';
+import { useAuth } from '../../../../context/AuthContext';
+import { ActivityItem, DashboardStats } from '../../../../services/dashboardApiService';
 
 
-import { listStudents } from '../../../services/studentsApiService';
-import { listCourses } from '../../../services/coursesApiService';
-import { listVouchers } from '../../../services/vouchersApiService';
-import { listAssignments } from '../../../services/assignmentsApiService';
-import { listGrades } from '../../../services/gradesApiService';
+import { listStudents } from '../../../../services/studentsApiService';
+import { listCourses } from '../../../../services/coursesApiService';
+import { listVouchers } from '../../../../services/vouchersApiService';
+import { listAssignments } from '../../../../services/assignmentsApiService';
+import { listGrades } from '../../../../services/gradesApiService';
 
 export function useDashboard() {
   const { token } = useAuth();
@@ -54,6 +54,8 @@ export function useDashboard() {
         description: v.paymentConcept ? `Voucher - ${v.paymentConcept}` : 'Voucher subido',
         actor: v.studentName,
         timestamp: v.createdAt,
+        href: '/admin/vouchers',
+        fileId: v.file?.id,
       }));
 
       const silaboItems: ActivityItem[] = assignments
@@ -63,6 +65,8 @@ export function useDashboard() {
           description: `Sílabo de ${a.courseName}`,
           actor: a.teacherName,
           timestamp: a.syllabusFile!.createdAt,
+          href: '/admin/cursos',
+          fileId: a.syllabusFile!.id,
         }));
 
       const gradeItems: ActivityItem[] = grades.map(g => ({
@@ -70,6 +74,7 @@ export function useDashboard() {
         description: `Nota registrada — ${g.courseName}`,
         actor: g.studentEmail,
         timestamp: g.createdAt,
+        href: `/admin/reportes?tipo=notas-por-estudiante&studentId=${g.studentId}&auto=true`,
       }));
 
       const allActivity = [...voucherItems, ...silaboItems, ...gradeItems]
