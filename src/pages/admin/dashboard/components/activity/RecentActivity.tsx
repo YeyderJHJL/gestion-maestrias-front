@@ -1,9 +1,9 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ReceiptIcon, BookOpenIcon, ClipboardListIcon } from 'lucide-react';
-import { ActivityItem, ActivityType } from '../../../../services/dashboardApiService';
-import { useAuth } from '../../../../context/AuthContext';
-import { getFileUrl } from '../../../../services/filesApiService';
+import { ActivityItem, ActivityType } from '../../../../../services/dashboardApiService';
+import { useAuth } from '../../../../../context/AuthContext';
+import { getFileUrl } from '../../../../../services/filesApiService';
 
 interface Props {
   activity: ActivityItem[];

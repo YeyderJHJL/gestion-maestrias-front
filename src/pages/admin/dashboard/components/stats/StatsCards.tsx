@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { UsersIcon, BookOpenIcon, ReceiptIcon } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { DashboardStats } from '../../../../services/dashboardApiService';
+import { DashboardStats } from '../../../../../services/dashboardApiService';
 
 interface Props {
   stats: DashboardStats;

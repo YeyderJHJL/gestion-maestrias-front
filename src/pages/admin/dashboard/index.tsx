@@ -3,8 +3,8 @@ import { AdminLayout } from '../../../layouts/AdminLayout';
 import { WelcomeBanner } from '../../../components/WelcomeBanner';
 import { useAuth } from '../../../context/AuthContext';
 import { useDashboard } from './hooks/useDashboard';
-import { StatsCards } from './components/StatsCards';
-import { RecentActivity } from './components/RecentActivity';
+import { StatsCards } from './components/stats/StatsCards';
+import { RecentActivity } from './components/activity/RecentActivity';
 
 export function AdminDashboard() {
   const { user } = useAuth();
