@@ -5,9 +5,11 @@
 // En modo edición los campos del subformulario se precargan desde el objeto usuario
 // y permanecen editables (a diferencia de la creación, donde son obligatorios).
 
-import { Loader2Icon, AlertTriangleIcon, FileIcon } from 'lucide-react';
+import { useState } from 'react';
+import { Loader2Icon, AlertTriangleIcon, FileIcon, EyeIcon } from 'lucide-react';
 import { Modal } from '../../../components/Modal';
 import { FileUpload } from '../../../components/FileUpload';
+import { FilePreviewModal } from '../../../components/FilePreviewModal';
 import { UserRole } from '../../../types/auth';
 import { User, UserCreateRequest } from '../../../services/usersApiService';
 import { TeacherCategory, AcademicDegree } from '../../../services/teachersApiService';
@@ -93,7 +95,10 @@ export function UsuarioFormModal({
   formError,
   onSubmit,
 }: Props) {
+  const [reactPreviewOpen, setReactPreviewOpen] = useState(false);
+
   return (
+    <>
     <Modal
       isOpen={isOpen}
       onClose={onClose}
@@ -106,7 +111,7 @@ export function UsuarioFormModal({
         {/* ── Datos personales (comunes a todos los roles) ── */}
         <div className="space-y-4">
           <SectionHeader title="Datos personales" />
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <label className="block text-sm font-medium text-text">Nombres *</label>
               <input
@@ -196,7 +201,7 @@ export function UsuarioFormModal({
         {form.role === 'STUDENT' && (
           <div className="space-y-4">
             <SectionHeader title="Datos del estudiante" />
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <label className="block text-sm font-medium text-text">
                   Año de promoción {!editingUser && '*'}
@@ -239,9 +244,19 @@ export function UsuarioFormModal({
                     </p>
                   </div>
                   {studentForm.reactualizationFileId && !studentForm.reactualizationFile && (
-                    <div className="flex items-center gap-2 px-3 py-2 bg-surface-alt border border-border rounded-lg text-sm text-text-muted">
-                      <FileIcon className="w-4 h-4" />
-                      Documento ya adjuntado — sube otro para reemplazarlo
+                    <div className="flex items-center justify-between gap-2 px-3 py-2 bg-surface-alt border border-border rounded-lg text-sm text-text-muted">
+                      <span className="flex items-center gap-2">
+                        <FileIcon className="w-4 h-4" />
+                        Documento ya adjuntado — sube otro para reemplazarlo
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setReactPreviewOpen(true)}
+                        className="flex items-center gap-1 text-primary hover:text-primary-light transition-colors"
+                      >
+                        <EyeIcon className="w-4 h-4" />
+                        Ver
+                      </button>
                     </div>
                   )}
                   <FileUpload
@@ -301,7 +316,7 @@ export function UsuarioFormModal({
         {form.role === 'TEACHER' && (
           <div className="space-y-4">
             <SectionHeader title="Datos del docente" />
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
               {/* Tipo: Interno / Externo como pills */}
               <div className="col-span-2 space-y-1.5">
@@ -468,5 +483,12 @@ export function UsuarioFormModal({
         </div>
       </form>
     </Modal>
+
+      <FilePreviewModal
+        fileId={studentForm.reactualizationFileId || null}
+        isOpen={reactPreviewOpen}
+        onClose={() => setReactPreviewOpen(false)}
+      />
+    </>
   );
 }

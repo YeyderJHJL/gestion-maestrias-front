@@ -1,5 +1,7 @@
-import { apiFetch } from './api';
+import { apiFetch, ApiResponse } from './api';
 import type { StoredFileSummary } from './filesApiService';
+import type { EnrollmentResponse } from './enrollmentsApiService';
+import type { AssignmentResponse } from './assignmentsApiService';
 
 // ── Tipos de petición ─────────────────────────────────────────────────────────
 
@@ -26,15 +28,6 @@ export interface CourseResponse {
   updatedAt: string;
 }
 
-// ── Envelope genérico ─────────────────────────────────────────────────────────
-
-interface ApiResponse<T> {
-  success: boolean;
-  data: T;
-  message: string | null;
-}
-
-// ── Endpoints ─────────────────────────────────────────────────────────────────
 
 /** GET /v1/courses — lista todos los cursos */
 export async function listCourses(token: string): Promise<CourseResponse[]> {
@@ -81,8 +74,8 @@ export async function deleteCourse(token: string, id: string): Promise<void> {
 }
 
 /** GET /v1/courses/{id}/teachers — docentes asignados al curso */
-export async function getCourseTeachers(token: string, courseId: string): Promise<unknown[]> {
-  const res = await apiFetch<ApiResponse<unknown[]>>(
+export async function getCourseTeachers(token: string, courseId: string): Promise<AssignmentResponse[]> {
+  const res = await apiFetch<ApiResponse<AssignmentResponse[]>>(
     `/v1/courses/${courseId}/teachers`,
     token
   );
@@ -90,8 +83,8 @@ export async function getCourseTeachers(token: string, courseId: string): Promis
 }
 
 /** GET /v1/courses/{id}/students — estudiantes matriculados en el curso */
-export async function getCourseStudents(token: string, courseId: string): Promise<unknown[]> {
-  const res = await apiFetch<ApiResponse<unknown[]>>(
+export async function getCourseStudents(token: string, courseId: string): Promise<EnrollmentResponse[]> {
+  const res = await apiFetch<ApiResponse<EnrollmentResponse[]>>(
     `/v1/courses/${courseId}/students`,
     token
   );

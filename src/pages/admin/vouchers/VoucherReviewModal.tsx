@@ -1,9 +1,7 @@
-import { useEffect, useState } from 'react';
 import { XIcon, CheckIcon, AlertTriangleIcon, Loader2Icon } from 'lucide-react';
 import { Modal } from '../../../components/Modal';
 import { VoucherResponse } from '../../../types/voucher';
-import { getFileUrl } from '../../../services/filesApiService';
-import { useAuth } from '../../../context/AuthContext';
+import { useFilePreview } from '../../../hooks/useFilePreview';
 
 type Decision = 'validar' | 'observar' | 'rechazar';
 
@@ -35,20 +33,10 @@ export function VoucherReviewModal({
   onClose,
   onConfirm,
 }: VoucherReviewModalProps) {
-  const { token } = useAuth();
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [previewLoading, setPreviewLoading] = useState(false);
-
-  useEffect(() => {
-    if (!voucher || !token) { setPreviewUrl(null); return; }
-    setPreviewLoading(true);
-    getFileUrl(token, voucher.file.id)
-      .then((res) => setPreviewUrl(res.downloadUrl))
-      .catch(() => setPreviewUrl(null))
-      .finally(() => setPreviewLoading(false));
-  }, [voucher?.id, token]);
-
-  const isPdf = voucher?.file.contentType?.includes('pdf');
+  const { previewUrl, isPdf, loading: previewLoading } = useFilePreview(
+    voucher?.file.id ?? null,
+    voucher !== null
+  );
 
   return (
     <Modal
@@ -58,9 +46,8 @@ export function VoucherReviewModal({
       size="xl"
     >
       {voucher && (
-        <div className="grid grid-cols-5 gap-6">
-          {/* Columna izquierda — Preview del archivo (3/5) */}
-          <div className="col-span-3">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 md:gap-6">
+          <div className="md:col-span-3">
             <div className="rounded-lg border border-border overflow-hidden bg-surface-alt" style={{ minHeight: '480px' }}>
               {previewLoading ? (
                 <div className="w-full h-full flex items-center justify-center gap-2 text-text-muted" style={{ minHeight: '480px' }}>
@@ -85,7 +72,7 @@ export function VoucherReviewModal({
           </div>
 
           {/* Columna derecha — Datos + Decisión (2/5) */}
-          <div className="col-span-2 space-y-5">
+          <div className="md:col-span-2 space-y-5">
             {/* Info del estudiante */}
             <div className="space-y-3">
               <div>
@@ -96,7 +83,7 @@ export function VoucherReviewModal({
                 <p className="text-xs text-text-muted mb-1">Código de pago</p>
                 <p className="text-sm font-medium text-text">{voucher.studentPaymentCode}</p>
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <p className="text-xs text-text-muted mb-1">Monto</p>
                   <p className="text-sm font-medium text-text">{formatCurrency(voucher.paymentAmount)}</p>

@@ -1,4 +1,5 @@
 import { AdminLayout } from '../../../layouts/AdminLayout';
+import { PageHeader } from '../../../components/PageHeader';
 import { Toast } from '../../../components/Toast';
 import { useAdminVouchers } from './useAdminVouchers';
 import { VouchersTable } from './VouchersTable';
@@ -29,7 +30,7 @@ export function AdminVouchers() {
   return (
     <AdminLayout>
       <div className="space-y-6">
-        <h1 className="text-3xl font-serif font-bold text-text">Gestión de Vouchers</h1>
+        <PageHeader title="Gestión de Vouchers" />
 
         <VouchersTable
           vouchers={vouchers}

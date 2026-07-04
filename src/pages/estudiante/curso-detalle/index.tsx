@@ -1,0 +1,127 @@
+import { useParams, useNavigate } from 'react-router-dom';
+import { EstudianteLayout } from '../../../layouts/EstudianteLayout';
+import { FilePreviewModal } from '../../../components/FilePreviewModal';
+import { PageHeader } from '../../../components/PageHeader';
+import { Loader2Icon, ArrowLeftIcon, FileTextIcon, UserIcon, CalendarIcon } from 'lucide-react';
+import { useCursoDetalle } from './hooks/useCursoDetalle';
+
+export function EstudianteCursoDetalle() {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const {
+    course, teachers, loading, error,
+    availableSyllabus, syllabusPreviewOpen, setSyllabusPreviewOpen,
+  } = useCursoDetalle(id);
+
+  return (
+    <EstudianteLayout>
+      <div className="space-y-6">
+        <PageHeader
+          title="Detalle del Curso"
+          actions={
+            <button
+              onClick={() => navigate('/estudiante/matricula')}
+              className="p-2 hover:bg-surface border border-border rounded-lg transition-colors text-text-muted"
+              title="Volver a Mi Matrícula"
+            >
+              <ArrowLeftIcon className="w-5 h-5" />
+            </button>
+          }
+        />
+
+        {loading ? (
+          <div className="flex items-center justify-center py-16 gap-2 text-text-muted">
+            <Loader2Icon className="w-5 h-5 animate-spin" />
+            <span>Cargando detalles...</span>
+          </div>
+        ) : error ? (
+          <div className="px-4 py-3 rounded-lg bg-accent/10 border border-accent/30 text-sm text-accent">{error}</div>
+        ) : !course ? (
+          <div className="px-4 py-3 rounded-lg bg-accent/10 border border-accent/30 text-sm text-accent">Curso no encontrado.</div>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 space-y-6">
+              <div className="bg-surface border border-border rounded-lg p-6 shadow-sm space-y-4">
+                <div className="border-b border-border pb-4">
+                  <h2 className="text-2xl font-serif font-bold text-text mb-2">{course.name}</h2>
+                  <p className="text-text-muted font-medium">Código: {course.code}</p>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                  <div className="flex items-start gap-3">
+                    <CalendarIcon className="w-5 h-5 text-primary mt-0.5" />
+                    <div>
+                      <p className="text-sm font-semibold text-text">Fecha de inicio</p>
+                      <p className="text-sm text-text-muted">{course.startDate}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <CalendarIcon className="w-5 h-5 text-primary mt-0.5" />
+                    <div>
+                      <p className="text-sm font-semibold text-text">Fecha de fin</p>
+                      <p className="text-sm text-text-muted">{course.endDate}</p>
+                    </div>
+                  </div>
+                </div>
+                {course.observations && (
+                  <div className="pt-4 border-t border-border mt-4">
+                    <p className="text-sm font-semibold text-text mb-1">Observaciones</p>
+                    <p className="text-sm text-text-muted">{course.observations}</p>
+                  </div>
+                )}
+              </div>
+
+              <div className="bg-surface border border-border rounded-lg p-6 shadow-sm">
+                <h3 className="text-lg font-serif font-bold text-text mb-4 border-b border-border pb-2">Docente(s) a cargo</h3>
+                {teachers.length === 0 ? (
+                  <p className="text-sm text-text-muted italic">No hay docentes asignados todavía.</p>
+                ) : (
+                  <ul className="space-y-4">
+                    {teachers.map(teacher => (
+                      <li key={teacher.id} className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                          <UserIcon className="w-5 h-5 text-primary" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-text">{teacher.teacherName}</p>
+                          <p className="text-sm text-text-muted">{teacher.teacherEmail}</p>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </div>
+
+            <div className="space-y-6">
+              <div className="bg-surface border border-border rounded-lg p-6 shadow-sm">
+                <h3 className="text-lg font-serif font-bold text-text mb-4 border-b border-border pb-2">Recursos</h3>
+                <button
+                  onClick={() => setSyllabusPreviewOpen(true)}
+                  disabled={!availableSyllabus}
+                  className={`w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-semibold transition-colors shadow-sm ${
+                    availableSyllabus
+                      ? 'bg-primary text-white hover:bg-primary-light'
+                      : 'bg-surface-alt text-text-muted cursor-not-allowed border border-border'
+                  }`}
+                >
+                  <FileTextIcon className="w-5 h-5" />
+                  {availableSyllabus ? 'Ver Sílabo' : 'Sílabo no disponible'}
+                </button>
+                {!availableSyllabus && (
+                  <p className="text-xs text-text-muted mt-3 text-center">
+                    El docente o coordinador aún no ha subido el documento para este curso.
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+      <FilePreviewModal
+        fileId={availableSyllabus?.id ?? null}
+        isOpen={syllabusPreviewOpen}
+        onClose={() => setSyllabusPreviewOpen(false)}
+      />
+    </EstudianteLayout>
+  );
+}

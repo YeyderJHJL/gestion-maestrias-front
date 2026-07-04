@@ -4,6 +4,7 @@
 
 import { PlusIcon } from 'lucide-react';
 import { AdminLayout } from '../../../layouts/AdminLayout';
+import { PageHeader } from '../../../components/PageHeader';
 import { ConfirmationModal } from '../../../components/ConfirmationModal';
 import { Toast } from '../../../components/Toast';
 import { useUsuarios } from './useUsuarios';
@@ -60,10 +61,9 @@ export function AdminUsuarios() {
   return (
     <AdminLayout>
       <div className="space-y-6">
-        {/* Encabezado con título y botón de nuevo usuario */}
-        <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-serif font-bold text-text">Gestión de Usuarios</h1>
-          {!isCoordinator && (
+        <PageHeader
+          title="Gestión de Usuarios"
+          actions={!isCoordinator ? (
             <button
               onClick={openCreateModal}
               className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-light transition-colors"
@@ -71,8 +71,8 @@ export function AdminUsuarios() {
               <PlusIcon className="w-5 h-5" />
               Nuevo Usuario
             </button>
-          )}
-        </div>
+          ) : undefined}
+        />
 
         {/* Tabla con barra de búsqueda y filtros */}
         <UsuariosTable

@@ -1,5 +1,6 @@
-import { apiFetch } from './api';
+import { apiFetch, ApiResponse } from './api';
 import { AuthUser, UserRole } from '../types/auth';
+import type { StudentStatus } from './studentsApiService';
 
 const ROLE_MAP: Record<string, UserRole> = {
   ADMIN: 'ADMIN', Administrador: 'ADMIN',
@@ -17,7 +18,7 @@ interface StudentData {
   cui: string;
   paymentCode: string;
   yearPromotion: number;
-  status?: 'Regular' | 'Reactualizacion';
+  status?: StudentStatus;
 }
 
 interface TeacherData {
@@ -43,11 +44,6 @@ interface UserResponse {
   teacher?: TeacherData;
 }
 
-interface ApiResponse<T> {
-  success: boolean;
-  data: T;
-  message: string | null;
-}
 
 export async function getMe(token: string): Promise<UserResponse> {
   const res = await apiFetch<ApiResponse<UserResponse>>('/v1/users/me', token);

@@ -1,4 +1,4 @@
-import { apiFetch } from './api';
+import { apiFetch, ApiResponse } from './api';
 
 // Valores que el backend deserializa via @JsonValue / @JsonCreator (label del enum)
 export type TeacherType = 'Interno' | 'Externo';
@@ -48,11 +48,6 @@ export interface TeacherResponse {
   updatedAt: string;
 }
 
-interface ApiResponse<T> {
-  success: boolean;
-  data: T;
-  message: string | null;
-}
 
 export async function createTeacher(token: string, request: TeacherRequest): Promise<TeacherResponse> {
   const res = await apiFetch<ApiResponse<TeacherResponse>>('/v1/teachers', token, {

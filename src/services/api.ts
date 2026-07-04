@@ -7,6 +7,12 @@ export class ApiError extends Error {
   }
 }
 
+export interface ApiResponse<T> {
+  success: boolean;
+  data: T;
+  message: string | null;
+}
+
 export async function apiFetch<T>(
   path: string,
   token: string,

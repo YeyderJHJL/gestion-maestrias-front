@@ -31,7 +31,8 @@ const EMPTY_FORM: CursoFormState = {
 type Toast = { visible: boolean; variant: 'success' | 'error'; message: string };
 
 export function useCursos() {
-  const { token } = useAuth();
+  const { user, token } = useAuth();
+  const isCoordinator = user?.role === 'COORDINATOR';
 
   // ── Lista ──────────────────────────────────────────────────────────────────
   const [cursos, setCursos] = useState<CourseResponse[]>([]);
@@ -164,6 +165,8 @@ export function useCursos() {
   };
 
   return {
+    // permisos
+    isCoordinator,
     // lista
     cursos,
     loading,

@@ -130,7 +130,7 @@ export function EnrollmentFormModal({
           <label className="block text-sm font-medium text-text">
             Estado <span className="text-accent">*</span>
           </label>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
             {STATES_LIST.map((state) => (
               <label
                 key={state.id}

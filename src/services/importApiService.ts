@@ -1,4 +1,4 @@
-import { apiFetch } from './api';
+import { apiFetch, ApiResponse } from './api';
 
 // --- Tipos de filas parseadas desde Excel (se envían al backend) ---
 
@@ -68,11 +68,6 @@ interface StudentImportResponse {
   results: StudentImportRowResult[];
 }
 
-interface ApiResponse<T> {
-  success: boolean;
-  data: T;
-  message: string | null;
-}
 
 // POST /v1/teachers/bulk
 export async function importTeachers(

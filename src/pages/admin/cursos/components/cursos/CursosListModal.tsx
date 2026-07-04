@@ -13,6 +13,7 @@ interface Props {
   onDelete: (curso: CourseResponse) => void;
   searchTerm: string;
   onSearchChange: (value: string) => void;
+  isCoordinator: boolean;
 }
 
 function formatDate(dateStr: string): string {
@@ -33,6 +34,7 @@ export function CursosListModal({
   onDelete,
   searchTerm,
   onSearchChange,
+  isCoordinator,
 }: Props) {
   return (
     <Modal
@@ -56,13 +58,15 @@ export function CursosListModal({
               className="flex-1 text-sm bg-transparent outline-none text-text placeholder:text-text-muted"
             />
           </div>
-          <button
-            onClick={onAdd}
-            className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-light transition-colors text-sm whitespace-nowrap"
-          >
-            <PlusIcon className="w-4 h-4" />
-            Nuevo curso
-          </button>
+          {!isCoordinator && (
+            <button
+              onClick={onAdd}
+              className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-light transition-colors text-sm whitespace-nowrap"
+            >
+              <PlusIcon className="w-4 h-4" />
+              Nuevo curso
+            </button>
+          )}
         </div>
 
         {/* Tabla con scroll horizontal para que las columnas de acciones no se corten */}
@@ -91,7 +95,9 @@ export function CursosListModal({
                   <th className="px-4 py-3 text-left font-semibold">Nombre</th>
                   <th className="px-4 py-3 text-left font-semibold w-[110px]">Inicio</th>
                   <th className="px-4 py-3 text-left font-semibold w-[110px]">Fin</th>
-                  <th className="px-4 py-3 text-right font-semibold w-[90px]">Acciones</th>
+                  {!isCoordinator && (
+                    <th className="px-4 py-3 text-right font-semibold w-[90px]">Acciones</th>
+                  )}
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -114,24 +120,26 @@ export function CursosListModal({
                     <td className="px-4 py-3 text-text-muted tabular-nums whitespace-nowrap">
                       {formatDate(curso.endDate)}
                     </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center justify-end gap-1">
-                        <button
-                          onClick={() => onEdit(curso)}
-                          className="p-1.5 rounded-lg text-text-muted hover:bg-primary/10 hover:text-primary transition-colors"
-                          title="Editar curso"
-                        >
-                          <EditIcon className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => onDelete(curso)}
-                          className="p-1.5 rounded-lg text-text-muted hover:bg-accent/10 hover:text-accent transition-colors"
-                          title="Eliminar curso"
-                        >
-                          <Trash2Icon className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
+                    {!isCoordinator && (
+                      <td className="px-4 py-3">
+                        <div className="flex items-center justify-end gap-1">
+                          <button
+                            onClick={() => onEdit(curso)}
+                            className="p-1.5 rounded-lg text-text-muted hover:bg-primary/10 hover:text-primary transition-colors"
+                            title="Editar curso"
+                          >
+                            <EditIcon className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => onDelete(curso)}
+                            className="p-1.5 rounded-lg text-text-muted hover:bg-accent/10 hover:text-accent transition-colors"
+                            title="Eliminar curso"
+                          >
+                            <Trash2Icon className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>
