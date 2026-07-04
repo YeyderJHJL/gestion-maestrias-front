@@ -147,7 +147,6 @@ export function useCursoDetalle(courseId: string) {
   grades.forEach((g) => gradesByStudentId.set(g.studentId, g));
 
   const mergedRows: StudentGradeRow[] = students
-    .filter((s) => s.stateId === 5)
     .map((enrollment) => ({
       enrollment,
       grade: gradesByStudentId.get(enrollment.studentId) ?? null,

@@ -34,7 +34,7 @@ export function useDashboard() {
                 listGrades(token, { courseId: a.courseId }),
               ]);
               stats[a.courseId] = {
-                totalEstudiantes: students.filter((s) => s.stateId === 5).length,
+                totalEstudiantes: students.length,
                 notasRegistradas: grades.length,
               };
             } catch {
