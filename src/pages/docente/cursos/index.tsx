@@ -100,7 +100,6 @@ export function DocenteCursoDetalle() {
                 uploading={false}
                 onUpload={handleSyllabusUpload}
                 onView={() => setSyllabusPreviewOpen(true)}
-                onReplace={() => {}}
               />
             )}
 
