@@ -2,7 +2,7 @@
 // Actúa como orquestador: obtiene el estado del hook y
 // distribuye los datos a cada componente hijo.
 
-import { PlusIcon } from 'lucide-react';
+import { PlusIcon, Trash2Icon } from 'lucide-react';
 import { AdminLayout } from '../../../layouts/AdminLayout';
 import { PageHeader } from '../../../components/PageHeader';
 import { ConfirmationModal } from '../../../components/ConfirmationModal';
@@ -53,6 +53,16 @@ export function AdminUsuarios() {
     deletingUser,
     setDeletingUser,
     handleDelete,
+    // Selección múltiple y eliminación masiva
+    selectedIds,
+    showBulkSelection,
+    isAllFilteredSelected,
+    isPartiallySelected,
+    toggleSelect,
+    toggleSelectAll,
+    isBulkDeleteConfirmOpen,
+    setIsBulkDeleteConfirmOpen,
+    handleBulkDelete,
     // Notificación
     toast,
     setToast,
@@ -73,6 +83,20 @@ export function AdminUsuarios() {
             </button>
           ) : undefined}
         />
+
+        {/* Barra de acción masiva: solo con selección activa en Estudiantes/Docentes */}
+        {showBulkSelection && selectedIds.size > 0 && (
+          <div className="flex items-center justify-between gap-3 bg-surface border border-border rounded-lg px-4 py-3">
+            <span className="text-sm text-text-muted">{selectedIds.size} seleccionado(s)</span>
+            <button
+              onClick={() => setIsBulkDeleteConfirmOpen(true)}
+              className="flex items-center gap-2 px-4 py-2 text-accent hover:text-accent-light transition-colors text-sm font-medium"
+            >
+              <Trash2Icon className="w-4 h-4" />
+              Eliminar seleccionados
+            </button>
+          </div>
+        )}
 
         {/* Tabla con barra de búsqueda y filtros */}
         <UsuariosTable
@@ -96,6 +120,12 @@ export function AdminUsuarios() {
           isCoordinator={isCoordinator}
           onEdit={openEditModal}
           onDelete={setDeletingUser}
+          showBulkSelection={showBulkSelection}
+          selectedIds={selectedIds}
+          onToggleSelect={toggleSelect}
+          isAllFilteredSelected={isAllFilteredSelected}
+          isPartiallySelected={isPartiallySelected}
+          onToggleSelectAll={toggleSelectAll}
         />
       </div>
 
@@ -125,6 +155,19 @@ export function AdminUsuarios() {
             ? `¿Estás seguro de que deseas eliminar a ${deletingUser.firstName} ${deletingUser.lastName}? Esta acción no se puede deshacer.`
             : ''
         }
+        confirmLabel="Eliminar"
+        variant="danger"
+      />
+
+      {/* Modal de confirmación antes de eliminar en bloque */}
+      <ConfirmationModal
+        isOpen={isBulkDeleteConfirmOpen}
+        onClose={() => setIsBulkDeleteConfirmOpen(false)}
+        onConfirm={handleBulkDelete}
+        title="Eliminar usuarios"
+        message={`¿Estás seguro de que deseas eliminar ${selectedIds.size} ${
+          filterRole === 'STUDENT' ? 'estudiante(s)' : 'docente(s)'
+        }? Esta acción no se puede deshacer.`}
         confirmLabel="Eliminar"
         variant="danger"
       />
