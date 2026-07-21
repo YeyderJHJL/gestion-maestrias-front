@@ -3,7 +3,7 @@
 // de edición y eliminación al componente padre.
 
 import { useEffect, useRef, useState } from 'react';
-import { SearchIcon, EditIcon, Trash2Icon, UsersIcon, Loader2Icon, EyeIcon } from 'lucide-react';
+import { SearchIcon, EditIcon, Trash2Icon, UsersIcon, Loader2Icon, EyeIcon, ListChecksIcon } from 'lucide-react';
 import { StatusBadge } from '../../../components/StatusBadge';
 import { EmptyState } from '../../../components/EmptyState';
 import { FilePreviewModal } from '../../../components/FilePreviewModal';
@@ -55,13 +55,17 @@ interface Props {
   // Callbacks para abrir los modales correspondientes
   onEdit: (user: User) => void;
   onDelete: (user: User) => void;
-  // Selección múltiple (solo visible en pestañas Estudiantes/Docentes)
+  // Selección múltiple (solo disponible en pestañas Estudiantes/Docentes)
+  canBulkSelect: boolean;
+  isSelectionModeActive: boolean;
+  onToggleSelectionMode: () => void;
   showBulkSelection: boolean;
   selectedIds: Set<string>;
   onToggleSelect: (id: string) => void;
   isAllFilteredSelected: boolean;
   isPartiallySelected: boolean;
   onToggleSelectAll: () => void;
+  onRequestBulkDelete: () => void;
 }
 
 export function UsuariosTable({
@@ -85,12 +89,16 @@ export function UsuariosTable({
   isCoordinator,
   onEdit,
   onDelete,
+  canBulkSelect,
+  isSelectionModeActive,
+  onToggleSelectionMode,
   showBulkSelection,
   selectedIds,
   onToggleSelect,
   isAllFilteredSelected,
   isPartiallySelected,
   onToggleSelectAll,
+  onRequestBulkDelete,
 }: Props) {
   const [previewFileId, setPreviewFileId] = useState<string | null>(null);
   const selectAllRef = useRef<HTMLInputElement>(null);
@@ -152,6 +160,32 @@ export function UsuariosTable({
           <option value="TEACHER">Docente</option>
           <option value="STUDENT">Estudiante</option>
         </select>
+        {canBulkSelect && (
+          <button
+            type="button"
+            onClick={onToggleSelectionMode}
+            title="Selección múltiple para eliminar"
+            aria-pressed={isSelectionModeActive}
+            className={`flex items-center justify-center px-4 py-2 border rounded-lg transition-colors ${
+              isSelectionModeActive
+                ? 'bg-primary text-white border-primary'
+                : 'border-border text-text-muted hover:bg-surface-alt'
+            }`}
+          >
+            <ListChecksIcon className="w-5 h-5" />
+          </button>
+        )}
+        {showBulkSelection && (
+          <button
+            type="button"
+            onClick={onRequestBulkDelete}
+            disabled={selectedIds.size === 0}
+            title="Eliminar todo"
+            className="flex items-center justify-center px-4 py-2 border border-accent text-accent rounded-lg hover:bg-accent hover:text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-accent"
+          >
+            <Trash2Icon className="w-5 h-5" />
+          </button>
+        )}
       </div>
 
       {/* Contenedor de la tabla con estados de carga, error y vacío */}
@@ -182,14 +216,21 @@ export function UsuariosTable({
                 <tr>
                   {showBulkSelection && (
                     <th className="px-6 py-3 text-left">
-                      <input
-                        ref={selectAllRef}
-                        type="checkbox"
-                        checked={isAllFilteredSelected}
-                        onChange={onToggleSelectAll}
-                        aria-label="Seleccionar todos los usuarios filtrados"
-                        className="w-4 h-4"
-                      />
+                      <label className="flex items-center gap-2 text-xs font-semibold text-text-muted uppercase whitespace-nowrap cursor-pointer">
+                        <input
+                          ref={selectAllRef}
+                          type="checkbox"
+                          checked={isAllFilteredSelected}
+                          onChange={onToggleSelectAll}
+                          className="w-4 h-4"
+                        />
+                        Seleccionar todo
+                      </label>
+                      {selectedIds.size > 0 && (
+                        <span className="block mt-1 text-xs font-normal normal-case text-primary">
+                          {selectedIds.size} seleccionado(s)
+                        </span>
+                      )}
                     </th>
                   )}
                   <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">

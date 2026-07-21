@@ -151,11 +151,36 @@ export function useUsuarios() {
   const [teacherTypeFilter, setTeacherTypeFilter] = useState('');
   const [studentStatusFilter, setStudentStatusFilter] = useState('');
 
-  // Resetear filtros contextuales al cambiar de rol
+  // --- Estado de selección múltiple (solo aplica a Estudiantes y Docentes,
+  // que son los únicos roles con endpoint de eliminación masiva en el backend).
+  // El modo de selección se activa manualmente con un botón; no está siempre visible. ---
+  const canBulkSelect = filterRole === 'STUDENT' || filterRole === 'TEACHER';
+  const [isSelectionModeActive, setIsSelectionModeActive] = useState(false);
+  const showBulkSelection = canBulkSelect && isSelectionModeActive;
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [isBulkDeleteConfirmOpen, setIsBulkDeleteConfirmOpen] = useState(false);
+
+  const toggleSelectionMode = () => {
+    setIsSelectionModeActive((prev) => !prev);
+    setSelectedIds(new Set());
+  };
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  // Resetear filtros contextuales y selección al cambiar de rol
   useEffect(() => {
     setTeacherTypeFilter('');
     setStudentStatusFilter('');
     setSearchTerm('');
+    setIsSelectionModeActive(false);
+    setSelectedIds(new Set());
   }, [filterRole]);
 
   // --- Estado del modal de creación y edición ---
@@ -169,21 +194,6 @@ export function useUsuarios() {
 
   // --- Estado del modal de eliminación ---
   const [deletingUser, setDeletingUser] = useState<UserResponse | null>(null);
-
-  // --- Estado de selección múltiple (solo aplica a Estudiantes y Docentes,
-  // que son los únicos roles con endpoint de eliminación masiva en el backend) ---
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const showBulkSelection = filterRole === 'STUDENT' || filterRole === 'TEACHER';
-  const [isBulkDeleteConfirmOpen, setIsBulkDeleteConfirmOpen] = useState(false);
-
-  const toggleSelect = (id: string) => {
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  };
 
   // --- Estado del toast de notificación ---
   const [toast, setToast] = useState<{
@@ -410,21 +420,24 @@ export function useUsuarios() {
     }
   };
 
-  // Elimina en bloque los usuarios seleccionados (solo Estudiantes o Docentes)
+  // Elimina en bloque los usuarios seleccionados (solo Estudiantes o Docentes).
+  // selectedIds guarda ids de usuario (user.id), pero /students/bulk y /teachers/bulk
+  // esperan el id del perfil (student.id / teacher.id) — hay que mapearlos.
   const handleBulkDelete = async () => {
     if (!token || selectedIds.size === 0) return;
-    const ids = Array.from(selectedIds);
+    const selectedUsers = users.filter((u) => selectedIds.has(u.id));
     try {
       if (filterRole === 'STUDENT') {
-        await bulkDeleteStudents(token, ids);
+        await bulkDeleteStudents(token, selectedUsers.map((u) => u.student!.id));
       } else if (filterRole === 'TEACHER') {
-        await bulkDeleteTeachers(token, ids);
+        await bulkDeleteTeachers(token, selectedUsers.map((u) => u.teacher!.id));
       } else {
         return;
       }
       setUsers((prev) => prev.filter((u) => !selectedIds.has(u.id)));
       setSelectedIds(new Set());
-      showToast('success', `${ids.length} usuario(s) eliminado(s).`);
+      setIsSelectionModeActive(false);
+      showToast('success', `${selectedUsers.length} usuario(s) eliminado(s).`);
     } catch (e) {
       showToast('error', e instanceof ApiError ? e.message : 'Error al eliminar los usuarios.');
     } finally {
@@ -523,6 +536,9 @@ export function useUsuarios() {
     setDeletingUser,
     handleDelete,
     // Selección múltiple y eliminación masiva
+    canBulkSelect,
+    isSelectionModeActive,
+    toggleSelectionMode,
     selectedIds,
     showBulkSelection,
     isAllFilteredSelected,

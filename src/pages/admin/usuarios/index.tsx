@@ -2,7 +2,7 @@
 // Actúa como orquestador: obtiene el estado del hook y
 // distribuye los datos a cada componente hijo.
 
-import { PlusIcon, Trash2Icon } from 'lucide-react';
+import { PlusIcon } from 'lucide-react';
 import { AdminLayout } from '../../../layouts/AdminLayout';
 import { PageHeader } from '../../../components/PageHeader';
 import { ConfirmationModal } from '../../../components/ConfirmationModal';
@@ -54,6 +54,9 @@ export function AdminUsuarios() {
     setDeletingUser,
     handleDelete,
     // Selección múltiple y eliminación masiva
+    canBulkSelect,
+    isSelectionModeActive,
+    toggleSelectionMode,
     selectedIds,
     showBulkSelection,
     isAllFilteredSelected,
@@ -84,20 +87,6 @@ export function AdminUsuarios() {
           ) : undefined}
         />
 
-        {/* Barra de acción masiva: solo con selección activa en Estudiantes/Docentes */}
-        {showBulkSelection && selectedIds.size > 0 && (
-          <div className="flex items-center justify-between gap-3 bg-surface border border-border rounded-lg px-4 py-3">
-            <span className="text-sm text-text-muted">{selectedIds.size} seleccionado(s)</span>
-            <button
-              onClick={() => setIsBulkDeleteConfirmOpen(true)}
-              className="flex items-center gap-2 px-4 py-2 text-accent hover:text-accent-light transition-colors text-sm font-medium"
-            >
-              <Trash2Icon className="w-4 h-4" />
-              Eliminar seleccionados
-            </button>
-          </div>
-        )}
-
         {/* Tabla con barra de búsqueda y filtros */}
         <UsuariosTable
           users={paginatedUsers}
@@ -120,12 +109,16 @@ export function AdminUsuarios() {
           isCoordinator={isCoordinator}
           onEdit={openEditModal}
           onDelete={setDeletingUser}
+          canBulkSelect={canBulkSelect}
+          isSelectionModeActive={isSelectionModeActive}
+          onToggleSelectionMode={toggleSelectionMode}
           showBulkSelection={showBulkSelection}
           selectedIds={selectedIds}
           onToggleSelect={toggleSelect}
           isAllFilteredSelected={isAllFilteredSelected}
           isPartiallySelected={isPartiallySelected}
           onToggleSelectAll={toggleSelectAll}
+          onRequestBulkDelete={() => setIsBulkDeleteConfirmOpen(true)}
         />
       </div>
 
