@@ -3,7 +3,7 @@
 // de edición y eliminación al componente padre.
 
 import { useEffect, useRef, useState } from 'react';
-import { SearchIcon, EditIcon, XIcon, UsersIcon, Loader2Icon, EyeIcon } from 'lucide-react';
+import { SearchIcon, EditIcon, Trash2Icon, UsersIcon, Loader2Icon, EyeIcon } from 'lucide-react';
 import { StatusBadge } from '../../../components/StatusBadge';
 import { EmptyState } from '../../../components/EmptyState';
 import { FilePreviewModal } from '../../../components/FilePreviewModal';
@@ -302,7 +302,7 @@ export function UsuariosTable({
                             className="p-1 text-accent hover:text-accent-light transition-colors"
                             title="Eliminar usuario"
                           >
-                            <XIcon className="w-5 h-5" />
+                            <Trash2Icon className="w-5 h-5" />
                           </button>
                         </div>
                       </td>
