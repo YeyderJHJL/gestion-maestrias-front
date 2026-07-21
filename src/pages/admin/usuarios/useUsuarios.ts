@@ -18,8 +18,13 @@ import {
   AcademicDegree,
   TeacherResponse,
   listTeachers,
+  bulkDeleteTeachers,
 } from '../../../services/teachersApiService';
-import { StudentResponse, listStudents } from '../../../services/studentsApiService';
+import {
+  StudentResponse,
+  listStudents,
+  bulkDeleteStudents,
+} from '../../../services/studentsApiService';
 import { ApiError } from '../../../services/api';
 import { uploadReactualization } from '../../../services/filesApiService';
 
@@ -164,6 +169,21 @@ export function useUsuarios() {
 
   // --- Estado del modal de eliminación ---
   const [deletingUser, setDeletingUser] = useState<UserResponse | null>(null);
+
+  // --- Estado de selección múltiple (solo aplica a Estudiantes y Docentes,
+  // que son los únicos roles con endpoint de eliminación masiva en el backend) ---
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const showBulkSelection = filterRole === 'STUDENT' || filterRole === 'TEACHER';
+  const [isBulkDeleteConfirmOpen, setIsBulkDeleteConfirmOpen] = useState(false);
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
 
   // --- Estado del toast de notificación ---
   const [toast, setToast] = useState<{
@@ -390,6 +410,28 @@ export function useUsuarios() {
     }
   };
 
+  // Elimina en bloque los usuarios seleccionados (solo Estudiantes o Docentes)
+  const handleBulkDelete = async () => {
+    if (!token || selectedIds.size === 0) return;
+    const ids = Array.from(selectedIds);
+    try {
+      if (filterRole === 'STUDENT') {
+        await bulkDeleteStudents(token, ids);
+      } else if (filterRole === 'TEACHER') {
+        await bulkDeleteTeachers(token, ids);
+      } else {
+        return;
+      }
+      setUsers((prev) => prev.filter((u) => !selectedIds.has(u.id)));
+      setSelectedIds(new Set());
+      showToast('success', `${ids.length} usuario(s) eliminado(s).`);
+    } catch (e) {
+      showToast('error', e instanceof ApiError ? e.message : 'Error al eliminar los usuarios.');
+    } finally {
+      setIsBulkDeleteConfirmOpen(false);
+    }
+  };
+
   // --- Paginación ---
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(10);
@@ -415,8 +457,29 @@ export function useUsuarios() {
   const totalPages = Math.ceil(filteredUsers.length / pageSize);
   const paginatedUsers = filteredUsers.slice(page * pageSize, (page + 1) * pageSize);
 
-  // Resetear a página 0 cuando cambian filtros o pageSize
-  useEffect(() => { setPage(0); }, [searchTerm, filterRole, teacherTypeFilter, studentStatusFilter, pageSize]);
+  // Selección "todo" respecto a TODOS los usuarios que cumplen el filtro actual (no solo la página visible)
+  const isAllFilteredSelected =
+    filteredUsers.length > 0 && filteredUsers.every((u) => selectedIds.has(u.id));
+  const isPartiallySelected = !isAllFilteredSelected && filteredUsers.some((u) => selectedIds.has(u.id));
+
+  const toggleSelectAll = () => {
+    setSelectedIds((prev) => {
+      if (isAllFilteredSelected) {
+        const next = new Set(prev);
+        filteredUsers.forEach((u) => next.delete(u.id));
+        return next;
+      }
+      const next = new Set(prev);
+      filteredUsers.forEach((u) => next.add(u.id));
+      return next;
+    });
+  };
+
+  // Resetear a página 0 y limpiar selección cuando cambian filtros o pageSize
+  useEffect(() => {
+    setPage(0);
+    setSelectedIds(new Set());
+  }, [searchTerm, filterRole, teacherTypeFilter, studentStatusFilter, pageSize]);
 
   return {
     // Lista y estados de carga
@@ -459,6 +522,16 @@ export function useUsuarios() {
     deletingUser,
     setDeletingUser,
     handleDelete,
+    // Selección múltiple y eliminación masiva
+    selectedIds,
+    showBulkSelection,
+    isAllFilteredSelected,
+    isPartiallySelected,
+    toggleSelect,
+    toggleSelectAll,
+    isBulkDeleteConfirmOpen,
+    setIsBulkDeleteConfirmOpen,
+    handleBulkDelete,
     // Notificación
     toast,
     setToast,
