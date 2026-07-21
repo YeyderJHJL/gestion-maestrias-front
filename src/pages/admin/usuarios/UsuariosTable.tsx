@@ -2,7 +2,7 @@
 // Recibe la lista ya filtrada desde el hook y delega las acciones
 // de edición y eliminación al componente padre.
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { SearchIcon, EditIcon, XIcon, UsersIcon, Loader2Icon, EyeIcon } from 'lucide-react';
 import { StatusBadge } from '../../../components/StatusBadge';
 import { EmptyState } from '../../../components/EmptyState';
@@ -55,6 +55,13 @@ interface Props {
   // Callbacks para abrir los modales correspondientes
   onEdit: (user: User) => void;
   onDelete: (user: User) => void;
+  // Selección múltiple (solo visible en pestañas Estudiantes/Docentes)
+  showBulkSelection: boolean;
+  selectedIds: Set<string>;
+  onToggleSelect: (id: string) => void;
+  isAllFilteredSelected: boolean;
+  isPartiallySelected: boolean;
+  onToggleSelectAll: () => void;
 }
 
 export function UsuariosTable({
@@ -78,8 +85,21 @@ export function UsuariosTable({
   isCoordinator,
   onEdit,
   onDelete,
+  showBulkSelection,
+  selectedIds,
+  onToggleSelect,
+  isAllFilteredSelected,
+  isPartiallySelected,
+  onToggleSelectAll,
 }: Props) {
   const [previewFileId, setPreviewFileId] = useState<string | null>(null);
+  const selectAllRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (selectAllRef.current) {
+      selectAllRef.current.indeterminate = isPartiallySelected;
+    }
+  }, [isPartiallySelected]);
 
   return (
     <>
@@ -160,6 +180,18 @@ export function UsuariosTable({
             <table className="w-full">
               <thead className="bg-surface-alt">
                 <tr>
+                  {showBulkSelection && (
+                    <th className="px-6 py-3 text-left">
+                      <input
+                        ref={selectAllRef}
+                        type="checkbox"
+                        checked={isAllFilteredSelected}
+                        onChange={onToggleSelectAll}
+                        aria-label="Seleccionar todos los usuarios filtrados"
+                        className="w-4 h-4"
+                      />
+                    </th>
+                  )}
                   <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">
                     Nombre completo
                   </th>
@@ -202,6 +234,17 @@ export function UsuariosTable({
                     key={user.id}
                     className={index % 2 === 0 ? 'bg-surface' : 'bg-surface-alt'}
                   >
+                    {showBulkSelection && (
+                      <td className="px-6 py-4">
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.has(user.id)}
+                          onChange={() => onToggleSelect(user.id)}
+                          aria-label={`Seleccionar ${user.firstName} ${user.lastName}`}
+                          className="w-4 h-4"
+                        />
+                      </td>
+                    )}
                     <td className="px-6 py-4 text-sm text-text font-medium">
                       {user.firstName} {user.lastName}
                     </td>
