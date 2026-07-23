@@ -10,11 +10,12 @@ export function AdminVouchers() {
     vouchers,
     loading,
     error,
-    activeTab,
-    setActiveTab,
-    tabs,
+    search,
+    setSearch,
+    stateFilter,
+    setStateFilter,
     selectedVoucher,
-    setSelectedVoucher,
+    openReview,
     decision,
     setDecision,
     motivo,
@@ -36,10 +37,11 @@ export function AdminVouchers() {
           vouchers={vouchers}
           loading={loading}
           error={error}
-          activeTab={activeTab}
-          tabs={tabs}
-          onTabChange={setActiveTab}
-          onSelectVoucher={setSelectedVoucher}
+          search={search}
+          onSearchChange={setSearch}
+          stateFilter={stateFilter}
+          onStateFilterChange={setStateFilter}
+          onSelectVoucher={openReview}
         />
       </div>
 
