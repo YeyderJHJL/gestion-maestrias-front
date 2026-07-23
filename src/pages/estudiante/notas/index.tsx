@@ -1,12 +1,12 @@
 import { EstudianteLayout } from '../../../layouts/EstudianteLayout';
 import { PageHeader } from '../../../components/PageHeader';
 import { StatusBadge } from '../../../components/StatusBadge';
-import { InfoIcon, Loader2Icon } from 'lucide-react';
+import { InfoIcon, Loader2Icon, ShieldAlertIcon } from 'lucide-react';
 import { useNotas } from './hooks/useNotas';
 
 export function EstudianteNotas() {
   const {
-    loading, error, enrollments, periods, selectedPeriod, setSelectedPeriod,
+    loading, error, accessDenied, enrollments, periods, selectedPeriod, setSelectedPeriod,
     tableData, hasPendingGrades, allGradesRegistered, promedio,
   } = useNotas();
 
@@ -19,6 +19,16 @@ export function EstudianteNotas() {
           <div className="flex items-center justify-center py-16 gap-2 text-text-muted">
             <Loader2Icon className="w-5 h-5 animate-spin" />
             <span>Cargando notas...</span>
+          </div>
+        ) : accessDenied ? (
+          <div className="flex items-start gap-3 px-4 py-3 rounded-lg bg-accent/10 border border-accent/30">
+            <ShieldAlertIcon className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-semibold text-accent">Acceso denegado</p>
+              <p className="text-sm text-text-muted">
+                No tienes una matrícula activa que te permita ver estas notas. Si crees que es un error, contacta a Administración.
+              </p>
+            </div>
           </div>
         ) : error ? (
           <div className="px-4 py-3 rounded-lg bg-accent/10 border border-accent/30 text-sm text-accent">
