@@ -2,7 +2,7 @@ import { SearchIcon, EyeIcon, CheckIcon, Trash2Icon } from 'lucide-react';
 import { StatusBadge } from '../../../components/StatusBadge';
 import { EmptyState } from '../../../components/EmptyState';
 import { IconButton } from '../../../components/IconButton';
-import { VoucherResponse, VoucherStateCode } from '../../../types/voucher';
+import { VoucherResponse, VoucherStateCode, voucherConceptSummary } from '../../../types/voucher';
 
 interface VouchersTableProps {
   vouchers: VoucherResponse[];
@@ -26,14 +26,6 @@ const STATE_LABEL: Record<string, string> = {
   VALIDATED: 'Validado',
   OBSERVED: 'Observado',
   REJECTED: 'Rechazado',
-};
-
-const conceptSummary = (voucher: VoucherResponse) => {
-  if (voucher.payments.length === 1) {
-    return voucher.payments[0].paymentConcept ?? '—';
-  }
-  const numbers = voucher.payments.map((p) => p.paymentNumber).join(', N°');
-  return `${voucher.payments.length} cuotas (N°${numbers})`;
 };
 
 export function VouchersTable({
@@ -114,7 +106,7 @@ export function VouchersTable({
                         DNI {voucher.studentDni ?? '—'} · CUI {voucher.studentCui}
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-sm text-text">{conceptSummary(voucher)}</td>
+                    <td className="px-6 py-4 text-sm text-text">{voucherConceptSummary(voucher)}</td>
                     <td className="px-6 py-4 text-sm text-text">{formatCurrency(voucher.declaredAmount)}</td>
                     <td className="px-6 py-4 text-sm text-text-muted">{voucher.operationNumber}</td>
                     <td className="px-6 py-4 text-sm text-text-muted">{formatDate(voucher.createdAt)}</td>

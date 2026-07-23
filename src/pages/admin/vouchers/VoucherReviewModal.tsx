@@ -1,6 +1,6 @@
 import { XIcon, CheckIcon, AlertTriangleIcon, Loader2Icon } from 'lucide-react';
 import { Modal } from '../../../components/Modal';
-import { VoucherResponse } from '../../../types/voucher';
+import { VoucherResponse, voucherConceptSummary } from '../../../types/voucher';
 import { useFilePreview } from '../../../hooks/useFilePreview';
 
 type Decision = 'validar' | 'observar' | 'rechazar';
@@ -23,14 +23,6 @@ const formatDate = (iso: string) =>
   new Date(iso).toLocaleDateString('es-PE', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
 const formatCurrency = (amount: number) => `S/ ${amount.toFixed(2)}`;
-
-const conceptSummary = (voucher: VoucherResponse) => {
-  if (voucher.payments.length === 1) {
-    return voucher.payments[0].paymentConcept ?? '—';
-  }
-  const numbers = voucher.payments.map((p) => p.paymentNumber).join(', N°');
-  return `${voucher.payments.length} cuotas (N°${numbers})`;
-};
 
 export function VoucherReviewModal({
   voucher,
@@ -129,7 +121,7 @@ export function VoucherReviewModal({
               </div>
               <div>
                 <p className="text-xs text-text-muted mb-1">Concepto</p>
-                <p className="text-sm font-medium text-text">{conceptSummary(voucher)}</p>
+                <p className="text-sm font-medium text-text">{voucherConceptSummary(voucher)}</p>
               </div>
               {voucher.observation && (
                 <div className="px-3 py-2 bg-accent/5 border border-accent/20 rounded-lg">
