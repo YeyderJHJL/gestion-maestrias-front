@@ -99,6 +99,16 @@ export function VoucherReviewModal({
                 <p className="text-xs text-text-muted mb-1">Estudiante</p>
                 <p className="text-sm font-medium text-text">{voucher.studentName}</p>
               </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <p className="text-xs text-text-muted mb-1">DNI</p>
+                  <p className="text-sm font-medium text-text">{voucher.studentDni ?? '—'}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-text-muted mb-1">CUI</p>
+                  <p className="text-sm font-medium text-text">{voucher.studentCui}</p>
+                </div>
+              </div>
               <div>
                 <p className="text-xs text-text-muted mb-1">Código de pago</p>
                 <p className="text-sm font-medium text-text">{voucher.studentPaymentCode}</p>

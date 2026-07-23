@@ -1,6 +1,7 @@
 import { AdminLayout } from '../../../layouts/AdminLayout';
 import { PageHeader } from '../../../components/PageHeader';
 import { Toast } from '../../../components/Toast';
+import { ConfirmationModal } from '../../../components/ConfirmationModal';
 import { useAdminVouchers } from './useAdminVouchers';
 import { VouchersTable } from './VouchersTable';
 import { VoucherReviewModal } from './VoucherReviewModal';
@@ -26,6 +27,10 @@ export function AdminVouchers() {
     isCoordinator,
     handleReview,
     closeDrawer,
+    deletingVoucher,
+    setDeletingVoucher,
+    deleting,
+    handleDelete,
     toast,
     closeToast,
   } = useAdminVouchers();
@@ -44,6 +49,7 @@ export function AdminVouchers() {
           stateFilter={stateFilter}
           onStateFilterChange={setStateFilter}
           onSelectVoucher={openReview}
+          onDeleteVoucher={setDeletingVoucher}
         />
       </div>
 
@@ -59,6 +65,20 @@ export function AdminVouchers() {
         isCoordinator={isCoordinator}
         onClose={closeDrawer}
         onConfirm={handleReview}
+      />
+
+      <ConfirmationModal
+        isOpen={deletingVoucher !== null}
+        onClose={() => setDeletingVoucher(null)}
+        onConfirm={handleDelete}
+        title="Eliminar voucher"
+        message={
+          deletingVoucher
+            ? `¿Estás seguro de que deseas eliminar el voucher de ${deletingVoucher.studentName}? Esta acción no se puede deshacer.`
+            : ''
+        }
+        confirmLabel={deleting ? 'Eliminando...' : 'Eliminar'}
+        variant="danger"
       />
 
       <Toast

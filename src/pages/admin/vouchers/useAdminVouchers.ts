@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../../context/AuthContext';
 import { ApiError } from '../../../services/api';
 import { VOUCHER_STATE } from '../../../constants/stateIds';
-import { listVouchers, updateVoucher } from '../../../services/vouchersApiService';
+import { listVouchers, updateVoucher, deleteVoucher } from '../../../services/vouchersApiService';
 import { VoucherResponse, VoucherStateCode } from '../../../types/voucher';
 
 type Decision = 'validar' | 'observar' | 'rechazar';
@@ -30,6 +30,9 @@ export function useAdminVouchers() {
   const [decision, setDecision] = useState<Decision | null>(null);
   const [motivo, setMotivo] = useState('');
   const [submitting, setSubmitting] = useState(false);
+
+  const [deletingVoucher, setDeletingVoucher] = useState<VoucherResponse | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const [toast, setToast] = useState<{
     visible: boolean;
@@ -114,6 +117,21 @@ export function useAdminVouchers() {
     }
   };
 
+  const handleDelete = async () => {
+    if (!token || !deletingVoucher) return;
+    setDeleting(true);
+    try {
+      await deleteVoucher(token, deletingVoucher.id);
+      setAllVouchers((prev) => prev.filter((v) => v.id !== deletingVoucher.id));
+      showToast('success', 'Voucher eliminado correctamente.');
+    } catch (e) {
+      showToast('error', e instanceof ApiError ? e.message : 'Error al eliminar el voucher.');
+    } finally {
+      setDeleting(false);
+      setDeletingVoucher(null);
+    }
+  };
+
   return {
     vouchers,
     loading,
@@ -134,6 +152,10 @@ export function useAdminVouchers() {
     isCoordinator,
     handleReview,
     closeDrawer,
+    deletingVoucher,
+    setDeletingVoucher,
+    deleting,
+    handleDelete,
     toast,
     closeToast,
   };

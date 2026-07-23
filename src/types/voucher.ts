@@ -17,6 +17,8 @@ export interface VoucherResponse {
   studentName: string;
   studentEmail: string;
   studentPaymentCode: string;
+  studentDni: string | null;
+  studentCui: string;
   stateId: number;
   stateCode: VoucherStateCode;
   stateName: string;

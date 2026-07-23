@@ -1,6 +1,7 @@
-import { SearchIcon, EyeIcon } from 'lucide-react';
+import { SearchIcon, EyeIcon, CheckIcon, Trash2Icon } from 'lucide-react';
 import { StatusBadge } from '../../../components/StatusBadge';
 import { EmptyState } from '../../../components/EmptyState';
+import { IconButton } from '../../../components/IconButton';
 import { VoucherResponse, VoucherStateCode } from '../../../types/voucher';
 
 interface VouchersTableProps {
@@ -12,6 +13,7 @@ interface VouchersTableProps {
   stateFilter: VoucherStateCode | '';
   onStateFilterChange: (value: VoucherStateCode | '') => void;
   onSelectVoucher: (voucher: VoucherResponse) => void;
+  onDeleteVoucher: (voucher: VoucherResponse) => void;
 }
 
 const formatDate = (iso: string) =>
@@ -43,6 +45,7 @@ export function VouchersTable({
   stateFilter,
   onStateFilterChange,
   onSelectVoucher,
+  onDeleteVoucher,
 }: VouchersTableProps) {
   return (
     <div>
@@ -105,7 +108,12 @@ export function VouchersTable({
               <tbody className="divide-y divide-border">
                 {vouchers.map((voucher, index) => (
                   <tr key={voucher.id} className={index % 2 === 0 ? 'bg-surface' : 'bg-surface-alt'}>
-                    <td className="px-6 py-4 text-sm text-text font-medium">{voucher.studentName}</td>
+                    <td className="px-6 py-4 text-sm text-text font-medium">
+                      {voucher.studentName}
+                      <div className="text-xs text-text-muted font-normal">
+                        DNI {voucher.studentDni ?? '—'} · CUI {voucher.studentCui}
+                      </div>
+                    </td>
                     <td className="px-6 py-4 text-sm text-text">{conceptSummary(voucher)}</td>
                     <td className="px-6 py-4 text-sm text-text">{formatCurrency(voucher.declaredAmount)}</td>
                     <td className="px-6 py-4 text-sm text-text-muted">{voucher.operationNumber}</td>
@@ -131,12 +139,20 @@ export function VouchersTable({
                       </StatusBadge>
                     </td>
                     <td className="px-6 py-4">
-                      <button
-                        onClick={() => onSelectVoucher(voucher)}
-                        className="px-3 py-1 text-sm border border-primary text-primary rounded hover:bg-primary/5 transition-colors"
-                      >
-                        Revisar
-                      </button>
+                      <div className="flex gap-2">
+                        <IconButton
+                          icon={CheckIcon}
+                          onClick={() => onSelectVoucher(voucher)}
+                          title="Revisar voucher"
+                          variant="success"
+                        />
+                        <IconButton
+                          icon={Trash2Icon}
+                          onClick={() => onDeleteVoucher(voucher)}
+                          title="Eliminar voucher"
+                          variant="accent"
+                        />
+                      </div>
                     </td>
                   </tr>
                 ))}
