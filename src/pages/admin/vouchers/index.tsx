@@ -16,6 +16,8 @@ export function AdminVouchers() {
     setStateFilter,
     selectedVoucher,
     openReview,
+    checkedPaymentIds,
+    togglePayment,
     decision,
     setDecision,
     motivo,
@@ -47,6 +49,8 @@ export function AdminVouchers() {
 
       <VoucherReviewModal
         voucher={selectedVoucher}
+        checkedPaymentIds={checkedPaymentIds}
+        onTogglePayment={togglePayment}
         decision={decision}
         setDecision={setDecision}
         motivo={motivo}

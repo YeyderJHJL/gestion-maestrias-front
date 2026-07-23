@@ -7,6 +7,8 @@ type Decision = 'validar' | 'observar' | 'rechazar';
 
 interface VoucherReviewModalProps {
   voucher: VoucherResponse | null;
+  checkedPaymentIds: Set<string>;
+  onTogglePayment: (paymentId: string) => void;
   decision: Decision | null;
   setDecision: (d: Decision | null) => void;
   motivo: string;
@@ -20,10 +22,20 @@ interface VoucherReviewModalProps {
 const formatDate = (iso: string) =>
   new Date(iso).toLocaleDateString('es-PE', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
-const formatCurrency = (amount: number | null) => amount != null ? `S/ ${amount.toFixed(2)}` : '—';
+const formatCurrency = (amount: number) => `S/ ${amount.toFixed(2)}`;
+
+const conceptSummary = (voucher: VoucherResponse) => {
+  if (voucher.payments.length === 1) {
+    return voucher.payments[0].paymentConcept ?? '—';
+  }
+  const numbers = voucher.payments.map((p) => p.paymentNumber).join(', N°');
+  return `${voucher.payments.length} cuotas (N°${numbers})`;
+};
 
 export function VoucherReviewModal({
   voucher,
+  checkedPaymentIds,
+  onTogglePayment,
   decision,
   setDecision,
   motivo,
@@ -37,6 +49,14 @@ export function VoucherReviewModal({
     voucher?.file.id ?? null,
     voucher !== null
   );
+
+  const isChecklistEditable = decision === 'validar';
+  const confirmDisabled =
+    isCoordinator ||
+    !decision ||
+    submitting ||
+    ((decision === 'observar' || decision === 'rechazar') && !motivo) ||
+    (decision === 'validar' && checkedPaymentIds.size === 0);
 
   return (
     <Modal
@@ -85,8 +105,8 @@ export function VoucherReviewModal({
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <p className="text-xs text-text-muted mb-1">Monto</p>
-                  <p className="text-sm font-medium text-text">{formatCurrency(voucher.paymentAmount)}</p>
+                  <p className="text-xs text-text-muted mb-1">Monto declarado</p>
+                  <p className="text-sm font-medium text-text">{formatCurrency(voucher.declaredAmount)}</p>
                 </div>
                 <div>
                   <p className="text-xs text-text-muted mb-1">Fecha subida</p>
@@ -94,8 +114,12 @@ export function VoucherReviewModal({
                 </div>
               </div>
               <div>
+                <p className="text-xs text-text-muted mb-1">N° de operación</p>
+                <p className="text-sm font-medium text-text">{voucher.operationNumber}</p>
+              </div>
+              <div>
                 <p className="text-xs text-text-muted mb-1">Concepto</p>
-                <p className="text-sm font-medium text-text">{voucher.paymentConcept ?? '—'}</p>
+                <p className="text-sm font-medium text-text">{conceptSummary(voucher)}</p>
               </div>
               {voucher.observation && (
                 <div className="px-3 py-2 bg-accent/5 border border-accent/20 rounded-lg">
@@ -103,6 +127,43 @@ export function VoucherReviewModal({
                   <p className="text-sm text-text">{voucher.observation}</p>
                 </div>
               )}
+            </div>
+
+            {/* Cuotas incluidas */}
+            <div className="border-t border-border pt-4 space-y-2">
+              <p className="text-sm font-medium text-text">Cuotas incluidas</p>
+              {isChecklistEditable && (
+                <p className="text-xs text-text-muted">
+                  Desmarca la(s) cuota(s) que no corresponda validar — quedarán sin voucher vinculado.
+                </p>
+              )}
+              <div className="space-y-1.5">
+                {voucher.payments.map((payment) => (
+                  <label
+                    key={payment.paymentId}
+                    className={`flex items-center gap-2 px-3 py-2 border border-border rounded-lg text-sm ${
+                      isChecklistEditable ? 'cursor-pointer hover:bg-surface-alt' : ''
+                    }`}
+                  >
+                    {isChecklistEditable ? (
+                      <input
+                        type="checkbox"
+                        checked={checkedPaymentIds.has(payment.paymentId)}
+                        onChange={() => onTogglePayment(payment.paymentId)}
+                        className="w-4 h-4"
+                      />
+                    ) : (
+                      <CheckIcon className="w-4 h-4 text-text-muted" />
+                    )}
+                    <span className="flex-1 text-text">
+                      N° {payment.paymentNumber} — {payment.paymentConcept ?? 'Sin concepto'}
+                    </span>
+                    <span className="text-text-muted">
+                      {payment.paymentAmount != null ? formatCurrency(payment.paymentAmount) : '—'}
+                    </span>
+                  </label>
+                ))}
+              </div>
             </div>
 
             {/* Decisión */}
@@ -173,12 +234,7 @@ export function VoucherReviewModal({
               )}
 
               <button
-                disabled={
-                  isCoordinator ||
-                  !decision ||
-                  submitting ||
-                  ((decision === 'observar' || decision === 'rechazar') && !motivo)
-                }
+                disabled={confirmDisabled}
                 onClick={onConfirm}
                 className="w-full px-5 py-2.5 bg-primary text-white rounded-lg hover:bg-primary-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-semibold"
               >
