@@ -8,12 +8,14 @@ import { uploadVoucher } from '../../../../services/filesApiService';
 import { VoucherResponse } from '../../../../types/voucher';
 
 export type VoucherFormState = {
-  paymentId: string;
+  paymentIds: string[];
+  operationNumber: string;
   file: File | null;
 };
 
 const EMPTY_FORM: VoucherFormState = {
-  paymentId: '',
+  paymentIds: [],
+  operationNumber: '',
   file: null,
 };
 
@@ -54,19 +56,37 @@ export function usePagos() {
   }, [loadData]);
 
   const vouchersForPayment = (paymentId: string) =>
-    vouchers.filter((v) => v.paymentId === paymentId);
+    vouchers.filter((v) => v.payments.some((p) => p.paymentId === paymentId));
+
+  // Solo tiene sentido pagar cuotas que todavía no fueron validadas
+  const selectablePayments = payments.filter((p) => p.latestVoucherStateCode !== 'VALIDATED');
+
+  const togglePaymentSelection = (paymentId: string) => {
+    setForm((prev) => ({
+      ...prev,
+      paymentIds: prev.paymentIds.includes(paymentId)
+        ? prev.paymentIds.filter((id) => id !== paymentId)
+        : [...prev.paymentIds, paymentId],
+    }));
+  };
+
+  const selectedTotal = selectablePayments
+    .filter((p) => form.paymentIds.includes(p.id))
+    .reduce((sum, p) => sum + (p.amount ?? 0), 0);
 
   const handleSubmit = async () => {
-    if (!token || !form.paymentId || !form.file) return;
+    if (!token || form.paymentIds.length === 0 || !form.operationNumber.trim() || !form.file) return;
     setSubmitting(true);
     setFormError(null);
     try {
       const uploaded = await uploadVoucher(token, form.file);
 
       await createVoucher(token, {
-        paymentId: form.paymentId,
+        declaredAmount: selectedTotal,
+        payments: form.paymentIds.map((id) => ({ paymentId: id })),
         stateId: VOUCHER_STATE.UPLOADED,
         fileId: uploaded.id,
+        operationNumber: form.operationNumber.trim(),
       });
       setSubmitted(true);
       setForm(EMPTY_FORM);
@@ -93,6 +113,9 @@ export function usePagos() {
     error,
     form,
     setForm,
+    selectablePayments,
+    togglePaymentSelection,
+    selectedTotal,
     submitting,
     submitted,
     formError,

@@ -1,30 +1,25 @@
-import { motion } from 'framer-motion';
-import { EyeIcon } from 'lucide-react';
+import { SearchIcon, EyeIcon, CheckIcon, Trash2Icon } from 'lucide-react';
 import { StatusBadge } from '../../../components/StatusBadge';
-import { VoucherResponse } from '../../../types/voucher';
-
-type ActiveTab = 'pendientes' | 'validados' | 'observados' | 'rechazados';
-
-interface Tab {
-  key: ActiveTab;
-  label: string;
-  count: number;
-}
+import { EmptyState } from '../../../components/EmptyState';
+import { IconButton } from '../../../components/IconButton';
+import { VoucherResponse, VoucherStateCode, voucherConceptSummary } from '../../../types/voucher';
 
 interface VouchersTableProps {
   vouchers: VoucherResponse[];
   loading: boolean;
   error: string | null;
-  activeTab: ActiveTab;
-  tabs: Tab[];
-  onTabChange: (tab: ActiveTab) => void;
+  search: string;
+  onSearchChange: (value: string) => void;
+  stateFilter: VoucherStateCode | '';
+  onStateFilterChange: (value: VoucherStateCode | '') => void;
   onSelectVoucher: (voucher: VoucherResponse) => void;
+  onDeleteVoucher: (voucher: VoucherResponse) => void;
 }
 
 const formatDate = (iso: string) =>
   new Date(iso).toLocaleDateString('es-PE', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
-const formatCurrency = (amount: number | null) => amount != null ? `S/ ${amount.toFixed(2)}` : '—';
+const formatCurrency = (amount: number) => `S/ ${amount.toFixed(2)}`;
 
 const STATE_LABEL: Record<string, string> = {
   UPLOADED: 'Pendiente',
@@ -37,49 +32,42 @@ export function VouchersTable({
   vouchers,
   loading,
   error,
-  activeTab,
-  tabs,
-  onTabChange,
+  search,
+  onSearchChange,
+  stateFilter,
+  onStateFilterChange,
   onSelectVoucher,
+  onDeleteVoucher,
 }: VouchersTableProps) {
   return (
     <div>
-      {/* Tabs */}
-      <div className="border-b border-border">
-        <div className="flex gap-4 md:gap-8 overflow-x-auto">
-          {tabs.map((tab) => (
-            <button
-              key={tab.key}
-              onClick={() => onTabChange(tab.key)}
-              className={`pb-3 px-2 font-medium transition-colors relative ${
-                activeTab === tab.key ? 'text-accent' : 'text-text-muted hover:text-text'
-              }`}
-            >
-              {tab.label}
-              {tab.count > 0 && (
-                <span
-                  className={`ml-2 px-2 py-0.5 rounded-full text-xs font-semibold ${
-                    activeTab === tab.key && tab.key === 'pendientes'
-                      ? 'bg-warning text-white'
-                      : 'bg-surface-alt text-text-muted'
-                  }`}
-                >
-                  {tab.count}
-                </span>
-              )}
-              {activeTab === tab.key && (
-                <motion.div
-                  layoutId="activeTab"
-                  className="absolute bottom-0 left-0 right-0 h-0.5 bg-accent"
-                />
-              )}
-            </button>
-          ))}
+      {/* Barra de búsqueda y filtro de estado */}
+      <div className="bg-surface border border-border rounded-lg p-3 md:p-4 flex flex-col md:flex-row gap-3 md:gap-4">
+        <div className="flex-1 relative">
+          <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-text-muted" />
+          <input
+            type="text"
+            placeholder="Buscar por DNI o CUI..."
+            value={search}
+            onChange={(e) => onSearchChange(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+          />
         </div>
+        <select
+          value={stateFilter}
+          onChange={(e) => onStateFilterChange(e.target.value as VoucherStateCode | '')}
+          className="px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+        >
+          <option value="">Todos los estados</option>
+          <option value="UPLOADED">Pendiente</option>
+          <option value="VALIDATED">Validado</option>
+          <option value="OBSERVED">Observado</option>
+          <option value="REJECTED">Rechazado</option>
+        </select>
       </div>
 
-      {/* Content */}
-      <div className="bg-surface border border-t-0 border-border rounded-b-lg shadow-sm overflow-hidden">
+      {/* Contenido */}
+      <div className="bg-surface border border-border rounded-lg shadow-sm overflow-hidden mt-4">
         {loading ? (
           <div className="flex justify-center items-center py-16">
             <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
@@ -89,9 +77,11 @@ export function VouchersTable({
             <p className="text-accent text-sm">{error}</p>
           </div>
         ) : vouchers.length === 0 ? (
-          <div className="flex justify-center items-center py-16">
-            <p className="text-text-muted text-sm">No hay vouchers en esta categoría.</p>
-          </div>
+          <EmptyState
+            icon={SearchIcon}
+            title="No se encontraron vouchers"
+            subtitle={search || stateFilter ? 'Intenta ajustar los filtros de búsqueda.' : undefined}
+          />
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -100,6 +90,7 @@ export function VouchersTable({
                   <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">Estudiante</th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">Concepto</th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">Monto declarado</th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">N° operación</th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">Fecha de subida</th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">Archivo</th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">Estado</th>
@@ -109,9 +100,15 @@ export function VouchersTable({
               <tbody className="divide-y divide-border">
                 {vouchers.map((voucher, index) => (
                   <tr key={voucher.id} className={index % 2 === 0 ? 'bg-surface' : 'bg-surface-alt'}>
-                    <td className="px-6 py-4 text-sm text-text font-medium">{voucher.studentName}</td>
-                    <td className="px-6 py-4 text-sm text-text">{voucher.paymentConcept}</td>
-                    <td className="px-6 py-4 text-sm text-text">{formatCurrency(voucher.paymentAmount)}</td>
+                    <td className="px-6 py-4 text-sm text-text font-medium">
+                      {voucher.studentName}
+                      <div className="text-xs text-text-muted font-normal">
+                        DNI {voucher.studentDni ?? '—'} · CUI {voucher.studentCui}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-text">{voucherConceptSummary(voucher)}</td>
+                    <td className="px-6 py-4 text-sm text-text">{formatCurrency(voucher.declaredAmount)}</td>
+                    <td className="px-6 py-4 text-sm text-text-muted">{voucher.operationNumber}</td>
                     <td className="px-6 py-4 text-sm text-text-muted">{formatDate(voucher.createdAt)}</td>
                     <td className="px-6 py-4">
                       <button
@@ -134,12 +131,20 @@ export function VouchersTable({
                       </StatusBadge>
                     </td>
                     <td className="px-6 py-4">
-                      <button
-                        onClick={() => onSelectVoucher(voucher)}
-                        className="px-3 py-1 text-sm border border-primary text-primary rounded hover:bg-primary/5 transition-colors"
-                      >
-                        Revisar
-                      </button>
+                      <div className="flex gap-2">
+                        <IconButton
+                          icon={CheckIcon}
+                          onClick={() => onSelectVoucher(voucher)}
+                          title="Revisar voucher"
+                          variant="success"
+                        />
+                        <IconButton
+                          icon={Trash2Icon}
+                          onClick={() => onDeleteVoucher(voucher)}
+                          title="Eliminar voucher"
+                          variant="accent"
+                        />
+                      </div>
                     </td>
                   </tr>
                 ))}

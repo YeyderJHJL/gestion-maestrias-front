@@ -98,3 +98,11 @@ export async function deleteStudent(token: string, id: string): Promise<void> {
     method: 'DELETE',
   });
 }
+
+/** DELETE /v1/students/bulk */
+export async function bulkDeleteStudents(token: string, ids: string[]): Promise<void> {
+  await apiFetch<void>('/v1/students/bulk', token, {
+    method: 'DELETE',
+    body: JSON.stringify(ids),
+  });
+}

@@ -28,7 +28,8 @@ const STATE_LABEL: Record<string, string> = {
 export function EstudiantePagos() {
   const {
     payments, loading, error,
-    form, setForm, submitting, submitted, formError,
+    form, setForm, selectablePayments, togglePaymentSelection, selectedTotal,
+    submitting, submitted, formError,
     handleSubmit, resetForm, vouchersForPayment,
     toast, setToast,
   } = usePagos();
@@ -138,19 +139,44 @@ export function EstudiantePagos() {
                 <h2 className="text-lg font-serif font-bold text-text">Adjuntar comprobante de pago</h2>
 
                 <div className="space-y-2">
-                  <label className="block text-sm font-medium text-text">¿A qué pago corresponde? *</label>
-                  <select
-                    value={form.paymentId}
-                    onChange={(e) => setForm({ ...form, paymentId: e.target.value })}
+                  <label className="block text-sm font-medium text-text">¿Qué cuotas estás pagando? *</label>
+                  {selectablePayments.length === 0 ? (
+                    <p className="text-sm text-text-muted">No tienes cuotas pendientes de validar.</p>
+                  ) : (
+                    <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                      {selectablePayments.map((p) => (
+                        <label
+                          key={p.id}
+                          className="flex items-center gap-2 px-3 py-2 border border-border rounded-lg text-sm cursor-pointer hover:bg-surface-alt"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={form.paymentIds.includes(p.id)}
+                            onChange={() => togglePaymentSelection(p.id)}
+                            className="w-4 h-4"
+                          />
+                          <span className="flex-1 text-text">{p.concept || `Pago #${p.paymentNumber}`}</span>
+                          <span className="text-text-muted">S/ {p.amount?.toFixed(2) ?? '0.00'}</span>
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                  {form.paymentIds.length > 0 && (
+                    <p className="text-sm font-medium text-text">
+                      Total: S/ {selectedTotal.toFixed(2)}
+                    </p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-text">N° de operación *</label>
+                  <input
+                    type="text"
+                    value={form.operationNumber}
+                    onChange={(e) => setForm({ ...form, operationNumber: e.target.value })}
+                    placeholder="Número de operación del comprobante"
                     className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                  >
-                    <option value="">Seleccionar...</option>
-                    {payments.map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {p.concept || `Pago #${p.paymentNumber}`} — S/ {p.amount?.toFixed(2) ?? '0.00'}
-                      </option>
-                    ))}
-                  </select>
+                  />
                 </div>
 
                 <FileUpload
@@ -177,7 +203,7 @@ export function EstudiantePagos() {
 
                 <button
                   type="button"
-                  disabled={submitting || !form.paymentId || !form.file}
+                  disabled={submitting || form.paymentIds.length === 0 || !form.operationNumber.trim() || !form.file}
                   onClick={handleSubmit}
                   className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-light transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
                 >

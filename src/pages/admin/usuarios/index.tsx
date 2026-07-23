@@ -53,6 +53,19 @@ export function AdminUsuarios() {
     deletingUser,
     setDeletingUser,
     handleDelete,
+    // Selección múltiple y eliminación masiva
+    canBulkSelect,
+    isSelectionModeActive,
+    toggleSelectionMode,
+    selectedIds,
+    showBulkSelection,
+    isAllFilteredSelected,
+    isPartiallySelected,
+    toggleSelect,
+    toggleSelectAll,
+    isBulkDeleteConfirmOpen,
+    setIsBulkDeleteConfirmOpen,
+    handleBulkDelete,
     // Notificación
     toast,
     setToast,
@@ -96,6 +109,16 @@ export function AdminUsuarios() {
           isCoordinator={isCoordinator}
           onEdit={openEditModal}
           onDelete={setDeletingUser}
+          canBulkSelect={canBulkSelect}
+          isSelectionModeActive={isSelectionModeActive}
+          onToggleSelectionMode={toggleSelectionMode}
+          showBulkSelection={showBulkSelection}
+          selectedIds={selectedIds}
+          onToggleSelect={toggleSelect}
+          isAllFilteredSelected={isAllFilteredSelected}
+          isPartiallySelected={isPartiallySelected}
+          onToggleSelectAll={toggleSelectAll}
+          onRequestBulkDelete={() => setIsBulkDeleteConfirmOpen(true)}
         />
       </div>
 
@@ -125,6 +148,19 @@ export function AdminUsuarios() {
             ? `¿Estás seguro de que deseas eliminar a ${deletingUser.firstName} ${deletingUser.lastName}? Esta acción no se puede deshacer.`
             : ''
         }
+        confirmLabel="Eliminar"
+        variant="danger"
+      />
+
+      {/* Modal de confirmación antes de eliminar en bloque */}
+      <ConfirmationModal
+        isOpen={isBulkDeleteConfirmOpen}
+        onClose={() => setIsBulkDeleteConfirmOpen(false)}
+        onConfirm={handleBulkDelete}
+        title="Eliminar usuarios"
+        message={`¿Estás seguro de que deseas eliminar ${selectedIds.size} ${
+          filterRole === 'STUDENT' ? 'estudiante(s)' : 'docente(s)'
+        }? Esta acción no se puede deshacer.`}
         confirmLabel="Eliminar"
         variant="danger"
       />

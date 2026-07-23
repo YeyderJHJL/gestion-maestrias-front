@@ -72,3 +72,11 @@ export async function importTeachersBulk(
   });
   return res.data;
 }
+
+/** DELETE /v1/teachers/bulk */
+export async function bulkDeleteTeachers(token: string, ids: string[]): Promise<void> {
+  await apiFetch<void>('/v1/teachers/bulk', token, {
+    method: 'DELETE',
+    body: JSON.stringify(ids),
+  });
+}
