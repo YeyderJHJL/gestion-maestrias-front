@@ -102,3 +102,42 @@ export async function updateEnrollment(
 export async function deleteEnrollment(token: string, id: string): Promise<void> {
   await apiFetch<ApiResponse<void>>(`/v1/enrollments/${id}`, token, { method: 'DELETE' });
 }
+
+// ── Matrícula masiva ──────────────────────────────────────────────────────────
+
+export interface EnrollmentBulkRequest {
+  studentIds: string[];
+  courseId: string;
+  semesterId: number;
+  stateId: number;
+  enrollmentDate: string;
+  resolutionFileId?: string;
+  observations?: string;
+}
+
+export interface EnrollmentBulkRowResult {
+  rowNumber: number;
+  studentId: string;
+  status: 'ENROLLED' | 'REJECTED';
+  enrollmentId?: string;
+  observations?: string[];
+}
+
+export interface EnrollmentBulkResponse {
+  totalRows: number;
+  enrolled: number;
+  rejected: number;
+  results: EnrollmentBulkRowResult[];
+}
+
+/** POST /v1/enrollments/bulk */
+export async function createBulkEnrollment(
+  token: string,
+  request: EnrollmentBulkRequest
+): Promise<EnrollmentBulkResponse> {
+  const res = await apiFetch<ApiResponse<EnrollmentBulkResponse>>('/v1/enrollments/bulk', token, {
+    method: 'POST',
+    body: JSON.stringify(request),
+  });
+  return res.data;
+}
