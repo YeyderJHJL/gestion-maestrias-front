@@ -38,6 +38,7 @@ export function useCursoDetalle(courseId: string) {
   const [grades, setGrades] = useState<GradeResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [accessDenied, setAccessDenied] = useState(false);
 
   const [activeTab, setActiveTab] = useState<TabKey>('silabo');
   const [silaboUploading, setSilaboUploading] = useState(false);
@@ -60,22 +61,26 @@ export function useCursoDetalle(courseId: string) {
     if (!token || !courseId) return;
     setLoading(true);
     setError(null);
+    setAccessDenied(false);
     try {
-      const [courseData, studentsData, gradesData, assignmentsData] = await Promise.all([
+      const assignmentsData = await listMyAssignments(token);
+      const matching = assignmentsData.find((a) => a.courseId === courseId);
+
+      if (!matching) {
+        setAccessDenied(true);
+        setLoading(false);
+        return;
+      }
+
+      const [courseData, studentsData, gradesData] = await Promise.all([
         getCourse(token, courseId),
         getCourseStudents(token, courseId),
         listGrades(token, { courseId }),
-        listMyAssignments(token),
       ]);
       setCourse(courseData);
       setStudents(studentsData);
       setGrades(gradesData);
-
-      const semesterId = studentsData[0]?.semesterId;
-      const matching = assignmentsData.find(
-        (a) => a.courseId === courseId && (!semesterId || a.semesterId === semesterId)
-      );
-      setSyllabusFile(matching?.syllabusFile ?? null);
+      setSyllabusFile(matching.syllabusFile ?? null);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Error al cargar datos del curso');
     } finally {
@@ -186,7 +191,7 @@ export function useCursoDetalle(courseId: string) {
     course, students, grades,
     syllabusFile,
     mergedRows,
-    loading, error,
+    loading, error, accessDenied,
     activeTab, setActiveTab,
     silaboUploading, handleSyllabusUpload,
     syllabusUrl, loadingSyllabus, loadSyllabusUrl,

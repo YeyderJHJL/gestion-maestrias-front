@@ -1,4 +1,5 @@
 import { Link, useParams } from 'react-router-dom';
+import { ShieldAlertIcon } from 'lucide-react';
 import { DocenteLayout } from '../../../layouts/DocenteLayout';
 import { Toast } from '../../../components/Toast';
 import { CourseHeader } from './components/CourseHeader';
@@ -24,7 +25,7 @@ export function DocenteCursoDetalle() {
     course, students,
     syllabusFile,
     mergedRows,
-    loading, error,
+    loading, error, accessDenied,
     activeTab, setActiveTab,
     handleSyllabusUpload,
     editingGrade, gradeValue, setGradeValue,
@@ -40,6 +41,31 @@ export function DocenteCursoDetalle() {
       <DocenteLayout>
         <div className="flex items-center justify-center h-64">
           <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+        </div>
+      </DocenteLayout>
+    );
+  }
+
+  if (accessDenied) {
+    return (
+      <DocenteLayout>
+        <div className="flex flex-col items-center justify-center py-20 text-center px-4">
+          <div className="w-16 h-16 rounded-full bg-accent/10 flex items-center justify-center mb-4">
+            <ShieldAlertIcon className="w-8 h-8 text-accent" />
+          </div>
+          <h2 className="text-lg font-serif font-bold text-text mb-2">
+            Acceso denegado
+          </h2>
+          <p className="text-sm text-text-muted max-w-md">
+            No tienes asignación en este curso. Solo puedes acceder a los cursos
+            que te fueron asignados por la administración.
+          </p>
+          <Link
+            to="/docente/dashboard"
+            className="mt-4 inline-flex items-center gap-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-light transition-colors text-sm"
+          >
+            Volver a Mis Cursos
+          </Link>
         </div>
       </DocenteLayout>
     );
