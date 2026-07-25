@@ -6,6 +6,7 @@ import {
   XIcon,
   Loader2Icon,
   UsersIcon,
+  UploadCloudIcon,
 } from 'lucide-react';
 import { SemesterResponse } from '../../../../../services/semestersApiService';
 import { AssignmentResponse } from '../../../../../services/assignmentsApiService';
@@ -24,6 +25,7 @@ interface Props {
   onDeleteAssignment: (a: AssignmentResponse) => void;
   // permisos
   isCoordinator: boolean;
+  onImportGrades: (courseId: string) => void;
 }
 
 export function SemestreCard({
@@ -38,6 +40,7 @@ export function SemestreCard({
   onEditAssignment,
   onDeleteAssignment,
   isCoordinator,
+  onImportGrades,
 }: Props) {
   return (
     <div className="border border-border rounded-lg bg-surface overflow-hidden">
@@ -114,6 +117,7 @@ export function SemestreCard({
                   isCoordinator={isCoordinator}
                   onEdit={() => onEditAssignment(asignacion)}
                   onDelete={() => onDeleteAssignment(asignacion)}
+                  onImportGrades={() => onImportGrades(asignacion.courseId)}
                 />
               ))}
             </div>
@@ -130,9 +134,10 @@ interface AsignacionCardProps {
   isCoordinator: boolean;
   onEdit: () => void;
   onDelete: () => void;
+  onImportGrades: () => void;
 }
 
-function AsignacionCard({ asignacion, isCoordinator, onEdit, onDelete }: AsignacionCardProps) {
+function AsignacionCard({ asignacion, isCoordinator, onEdit, onDelete, onImportGrades }: AsignacionCardProps) {
   return (
     <div className="bg-surface border border-border p-4 rounded-xl shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
       <div className="absolute top-0 left-0 w-1 h-full bg-primary opacity-50 group-hover:opacity-100 transition-opacity" />
@@ -148,6 +153,13 @@ function AsignacionCard({ asignacion, isCoordinator, onEdit, onDelete }: Asignac
         {!isCoordinator && (
           <div className="flex gap-1">
             <button
+              onClick={onImportGrades}
+              className="p-1.5 rounded-lg text-text-muted hover:bg-success/10 hover:text-success transition-colors"
+              title="Importar Notas"
+            >
+              <UploadCloudIcon className="w-4 h-4" />
+            </button>
+            <button
               onClick={onEdit}
               className="p-1.5 rounded-lg text-text-muted hover:bg-primary/10 hover:text-primary transition-colors"
               title="Editar asignación"
@@ -160,6 +172,18 @@ function AsignacionCard({ asignacion, isCoordinator, onEdit, onDelete }: Asignac
               title="Eliminar asignación"
             >
               <XIcon className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+        
+        {isCoordinator && (
+          <div className="flex gap-1">
+            <button
+              onClick={onImportGrades}
+              className="p-1.5 rounded-lg text-text-muted hover:bg-success/10 hover:text-success transition-colors"
+              title="Importar Notas"
+            >
+              <UploadCloudIcon className="w-4 h-4" />
             </button>
           </div>
         )}

@@ -8,7 +8,9 @@ import { GradesTable } from './components/GradesTable';
 import { EditGradeModal } from './components/EditGradeModal';
 import { useCursoDetalle } from './hooks/useCursoDetalle';
 import { FilePreviewModal } from '../../../components/FilePreviewModal';
+import { ImportGradesModal } from '../../../components/ImportGradesModal';
 import { useState } from 'react';
+import { UploadIcon } from 'lucide-react';
 
 type TabKey = 'silabo' | 'estudiantes' | 'notas';
 
@@ -34,6 +36,7 @@ export function DocenteCursoDetalle() {
   } = useCursoDetalle(id ?? '');
 
   const [syllabusPreviewOpen, setSyllabusPreviewOpen] = useState(false);
+  const [importGradesOpen, setImportGradesOpen] = useState(false);
 
   if (loading) {
     return (
@@ -109,6 +112,16 @@ export function DocenteCursoDetalle() {
 
             {activeTab === 'notas' && (
               <div className="space-y-6">
+                <div className="flex justify-end">
+                  <button
+                    onClick={() => setImportGradesOpen(true)}
+                    className="flex items-center gap-2 px-4 py-2 border border-primary text-primary rounded-lg hover:bg-primary/5 transition-colors text-sm font-semibold"
+                  >
+                    <UploadIcon className="w-4 h-4" />
+                    Importar Notas (Excel)
+                  </button>
+                </div>
+                
                 <GradesTable
                   rows={mergedRows}
                   onEditGrade={(grade, studentName) => openEditGrade(grade, studentName)}
@@ -146,6 +159,16 @@ export function DocenteCursoDetalle() {
         fileId={syllabusFile?.id ?? null}
         isOpen={syllabusPreviewOpen}
         onClose={() => setSyllabusPreviewOpen(false)}
+      />
+      
+      <ImportGradesModal
+        isOpen={importGradesOpen}
+        onClose={() => setImportGradesOpen(false)}
+        courseId={course?.id || ''}
+        onSuccess={() => {
+          // You could reload data here if needed, or window.location.reload()
+          window.location.reload();
+        }}
       />
     </DocenteLayout>
   );

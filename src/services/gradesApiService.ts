@@ -72,3 +72,35 @@ export async function updateGrade(
 export async function deleteGrade(token: string, id: string): Promise<void> {
   await apiFetch<ApiResponse<void>>(`/v1/grades/${id}`, token, { method: 'DELETE' });
 }
+
+export interface GradeBulkRequest {
+  cui: string;
+  value: number;
+}
+
+export interface GradeBulkRowResult {
+  rowNumber: number;
+  cui: string;
+  status: 'IMPORTED' | 'REJECTED' | string;
+  gradeId?: string;
+  observations?: string[];
+}
+
+export interface GradeBulkResult {
+  totalRows: number;
+  imported: number;
+  rejected: number;
+  results: GradeBulkRowResult[];
+}
+
+export async function importGradesBulk(
+  token: string,
+  courseId: string,
+  data: GradeBulkRequest[]
+): Promise<GradeBulkResult> {
+  const res = await apiFetch<ApiResponse<GradeBulkResult>>(`/v1/grades/bulk/${courseId}`, token, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+  return res.data;
+}
