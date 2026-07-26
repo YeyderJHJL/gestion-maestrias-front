@@ -20,6 +20,7 @@ export interface GradeRequest {
   enrollmentId: string;
   stateId: number;
   value: number;
+  reason?: string;
 }
 
 export interface ListGradesParams {

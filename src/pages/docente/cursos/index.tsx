@@ -30,7 +30,7 @@ export function DocenteCursoDetalle() {
     loading, error, accessDenied,
     activeTab, setActiveTab,
     handleSyllabusUpload,
-    editingGrade, gradeValue, setGradeValue,
+    editingGrade, gradeValue, setGradeValue, gradeReason, setGradeReason,
     openEditGrade, openCreateGrade, closeEditGrade, handleSaveGrade, savingGrade,
     toast, setToast,
     notasRegistradas, totalEstudiantes,
@@ -168,8 +168,10 @@ export function DocenteCursoDetalle() {
       <EditGradeModal
         editingGrade={editingGrade}
         gradeValue={gradeValue}
+        gradeReason={gradeReason}
         saving={savingGrade}
         onGradeValueChange={setGradeValue}
+        onGradeReasonChange={setGradeReason}
         onSave={handleSaveGrade}
         onClose={closeEditGrade}
       />

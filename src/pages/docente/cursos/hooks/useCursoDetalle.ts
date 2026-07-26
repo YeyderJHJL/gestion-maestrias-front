@@ -48,6 +48,7 @@ export function useCursoDetalle(courseId: string) {
 
   const [editingGrade, setEditingGrade] = useState<EditingGrade | null>(null);
   const [gradeValue, setGradeValue] = useState('');
+  const [gradeReason, setGradeReason] = useState('');
   const [savingGrade, setSavingGrade] = useState(false);
 
   const [toast, setToast] = useState<{
@@ -132,6 +133,7 @@ export function useCursoDetalle(courseId: string) {
       currentValue: grade.value,
     });
     setGradeValue(String(grade.value));
+    setGradeReason('');
   };
 
   const openCreateGrade = (enrollment: EnrollmentResponse) => {
@@ -141,11 +143,13 @@ export function useCursoDetalle(courseId: string) {
       studentName: enrollment.studentName,
     });
     setGradeValue('');
+    setGradeReason('');
   };
 
   const closeEditGrade = () => {
     setEditingGrade(null);
     setGradeValue('');
+    setGradeReason('');
   };
 
   const gradesByStudentId = new Map<string, GradeResponse>();
@@ -165,6 +169,7 @@ export function useCursoDetalle(courseId: string) {
         enrollmentId: editingGrade.enrollmentId,
         stateId: Number(gradeValue) >= 11 ? 3 : 4,
         value: Number(gradeValue),
+        ...(editingGrade.gradeId ? { reason: gradeReason } : {}),
       };
 
       if (editingGrade.gradeId) {
@@ -195,7 +200,7 @@ export function useCursoDetalle(courseId: string) {
     activeTab, setActiveTab,
     silaboUploading, handleSyllabusUpload,
     syllabusUrl, loadingSyllabus, loadSyllabusUrl,
-    editingGrade, gradeValue, setGradeValue,
+    editingGrade, gradeValue, setGradeValue, gradeReason, setGradeReason,
     openEditGrade, openCreateGrade, closeEditGrade, handleSaveGrade, savingGrade,
     toast, setToast,
     notasRegistradas, totalEstudiantes,
