@@ -4,8 +4,10 @@ import type { EditingGrade } from '../hooks/useCursoDetalle';
 interface EditGradeModalProps {
   editingGrade: EditingGrade | null;
   gradeValue: string;
+  gradeReason?: string;
   saving: boolean;
   onGradeValueChange: (value: string) => void;
+  onGradeReasonChange?: (reason: string) => void;
   onSave: () => void;
   onClose: () => void;
 }
@@ -13,8 +15,10 @@ interface EditGradeModalProps {
 export function EditGradeModal({
   editingGrade,
   gradeValue,
+  gradeReason = '',
   saving,
   onGradeValueChange,
+  onGradeReasonChange,
   onSave,
   onClose,
 }: EditGradeModalProps) {
@@ -23,7 +27,9 @@ export function EditGradeModal({
   const isEditing = !!editingGrade.gradeId;
   const title = isEditing ? 'Modificar nota' : 'Registrar nota';
   const valueNum = Number(gradeValue);
-  const canSave = !saving && gradeValue !== '' && valueNum >= 0 && valueNum <= 20;
+  const isReasonValid = !isEditing || (gradeReason && gradeReason.trim().length > 0);
+  const isValueDifferent = !isEditing || valueNum !== Number(editingGrade.currentValue);
+  const canSave = !saving && gradeValue !== '' && valueNum >= 0 && valueNum <= 20 && isReasonValid && isValueDifferent;
 
   return (
     <Modal
@@ -60,22 +66,43 @@ export function EditGradeModal({
             step="0.1"
             value={gradeValue}
             onChange={(e) => onGradeValueChange(e.target.value)}
-            className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+            className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-surface text-text"
           />
+          {isEditing && gradeValue !== '' && !isValueDifferent && (
+            <p className="text-xs text-error mt-1">
+              La nueva nota debe ser diferente a la nota actual ({editingGrade.currentValue}).
+            </p>
+          )}
         </div>
+
+        {isEditing && (
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-text">
+              Motivo de la modificación <span className="text-accent">*</span>
+            </label>
+            <textarea
+              rows={2}
+              value={gradeReason}
+              onChange={(e) => onGradeReasonChange?.(e.target.value)}
+              placeholder="Explique el motivo de la modificación..."
+              className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-surface text-text resize-none text-sm"
+              required
+            />
+          </div>
+        )}
 
         <div className="flex gap-3 justify-end pt-4 border-t border-border">
           <button
             type="button"
             onClick={onClose}
-            className="px-6 py-2 border border-primary text-primary rounded-lg hover:bg-primary/5 transition-colors"
+            className="px-6 py-2 border border-primary text-primary rounded-lg hover:bg-primary/5 transition-colors text-sm font-medium"
           >
             Cancelar
           </button>
           <button
             type="submit"
             disabled={!canSave}
-            className="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary-light transition-colors disabled:opacity-50"
+            className="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary-light transition-colors disabled:opacity-50 text-sm font-medium shadow-sm"
           >
             {saving ? 'Guardando...' : (isEditing ? 'Guardar modificación' : 'Registrar nota')}
           </button>
