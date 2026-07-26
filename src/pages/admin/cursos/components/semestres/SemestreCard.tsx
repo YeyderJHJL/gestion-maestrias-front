@@ -7,6 +7,7 @@ import {
   Loader2Icon,
   UsersIcon,
   UploadCloudIcon,
+  MailIcon,
 } from 'lucide-react';
 import { SemesterResponse } from '../../../../../services/semestersApiService';
 import { AssignmentResponse } from '../../../../../services/assignmentsApiService';
@@ -144,9 +145,11 @@ function AsignacionCard({ asignacion, isCoordinator, onEdit, onDelete, onImportG
 
       <div className="flex justify-between items-start mb-3">
         <div className="pl-2">
-          <span className="text-xs font-semibold tracking-wider text-primary bg-primary/10 px-2 py-0.5 rounded-full uppercase">
-            {asignacion.courseCode}
-          </span>
+          {asignacion.courseCode && asignacion.courseCode.replace(/[_]/g, ' ').normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim() !== asignacion.courseName.replace(/[_]/g, ' ').normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim() && (
+            <span className="text-xs font-semibold tracking-wider text-primary bg-primary/10 px-2 py-0.5 rounded-full uppercase">
+              {asignacion.courseCode}
+            </span>
+          )}
           <h4 className="font-bold text-text mt-2 leading-tight">{asignacion.courseName}</h4>
         </div>
 
@@ -189,12 +192,20 @@ function AsignacionCard({ asignacion, isCoordinator, onEdit, onDelete, onImportG
         )}
       </div>
 
-      <div className="pl-2 flex items-center gap-2 mt-4 text-sm font-medium text-text-muted">
-        <UsersIcon className="w-4 h-4 text-primary" />
-        <span>{asignacion.teacherName}</span>
+      <div className="pl-2 space-y-1 mt-4">
+        <div className="flex items-center gap-2 text-sm font-semibold text-text">
+          <UsersIcon className="w-4 h-4 text-primary shrink-0" />
+          <span>{asignacion.teacherName}</span>
+        </div>
+        {asignacion.teacherEmail && (
+          <div className="flex items-center gap-2 text-xs text-text-muted pl-6">
+            <MailIcon className="w-3.5 h-3.5 text-text-muted/70 shrink-0" />
+            <span className="truncate">{asignacion.teacherEmail}</span>
+          </div>
+        )}
       </div>
-      <div className="pl-2 text-xs text-text-muted/70 mt-2">
-        Asignado el: {asignacion.assignmentDate}
+      <div className="pl-2 text-xs text-text-muted/70 mt-3 border-t border-border/50 pt-2 flex items-center justify-between">
+        <span>Asignado el: {asignacion.assignmentDate}</span>
       </div>
     </div>
   );
