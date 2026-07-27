@@ -29,16 +29,26 @@ export function useDashboard() {
     setLoading(true);
     Promise.all([
       listEnrollments(token, { studentId: user.studentId }),
-      listGrades(token),
       listMyVouchers(token)
     ])
-    .then(async ([enrollmentsData, gradesData, vouchersData]) => {
+    .then(async ([enrollmentsData, vouchersData]) => {
       setEnrollments(enrollmentsData);
-      setGrades(gradesData.filter(g => g.studentId === user.studentId));
       setVouchers(vouchersData);
 
-      const teachersMap: Record<string, string> = {};
       const uniqueCourseIds = [...new Set(enrollmentsData.map(e => e.courseId))];
+
+      const gradesResults = await Promise.allSettled(
+        uniqueCourseIds.map(courseId => listGrades(token, { courseId }))
+      );
+      const fetchedGrades: GradeResponse[] = [];
+      gradesResults.forEach(res => {
+        if (res.status === 'fulfilled' && Array.isArray(res.value)) {
+          fetchedGrades.push(...res.value);
+        }
+      });
+      setGrades(fetchedGrades.filter(g => g.studentId === user.studentId));
+
+      const teachersMap: Record<string, string> = {};
 
       await Promise.all(uniqueCourseIds.map(async courseId => {
         try {

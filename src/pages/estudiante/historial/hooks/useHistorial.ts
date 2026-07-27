@@ -38,13 +38,21 @@ export function useHistorial() {
     if (!token || !user?.studentId) return;
 
     setLoading(true);
-    Promise.all([
-      listEnrollments(token, { studentId: user.studentId }),
-      listGrades(token)
-    ])
-    .then(([enrollmentsData, gradesData]) => {
+    listEnrollments(token, { studentId: user.studentId })
+    .then(async (enrollmentsData) => {
       setEnrollments(enrollmentsData);
-      setGrades(gradesData.filter(g => g.studentId === user.studentId));
+
+      const uniqueCourseIds = [...new Set(enrollmentsData.map(e => e.courseId))];
+      const gradesResults = await Promise.allSettled(
+        uniqueCourseIds.map(courseId => listGrades(token, { courseId }))
+      );
+      const fetchedGrades: GradeResponse[] = [];
+      gradesResults.forEach(res => {
+        if (res.status === 'fulfilled' && Array.isArray(res.value)) {
+          fetchedGrades.push(...res.value);
+        }
+      });
+      setGrades(fetchedGrades.filter(g => g.studentId === user.studentId));
 
       if (enrollmentsData.length > 0) {
         const sorted = [...enrollmentsData].sort((a, b) => b.semesterId - a.semesterId);
