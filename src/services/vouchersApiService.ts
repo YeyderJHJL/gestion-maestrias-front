@@ -2,8 +2,9 @@ import { apiFetch, ApiResponse } from './api';
 import { VoucherResponse, VoucherCreateRequest, VoucherUpdateRequest } from '../types/voucher';
 
 
-export async function listVouchers(token: string): Promise<VoucherResponse[]> {
-  const res = await apiFetch<ApiResponse<VoucherResponse[]>>('/v1/vouchers', token);
+export async function listVouchers(token: string, search?: string): Promise<VoucherResponse[]> {
+  const qs = search ? `?search=${encodeURIComponent(search)}` : '';
+  const res = await apiFetch<ApiResponse<VoucherResponse[]>>(`/v1/vouchers${qs}`, token);
   return res.data;
 }
 

@@ -1,3 +1,5 @@
+import { isAuthTokenExpired } from './authTokenService';
+
 const BASE_URL = import.meta.env.VITE_API_URL ?? '/api';
 
 export class ApiError extends Error {
@@ -18,6 +20,11 @@ export async function apiFetch<T>(
   token: string,
   options: RequestInit = {}
 ): Promise<T> {
+  if (isAuthTokenExpired(token)) {
+    window.dispatchEvent(new CustomEvent('session-expired'));
+    throw new ApiError(401, 'Sesión expirada');
+  }
+
   const isFormData = typeof FormData !== 'undefined' && options.body instanceof FormData;
   const response = await fetch(`${BASE_URL}${path}`, {
     ...options,

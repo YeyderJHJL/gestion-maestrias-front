@@ -11,31 +11,63 @@ export function useNotas() {
   const [grades, setGrades] = useState<GradeResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [accessDenied, setAccessDenied] = useState(false);
   const [selectedPeriod, setSelectedPeriod] = useState<string>('');
 
   useEffect(() => {
     if (!token || !user?.studentId) return;
 
     setLoading(true);
-    Promise.all([
-      listEnrollments(token, { studentId: user.studentId }),
-      listGrades(token)
-    ])
-    .then(([enrollmentsData, gradesData]) => {
-      setEnrollments(enrollmentsData);
-      const myGrades = gradesData.filter(g => g.studentId === user.studentId);
-      setGrades(myGrades);
+    setError(null);
+    setAccessDenied(false);
 
-      if (enrollmentsData.length > 0) {
-        const sorted = [...enrollmentsData].sort((a, b) => b.semesterId - a.semesterId);
-        setSelectedPeriod(sorted[0].semesterCode);
-      }
-    })
-    .catch(err => {
-      if (err instanceof ApiError) setError(err.message);
-      else setError('Error al cargar notas');
-    })
-    .finally(() => setLoading(false));
+    listEnrollments(token, { studentId: user.studentId })
+      .then(async (enrollmentsData) => {
+        setEnrollments(enrollmentsData);
+
+        if (enrollmentsData.length > 0) {
+          const sorted = [...enrollmentsData].sort((a, b) => b.semesterId - a.semesterId);
+          setSelectedPeriod(sorted[0].semesterCode);
+        }
+
+        // El backend exige matrícula activa (estado ENROLLED) por curso para
+        // devolver notas — solo se piden las notas de los cursos donde el
+        // estudiante está matriculado hoy; un curso retirado/anulado simplemente
+        // no trae nota (en vez de mostrar acceso denegado por cada uno).
+        const enrolledCourseIds = [...new Set(
+          enrollmentsData
+            .filter((e) => e.stateCode === 'ENROLLED')
+            .map((e) => e.courseId)
+        )];
+
+        const results = await Promise.allSettled(
+          enrolledCourseIds.map((courseId) => listGrades(token, { courseId }))
+        );
+
+        const deniedCount = results.filter(
+          (r) => r.status === 'rejected' && r.reason instanceof ApiError && r.reason.status === 403
+        ).length;
+        if (deniedCount > 0) {
+          setAccessDenied(true);
+        }
+
+        const failedOther = results.find(
+          (r) => r.status === 'rejected' && !(r.reason instanceof ApiError && r.reason.status === 403)
+        );
+        if (failedOther) {
+          throw failedOther.status === 'rejected' ? failedOther.reason : new Error('Error al cargar notas');
+        }
+
+        const gradesData = results
+          .filter((r): r is PromiseFulfilledResult<GradeResponse[]> => r.status === 'fulfilled')
+          .flatMap((r) => r.value);
+        setGrades(gradesData.filter((g) => g.studentId === user.studentId));
+      })
+      .catch((err) => {
+        if (err instanceof ApiError) setError(err.message);
+        else setError('Error al cargar notas');
+      })
+      .finally(() => setLoading(false));
   }, [token, user]);
 
   const periods = useMemo(() => {
@@ -77,6 +109,7 @@ export function useNotas() {
   return {
     loading,
     error,
+    accessDenied,
     enrollments,
     periods,
     selectedPeriod,

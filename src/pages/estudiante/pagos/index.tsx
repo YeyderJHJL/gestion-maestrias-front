@@ -5,7 +5,7 @@ import { StatusBadge } from '../../../components/StatusBadge';
 import { FileUpload } from '../../../components/FileUpload';
 import { Modal } from '../../../components/Modal';
 import { Toast } from '../../../components/Toast';
-import { ChevronDownIcon, CheckCircleIcon, Loader2Icon, ImageIcon, InfoIcon } from 'lucide-react';
+import { ChevronDownIcon, CheckCircleIcon, Loader2Icon, ImageIcon } from 'lucide-react';
 import { usePagos } from './hooks/usePagos';
 
 const formatDate = (iso: string) =>
@@ -28,13 +28,15 @@ const STATE_LABEL: Record<string, string> = {
 export function EstudiantePagos() {
   const {
     payments, loading, error,
-    form, setForm, submitting, submitted, formError,
+    form, setForm, selectablePayments, togglePaymentSelection, selectedTotal,
+    submitting, submitted, formError,
     handleSubmit, resetForm, vouchersForPayment,
     toast, setToast,
   } = usePagos();
 
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
   const [guideOpen, setGuideOpen] = useState(false);
+  const [isZoomed, setIsZoomed] = useState(false);
 
   return (
     <EstudianteLayout>
@@ -138,19 +140,44 @@ export function EstudiantePagos() {
                 <h2 className="text-lg font-serif font-bold text-text">Adjuntar comprobante de pago</h2>
 
                 <div className="space-y-2">
-                  <label className="block text-sm font-medium text-text">¿A qué pago corresponde? *</label>
-                  <select
-                    value={form.paymentId}
-                    onChange={(e) => setForm({ ...form, paymentId: e.target.value })}
+                  <label className="block text-sm font-medium text-text">¿Qué cuotas estás pagando? *</label>
+                  {selectablePayments.length === 0 ? (
+                    <p className="text-sm text-text-muted">No tienes cuotas pendientes de validar.</p>
+                  ) : (
+                    <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                      {selectablePayments.map((p) => (
+                        <label
+                          key={p.id}
+                          className="flex items-center gap-2 px-3 py-2 border border-border rounded-lg text-sm cursor-pointer hover:bg-surface-alt"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={form.paymentIds.includes(p.id)}
+                            onChange={() => togglePaymentSelection(p.id)}
+                            className="w-4 h-4"
+                          />
+                          <span className="flex-1 text-text">{p.concept || `Pago #${p.paymentNumber}`}</span>
+                          <span className="text-text-muted">S/ {p.amount?.toFixed(2) ?? '0.00'}</span>
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                  {form.paymentIds.length > 0 && (
+                    <p className="text-sm font-medium text-text">
+                      Total: S/ {selectedTotal.toFixed(2)}
+                    </p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-text">N° de operación *</label>
+                  <input
+                    type="text"
+                    value={form.operationNumber}
+                    onChange={(e) => setForm({ ...form, operationNumber: e.target.value })}
+                    placeholder="Número de operación del comprobante"
                     className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                  >
-                    <option value="">Seleccionar...</option>
-                    {payments.map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {p.concept || `Pago #${p.paymentNumber}`} — S/ {p.amount?.toFixed(2) ?? '0.00'}
-                      </option>
-                    ))}
-                  </select>
+                  />
                 </div>
 
                 <FileUpload
@@ -162,7 +189,7 @@ export function EstudiantePagos() {
 
                 <button
                   type="button"
-                  onClick={() => setGuideOpen(true)}
+                  onClick={() => { setGuideOpen(true); setIsZoomed(false); }}
                   className="flex items-center gap-1.5 text-sm text-primary hover:text-primary-light transition-colors"
                 >
                   <ImageIcon className="w-4 h-4" />
@@ -177,7 +204,7 @@ export function EstudiantePagos() {
 
                 <button
                   type="button"
-                  disabled={submitting || !form.paymentId || !form.file}
+                  disabled={submitting || form.paymentIds.length === 0 || !form.operationNumber.trim() || !form.file}
                   onClick={handleSubmit}
                   className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-light transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
                 >
@@ -200,20 +227,28 @@ export function EstudiantePagos() {
         </div>
       </div>
 
-      <Modal isOpen={guideOpen} onClose={() => setGuideOpen(false)} title="Guía de pago" size="lg">
-        <p className="text-sm text-text-muted mb-4">
-          Asegúrate de que tu comprobante sea legible y muestre claramente el monto, fecha y número de operación.
-        </p>
-        <div className="rounded-lg border border-border bg-surface-alt overflow-hidden">
-          <img src="/img/Guia_pagos.jpg.jpeg" alt="Guía de pago por banca y Yape" className="w-full object-contain" />
-        </div>
-        <div className="mt-4 flex items-start gap-2 px-4 py-3 bg-primary/5 border border-primary/20 rounded-lg">
-          <InfoIcon className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
-          <p className="text-sm text-text">
-            <strong>Pago por agente:</strong> Brinda tu código de pago al agente.
-            El comprobante que recibas debe mostrar tus datos y el monto pagado.
-            Tómale una foto clara y súbela como voucher.
-          </p>
+      <Modal isOpen={guideOpen} onClose={() => { setGuideOpen(false); setIsZoomed(false); }} title="" size={isZoomed ? "full" : "fit"}>
+        <div 
+          className={`transition-all duration-300 flex flex-col items-center justify-center bg-surface-alt ${
+            isZoomed 
+              ? 'max-h-[90vh] w-full overflow-auto cursor-zoom-out p-4' 
+              : 'max-h-[85vh] w-fit cursor-zoom-in'
+          }`}
+          onClick={() => setIsZoomed(!isZoomed)}
+          title={isZoomed ? "Haz clic para alejar el zoom" : "Haz clic para acercar el zoom aquí mismo"}
+        >
+          <img
+            src="/img/Guia_pagos.jpg.jpeg"
+            alt="Guía de pago"
+            className={`w-auto object-contain mx-auto transition-all duration-300 ${
+              isZoomed ? 'max-h-none w-full' : 'max-h-[82vh]'
+            }`}
+          />
+          {!isZoomed && (
+            <span className="text-[10px] text-primary/80 py-1.5 font-medium flex items-center gap-1 bg-surface/95 w-full justify-center border-t border-border/40">
+              🔍 Clic en la imagen para acercar aquí mismo
+            </span>
+          )}
         </div>
       </Modal>
 

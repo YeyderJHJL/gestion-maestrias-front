@@ -1,19 +1,11 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../../context/AuthContext';
 import { ApiError } from '../../../services/api';
 import { VOUCHER_STATE } from '../../../constants/stateIds';
-import { listVouchers, updateVoucher } from '../../../services/vouchersApiService';
+import { listVouchers, updateVoucher, deleteVoucher } from '../../../services/vouchersApiService';
 import { VoucherResponse, VoucherStateCode } from '../../../types/voucher';
 
-type ActiveTab = 'pendientes' | 'validados' | 'observados' | 'rechazados';
 type Decision = 'validar' | 'observar' | 'rechazar';
-
-const TAB_TO_STATE: Record<ActiveTab, VoucherStateCode> = {
-  pendientes: 'UPLOADED',
-  validados: 'VALIDATED',
-  observados: 'OBSERVED',
-  rechazados: 'REJECTED',
-};
 
 const DECISION_TO_STATE: Record<Decision, { code: VoucherStateCode; id: number }> = {
   validar:  { code: 'VALIDATED', id: VOUCHER_STATE.VALIDATED },
@@ -28,12 +20,19 @@ export function useAdminVouchers() {
   const [allVouchers, setAllVouchers] = useState<VoucherResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<ActiveTab>('pendientes');
+
+  const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [stateFilter, setStateFilter] = useState<VoucherStateCode | ''>('');
 
   const [selectedVoucher, setSelectedVoucher] = useState<VoucherResponse | null>(null);
+  const [checkedPaymentIds, setCheckedPaymentIds] = useState<Set<string>>(new Set());
   const [decision, setDecision] = useState<Decision | null>(null);
   const [motivo, setMotivo] = useState('');
   const [submitting, setSubmitting] = useState(false);
+
+  const [deletingVoucher, setDeletingVoucher] = useState<VoucherResponse | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const [toast, setToast] = useState<{
     visible: boolean;
@@ -47,34 +46,45 @@ export function useAdminVouchers() {
 
   const closeToast = () => setToast((t) => ({ ...t, visible: false }));
 
+  // Debounce de la búsqueda antes de pegarle al backend
+  useEffect(() => {
+    const timeout = setTimeout(() => setDebouncedSearch(search.trim()), 400);
+    return () => clearTimeout(timeout);
+  }, [search]);
+
   const loadVouchers = useCallback(() => {
     if (!token) return;
     setLoading(true);
     setError(null);
-    listVouchers(token)
+    listVouchers(token, debouncedSearch || undefined)
       .then(setAllVouchers)
       .catch((e: Error) => setError(e.message))
       .finally(() => setLoading(false));
-  }, [token]);
+  }, [token, debouncedSearch]);
 
   useEffect(() => {
     loadVouchers();
   }, [loadVouchers]);
 
-  const vouchers = useMemo(
-    () => allVouchers.filter((v) => v.stateCode === TAB_TO_STATE[activeTab]),
-    [allVouchers, activeTab]
-  );
+  const vouchers = allVouchers.filter((v) => !stateFilter || v.stateCode === stateFilter);
 
-  const tabs = useMemo(() => [
-    { key: 'pendientes' as const, label: 'Pendientes', count: allVouchers.filter((v) => v.stateCode === 'UPLOADED').length },
-    { key: 'validados' as const, label: 'Validados', count: allVouchers.filter((v) => v.stateCode === 'VALIDATED').length },
-    { key: 'observados' as const, label: 'Observados', count: allVouchers.filter((v) => v.stateCode === 'OBSERVED').length },
-    { key: 'rechazados' as const, label: 'Rechazados', count: allVouchers.filter((v) => v.stateCode === 'REJECTED').length },
-  ], [allVouchers]);
+  const openReview = (voucher: VoucherResponse) => {
+    setSelectedVoucher(voucher);
+    setCheckedPaymentIds(new Set(voucher.payments.map((p) => p.paymentId)));
+  };
+
+  const togglePayment = (paymentId: string) => {
+    setCheckedPaymentIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(paymentId)) next.delete(paymentId);
+      else next.add(paymentId);
+      return next;
+    });
+  };
 
   const closeDrawer = () => {
     setSelectedVoucher(null);
+    setCheckedPaymentIds(new Set());
     setDecision(null);
     setMotivo('');
   };
@@ -84,11 +94,18 @@ export function useAdminVouchers() {
     setSubmitting(true);
     try {
       const target = DECISION_TO_STATE[decision];
+      const includedPayments = decision === 'validar'
+        ? selectedVoucher.payments.filter((p) => checkedPaymentIds.has(p.paymentId))
+        : selectedVoucher.payments;
+      const declaredAmount = includedPayments.reduce((sum, p) => sum + (p.paymentAmount ?? 0), 0);
+
       const updated = await updateVoucher(token, selectedVoucher.id, {
-        paymentId: selectedVoucher.paymentId,
+        declaredAmount,
+        payments: includedPayments.map((p) => ({ paymentId: p.paymentId })),
         stateId: target.id,
         fileId: selectedVoucher.file.id,
         observation: motivo || undefined,
+        operationNumber: selectedVoucher.operationNumber,
       });
       setAllVouchers((prev) => prev.map((v) => v.id === updated.id ? updated : v));
       showToast('success', 'Decisión registrada correctamente.');
@@ -100,15 +117,33 @@ export function useAdminVouchers() {
     }
   };
 
+  const handleDelete = async () => {
+    if (!token || !deletingVoucher) return;
+    setDeleting(true);
+    try {
+      await deleteVoucher(token, deletingVoucher.id);
+      setAllVouchers((prev) => prev.filter((v) => v.id !== deletingVoucher.id));
+      showToast('success', 'Voucher eliminado correctamente.');
+    } catch (e) {
+      showToast('error', e instanceof ApiError ? e.message : 'Error al eliminar el voucher.');
+    } finally {
+      setDeleting(false);
+      setDeletingVoucher(null);
+    }
+  };
+
   return {
     vouchers,
     loading,
     error,
-    activeTab,
-    setActiveTab,
-    tabs,
+    search,
+    setSearch,
+    stateFilter,
+    setStateFilter,
     selectedVoucher,
-    setSelectedVoucher,
+    openReview,
+    checkedPaymentIds,
+    togglePayment,
     decision,
     setDecision,
     motivo,
@@ -117,6 +152,10 @@ export function useAdminVouchers() {
     isCoordinator,
     handleReview,
     closeDrawer,
+    deletingVoucher,
+    setDeletingVoucher,
+    deleting,
+    handleDelete,
     toast,
     closeToast,
   };

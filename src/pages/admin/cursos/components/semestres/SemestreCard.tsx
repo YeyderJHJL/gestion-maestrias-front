@@ -6,6 +6,8 @@ import {
   XIcon,
   Loader2Icon,
   UsersIcon,
+  UploadCloudIcon,
+  MailIcon,
 } from 'lucide-react';
 import { SemesterResponse } from '../../../../../services/semestersApiService';
 import { AssignmentResponse } from '../../../../../services/assignmentsApiService';
@@ -24,6 +26,7 @@ interface Props {
   onDeleteAssignment: (a: AssignmentResponse) => void;
   // permisos
   isCoordinator: boolean;
+  onImportGrades: (courseId: string) => void;
 }
 
 export function SemestreCard({
@@ -38,6 +41,7 @@ export function SemestreCard({
   onEditAssignment,
   onDeleteAssignment,
   isCoordinator,
+  onImportGrades,
 }: Props) {
   return (
     <div className="border border-border rounded-lg bg-surface overflow-hidden">
@@ -114,6 +118,7 @@ export function SemestreCard({
                   isCoordinator={isCoordinator}
                   onEdit={() => onEditAssignment(asignacion)}
                   onDelete={() => onDeleteAssignment(asignacion)}
+                  onImportGrades={() => onImportGrades(asignacion.courseId)}
                 />
               ))}
             </div>
@@ -130,23 +135,33 @@ interface AsignacionCardProps {
   isCoordinator: boolean;
   onEdit: () => void;
   onDelete: () => void;
+  onImportGrades: () => void;
 }
 
-function AsignacionCard({ asignacion, isCoordinator, onEdit, onDelete }: AsignacionCardProps) {
+function AsignacionCard({ asignacion, isCoordinator, onEdit, onDelete, onImportGrades }: AsignacionCardProps) {
   return (
     <div className="bg-surface border border-border p-4 rounded-xl shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
       <div className="absolute top-0 left-0 w-1 h-full bg-primary opacity-50 group-hover:opacity-100 transition-opacity" />
 
       <div className="flex justify-between items-start mb-3">
         <div className="pl-2">
-          <span className="text-xs font-semibold tracking-wider text-primary bg-primary/10 px-2 py-0.5 rounded-full uppercase">
-            {asignacion.courseCode}
-          </span>
+          {asignacion.courseCode && asignacion.courseCode.replace(/[_]/g, ' ').normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim() !== asignacion.courseName.replace(/[_]/g, ' ').normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim() && (
+            <span className="text-xs font-semibold tracking-wider text-primary bg-primary/10 px-2 py-0.5 rounded-full uppercase">
+              {asignacion.courseCode}
+            </span>
+          )}
           <h4 className="font-bold text-text mt-2 leading-tight">{asignacion.courseName}</h4>
         </div>
 
         {!isCoordinator && (
           <div className="flex gap-1">
+            <button
+              onClick={onImportGrades}
+              className="p-1.5 rounded-lg text-text-muted hover:bg-success/10 hover:text-success transition-colors"
+              title="Importar Notas"
+            >
+              <UploadCloudIcon className="w-4 h-4" />
+            </button>
             <button
               onClick={onEdit}
               className="p-1.5 rounded-lg text-text-muted hover:bg-primary/10 hover:text-primary transition-colors"
@@ -163,14 +178,34 @@ function AsignacionCard({ asignacion, isCoordinator, onEdit, onDelete }: Asignac
             </button>
           </div>
         )}
+        
+        {isCoordinator && (
+          <div className="flex gap-1">
+            <button
+              onClick={onImportGrades}
+              className="p-1.5 rounded-lg text-text-muted hover:bg-success/10 hover:text-success transition-colors"
+              title="Importar Notas"
+            >
+              <UploadCloudIcon className="w-4 h-4" />
+            </button>
+          </div>
+        )}
       </div>
 
-      <div className="pl-2 flex items-center gap-2 mt-4 text-sm font-medium text-text-muted">
-        <UsersIcon className="w-4 h-4 text-primary" />
-        <span>{asignacion.teacherName}</span>
+      <div className="pl-2 space-y-1 mt-4">
+        <div className="flex items-center gap-2 text-sm font-semibold text-text">
+          <UsersIcon className="w-4 h-4 text-primary shrink-0" />
+          <span>{asignacion.teacherName}</span>
+        </div>
+        {asignacion.teacherEmail && (
+          <div className="flex items-center gap-2 text-xs text-text-muted pl-6">
+            <MailIcon className="w-3.5 h-3.5 text-text-muted/70 shrink-0" />
+            <span className="truncate">{asignacion.teacherEmail}</span>
+          </div>
+        )}
       </div>
-      <div className="pl-2 text-xs text-text-muted/70 mt-2">
-        Asignado el: {asignacion.assignmentDate}
+      <div className="pl-2 text-xs text-text-muted/70 mt-3 border-t border-border/50 pt-2 flex items-center justify-between">
+        <span>Asignado el: {asignacion.assignmentDate}</span>
       </div>
     </div>
   );

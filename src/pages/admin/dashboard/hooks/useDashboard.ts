@@ -6,6 +6,7 @@ import { ActivityItem, DashboardStats } from '../../../../services/dashboardApiS
 import { listStudents } from '../../../../services/studentsApiService';
 import { listCourses } from '../../../../services/coursesApiService';
 import { listVouchers } from '../../../../services/vouchersApiService';
+import { voucherConceptSummary } from '../../../../types/voucher';
 import { listAssignments } from '../../../../services/assignmentsApiService';
 import { listGrades } from '../../../../services/gradesApiService';
 
@@ -51,7 +52,7 @@ export function useDashboard() {
       // Build Recent Activity
       const voucherItems: ActivityItem[] = vouchers.map(v => ({
         type: 'voucher',
-        description: v.paymentConcept ? `Voucher - ${v.paymentConcept}` : 'Voucher subido',
+        description: `Voucher - ${voucherConceptSummary(v)}`,
         actor: v.studentName,
         timestamp: v.createdAt,
         href: '/admin/vouchers',

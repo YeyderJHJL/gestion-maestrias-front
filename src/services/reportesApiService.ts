@@ -3,7 +3,7 @@ import type { StudentResponse } from './studentsApiService';
 import type { EnrollmentResponse } from './enrollmentsApiService';
 import type { AssignmentResponse } from './assignmentsApiService';
 import type { GradeResponse } from './gradesApiService';
-import type { VoucherResponse } from '../types/voucher';
+import { voucherConceptSummary, type VoucherResponse } from '../types/voucher';
 import type {
   FilaAlumnoPorPromocion,
   FilaCursoPorDocente,
@@ -64,9 +64,9 @@ function mapVoucherToPago(v: VoucherResponse): FilaPagoPorEstudiante {
     estudiante: v.studentName,
     email: v.studentEmail,
     codigoPago: v.studentPaymentCode,
-    concepto: v.paymentConcept ?? '',
-    monto: v.paymentAmount ?? 0,
-    fechaPago: v.paymentDate,
+    concepto: voucherConceptSummary(v),
+    monto: v.declaredAmount,
+    fechaPago: v.payments[0]?.paymentDate ?? null,
     estado: v.stateName,
   };
 }
@@ -76,9 +76,9 @@ function mapVoucherToPendiente(v: VoucherResponse): FilaPagoPendienteValidado {
     voucherId: v.id,
     estudiante: v.studentName,
     email: v.studentEmail,
-    concepto: v.paymentConcept ?? '',
-    monto: v.paymentAmount ?? 0,
-    fechaPago: v.paymentDate,
+    concepto: voucherConceptSummary(v),
+    monto: v.declaredAmount,
+    fechaPago: v.payments[0]?.paymentDate ?? null,
     estado: v.stateName,
     observacion: v.observation,
   };

@@ -14,6 +14,7 @@ import { SemestreFormModal } from './components/semestres/SemestreFormModal';
 import { CursosListModal } from './components/cursos/CursosListModal';
 import { CursoFormModal } from './components/cursos/CursoFormModal';
 import { AsignacionFormModal } from './components/asignaciones/AsignacionFormModal';
+import { ImportGradesModal } from '../../../components/ImportGradesModal';
 
 export function AdminCursos() {
   const cursos = useCursos();
@@ -32,6 +33,9 @@ export function AdminCursos() {
       c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       c.code.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  // Estado para el modal de importar notas masivamente
+  const [importGradesCourseId, setImportGradesCourseId] = useState<string | null>(null);
 
   return (
     <AdminLayout>
@@ -104,6 +108,7 @@ export function AdminCursos() {
                   onEditAssignment={(a) => asignaciones.openEdit(a)}
                   onDeleteAssignment={(a) => asignaciones.setDeletingItem(a)}
                   isCoordinator={asignaciones.isCoordinator}
+                  onImportGrades={(courseId) => setImportGradesCourseId(courseId)}
                 />
               );
             })}
@@ -218,6 +223,14 @@ export function AdminCursos() {
         variant={asignaciones.toast.variant}
         message={asignaciones.toast.message}
         onClose={() => asignaciones.setToast({ ...asignaciones.toast, visible: false })}
+      />
+
+      {/* Modal de Importar Notas Masivas */}
+      <ImportGradesModal
+        isOpen={!!importGradesCourseId}
+        onClose={() => setImportGradesCourseId(null)}
+        courseId={importGradesCourseId || ''}
+        onSuccess={() => window.location.reload()}
       />
     </AdminLayout>
   );

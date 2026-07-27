@@ -6,7 +6,7 @@ interface ModalProps {
   onClose: () => void;
   title: string;
   children: React.ReactNode;
-  size?: 'sm' | 'md' | 'lg' | 'xl' | 'full';
+  size?: 'sm' | 'md' | 'lg' | 'xl' | 'full' | 'fit';
   accentBorder?: boolean;
 }
 export function Modal({
@@ -18,11 +18,12 @@ export function Modal({
   accentBorder = false
 }: ModalProps) {
   const sizeClasses = {
-    sm: 'max-w-md',
-    md: 'max-w-2xl',
-    lg: 'max-w-4xl',
-    xl: 'max-w-6xl',
-    full: 'max-w-[95vw]'
+    sm: 'max-w-md w-full',
+    md: 'max-w-2xl w-full',
+    lg: 'max-w-4xl w-full',
+    xl: 'max-w-6xl w-full',
+    full: 'max-w-[95vw] w-full',
+    fit: 'max-w-[92vw] w-fit mx-auto'
   };
   return createPortal(
     <AnimatePresence>
@@ -40,21 +41,35 @@ export function Modal({
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className={`bg-surface rounded-lg shadow-xl w-full max-w-[95vw] ${sizeClasses[size]} my-2 md:my-8 max-h-[95vh] md:max-h-[90vh] flex flex-col ${accentBorder ? 'border-t-4 border-accent' : ''}`}
+            className={`bg-surface rounded-lg shadow-xl relative max-w-[95vw] ${sizeClasses[size]} my-2 md:my-8 max-h-[95vh] md:max-h-[90vh] flex flex-col ${accentBorder ? 'border-t-4 border-accent' : ''}`}
             onClick={(e) => e.stopPropagation()}>
 
-              <div className="flex items-center justify-between px-4 md:px-6 py-3 md:py-4 border-b border-border flex-shrink-0">
-                <h2 className="text-lg md:text-xl font-serif font-bold text-text">
-                  {title}
-                </h2>
-                <button
-                onClick={onClose}
-                className="text-text-muted hover:text-text transition-colors"
-                aria-label="Cerrar">
-                  <XIcon className="w-6 h-6" />
-                </button>
-              </div>
-              <div className="p-4 md:p-6 overflow-y-auto flex-1">{children}</div>
+              {title ? (
+                <>
+                  <div className="flex items-center justify-between px-4 md:px-6 py-3 md:py-4 border-b border-border flex-shrink-0">
+                    <h2 className="text-lg md:text-xl font-serif font-bold text-text">
+                      {title}
+                    </h2>
+                    <button
+                    onClick={onClose}
+                    className="text-text-muted hover:text-text transition-colors"
+                    aria-label="Cerrar">
+                      <XIcon className="w-6 h-6" />
+                    </button>
+                  </div>
+                  <div className="p-4 md:p-6 overflow-y-auto flex-1">{children}</div>
+                </>
+              ) : (
+                <>
+                  <button
+                  onClick={onClose}
+                  className="absolute top-2.5 right-2.5 z-20 bg-surface/90 hover:bg-surface text-text-muted hover:text-text transition-colors rounded-full p-1.5 shadow-md border border-border"
+                  aria-label="Cerrar">
+                    <XIcon className="w-5 h-5" />
+                  </button>
+                  <div className="p-0 overflow-y-auto flex-1 flex flex-col rounded-lg overflow-hidden">{children}</div>
+                </>
+              )}
             </motion.div>
           </div>
         </>

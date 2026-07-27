@@ -1,4 +1,5 @@
 import { Link, useParams } from 'react-router-dom';
+import { ShieldAlertIcon } from 'lucide-react';
 import { DocenteLayout } from '../../../layouts/DocenteLayout';
 import { Toast } from '../../../components/Toast';
 import { CourseHeader } from './components/CourseHeader';
@@ -8,7 +9,9 @@ import { GradesTable } from './components/GradesTable';
 import { EditGradeModal } from './components/EditGradeModal';
 import { useCursoDetalle } from './hooks/useCursoDetalle';
 import { FilePreviewModal } from '../../../components/FilePreviewModal';
+import { ImportGradesModal } from '../../../components/ImportGradesModal';
 import { useState } from 'react';
+import { UploadIcon } from 'lucide-react';
 
 type TabKey = 'silabo' | 'estudiantes' | 'notas';
 
@@ -24,22 +27,48 @@ export function DocenteCursoDetalle() {
     course, students,
     syllabusFile,
     mergedRows,
-    loading, error,
+    loading, error, accessDenied,
     activeTab, setActiveTab,
     handleSyllabusUpload,
-    editingGrade, gradeValue, setGradeValue,
+    editingGrade, gradeValue, setGradeValue, gradeReason, setGradeReason,
     openEditGrade, openCreateGrade, closeEditGrade, handleSaveGrade, savingGrade,
     toast, setToast,
     notasRegistradas, totalEstudiantes,
   } = useCursoDetalle(id ?? '');
 
   const [syllabusPreviewOpen, setSyllabusPreviewOpen] = useState(false);
+  const [importGradesOpen, setImportGradesOpen] = useState(false);
 
   if (loading) {
     return (
       <DocenteLayout>
         <div className="flex items-center justify-center h-64">
           <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+        </div>
+      </DocenteLayout>
+    );
+  }
+
+  if (accessDenied) {
+    return (
+      <DocenteLayout>
+        <div className="flex flex-col items-center justify-center py-20 text-center px-4">
+          <div className="w-16 h-16 rounded-full bg-accent/10 flex items-center justify-center mb-4">
+            <ShieldAlertIcon className="w-8 h-8 text-accent" />
+          </div>
+          <h2 className="text-lg font-serif font-bold text-text mb-2">
+            Acceso denegado
+          </h2>
+          <p className="text-sm text-text-muted max-w-md">
+            No tienes asignación en este curso. Solo puedes acceder a los cursos
+            que te fueron asignados por la administración.
+          </p>
+          <Link
+            to="/docente/dashboard"
+            className="mt-4 inline-flex items-center gap-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-light transition-colors text-sm"
+          >
+            Volver a Mis Cursos
+          </Link>
         </div>
       </DocenteLayout>
     );
@@ -100,7 +129,6 @@ export function DocenteCursoDetalle() {
                 uploading={false}
                 onUpload={handleSyllabusUpload}
                 onView={() => setSyllabusPreviewOpen(true)}
-                onReplace={() => {}}
               />
             )}
 
@@ -110,6 +138,16 @@ export function DocenteCursoDetalle() {
 
             {activeTab === 'notas' && (
               <div className="space-y-6">
+                <div className="flex justify-end">
+                  <button
+                    onClick={() => setImportGradesOpen(true)}
+                    className="flex items-center gap-2 px-4 py-2 border border-primary text-primary rounded-lg hover:bg-primary/5 transition-colors text-sm font-semibold"
+                  >
+                    <UploadIcon className="w-4 h-4" />
+                    Importar Notas (Excel)
+                  </button>
+                </div>
+                
                 <GradesTable
                   rows={mergedRows}
                   onEditGrade={(grade, studentName) => openEditGrade(grade, studentName)}
@@ -130,8 +168,10 @@ export function DocenteCursoDetalle() {
       <EditGradeModal
         editingGrade={editingGrade}
         gradeValue={gradeValue}
+        gradeReason={gradeReason}
         saving={savingGrade}
         onGradeValueChange={setGradeValue}
+        onGradeReasonChange={setGradeReason}
         onSave={handleSaveGrade}
         onClose={closeEditGrade}
       />
@@ -147,6 +187,16 @@ export function DocenteCursoDetalle() {
         fileId={syllabusFile?.id ?? null}
         isOpen={syllabusPreviewOpen}
         onClose={() => setSyllabusPreviewOpen(false)}
+      />
+      
+      <ImportGradesModal
+        isOpen={importGradesOpen}
+        onClose={() => setImportGradesOpen(false)}
+        courseId={course?.id || ''}
+        onSuccess={() => {
+          // You could reload data here if needed, or window.location.reload()
+          window.location.reload();
+        }}
       />
     </DocenteLayout>
   );

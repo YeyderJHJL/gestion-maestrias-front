@@ -38,6 +38,7 @@ export function useCursoDetalle(courseId: string) {
   const [grades, setGrades] = useState<GradeResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [accessDenied, setAccessDenied] = useState(false);
 
   const [activeTab, setActiveTab] = useState<TabKey>('silabo');
   const [silaboUploading, setSilaboUploading] = useState(false);
@@ -47,6 +48,7 @@ export function useCursoDetalle(courseId: string) {
 
   const [editingGrade, setEditingGrade] = useState<EditingGrade | null>(null);
   const [gradeValue, setGradeValue] = useState('');
+  const [gradeReason, setGradeReason] = useState('');
   const [savingGrade, setSavingGrade] = useState(false);
 
   const [toast, setToast] = useState<{
@@ -60,22 +62,26 @@ export function useCursoDetalle(courseId: string) {
     if (!token || !courseId) return;
     setLoading(true);
     setError(null);
+    setAccessDenied(false);
     try {
-      const [courseData, studentsData, gradesData, assignmentsData] = await Promise.all([
+      const assignmentsData = await listMyAssignments(token);
+      const matching = assignmentsData.find((a) => a.courseId === courseId);
+
+      if (!matching) {
+        setAccessDenied(true);
+        setLoading(false);
+        return;
+      }
+
+      const [courseData, studentsData, gradesData] = await Promise.all([
         getCourse(token, courseId),
         getCourseStudents(token, courseId),
         listGrades(token, { courseId }),
-        listMyAssignments(token),
       ]);
       setCourse(courseData);
       setStudents(studentsData);
       setGrades(gradesData);
-
-      const semesterId = studentsData[0]?.semesterId;
-      const matching = assignmentsData.find(
-        (a) => a.courseId === courseId && (!semesterId || a.semesterId === semesterId)
-      );
-      setSyllabusFile(matching?.syllabusFile ?? null);
+      setSyllabusFile(matching.syllabusFile ?? null);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Error al cargar datos del curso');
     } finally {
@@ -127,6 +133,7 @@ export function useCursoDetalle(courseId: string) {
       currentValue: grade.value,
     });
     setGradeValue(String(grade.value));
+    setGradeReason('');
   };
 
   const openCreateGrade = (enrollment: EnrollmentResponse) => {
@@ -136,18 +143,19 @@ export function useCursoDetalle(courseId: string) {
       studentName: enrollment.studentName,
     });
     setGradeValue('');
+    setGradeReason('');
   };
 
   const closeEditGrade = () => {
     setEditingGrade(null);
     setGradeValue('');
+    setGradeReason('');
   };
 
   const gradesByStudentId = new Map<string, GradeResponse>();
   grades.forEach((g) => gradesByStudentId.set(g.studentId, g));
 
   const mergedRows: StudentGradeRow[] = students
-    .filter((s) => s.stateId === 5)
     .map((enrollment) => ({
       enrollment,
       grade: gradesByStudentId.get(enrollment.studentId) ?? null,
@@ -161,6 +169,7 @@ export function useCursoDetalle(courseId: string) {
         enrollmentId: editingGrade.enrollmentId,
         stateId: Number(gradeValue) >= 11 ? 3 : 4,
         value: Number(gradeValue),
+        ...(editingGrade.gradeId ? { reason: gradeReason } : {}),
       };
 
       if (editingGrade.gradeId) {
@@ -187,11 +196,11 @@ export function useCursoDetalle(courseId: string) {
     course, students, grades,
     syllabusFile,
     mergedRows,
-    loading, error,
+    loading, error, accessDenied,
     activeTab, setActiveTab,
     silaboUploading, handleSyllabusUpload,
     syllabusUrl, loadingSyllabus, loadSyllabusUrl,
-    editingGrade, gradeValue, setGradeValue,
+    editingGrade, gradeValue, setGradeValue, gradeReason, setGradeReason,
     openEditGrade, openCreateGrade, closeEditGrade, handleSaveGrade, savingGrade,
     toast, setToast,
     notasRegistradas, totalEstudiantes,

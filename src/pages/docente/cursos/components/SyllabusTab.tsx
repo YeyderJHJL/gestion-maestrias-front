@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import { AlertTriangleIcon, FileTextIcon } from 'lucide-react';
 import { FileUpload } from '../../../../components/FileUpload';
+import { Modal } from '../../../../components/Modal';
 
 interface SyllabusTabProps {
   hasSyllabus: boolean;
@@ -8,7 +10,6 @@ interface SyllabusTabProps {
   uploading: boolean;
   onUpload: (file: File) => void;
   onView: () => void;
-  onReplace: () => void;
 }
 
 export function SyllabusTab({
@@ -18,6 +19,8 @@ export function SyllabusTab({
   onUpload,
   onView,
 }: SyllabusTabProps) {
+  const [isReplaceModalOpen, setIsReplaceModalOpen] = useState(false);
+
   if (uploading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -57,6 +60,12 @@ export function SyllabusTab({
         </div>
         <div className="flex gap-2">
           <button
+            onClick={() => setIsReplaceModalOpen(true)}
+            className="px-4 py-2 border border-primary text-primary rounded-lg hover:bg-primary/5 transition-colors"
+          >
+            Actualizar sílabo
+          </button>
+          <button
             onClick={onView}
             className="px-4 py-2 border border-primary text-primary rounded-lg hover:bg-primary/5 transition-colors"
           >
@@ -64,6 +73,28 @@ export function SyllabusTab({
           </button>
         </div>
       </div>
+
+      <Modal
+        isOpen={isReplaceModalOpen}
+        onClose={() => setIsReplaceModalOpen(false)}
+        title="Actualizar Sílabo"
+        size="md"
+      >
+        <div className="space-y-4">
+          <p className="text-text-muted">
+            Sube el nuevo archivo del sílabo. Esto reemplazará el sílabo actual ({syllabusFileName}).
+          </p>
+          <FileUpload
+            onFileSelect={(file) => {
+              onUpload(file);
+              setIsReplaceModalOpen(false);
+            }}
+            acceptedFormats=".pdf"
+            maxSizeMB={10}
+            label="Arrastra el nuevo sílabo aquí o haz clic para seleccionar"
+          />
+        </div>
+      </Modal>
     </div>
   );
 }

@@ -36,6 +36,16 @@ function formatBytes(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+function formatCourseOption(c: CourseResponse): string {
+  if (!c.code) return c.name;
+  const codeNorm = c.code.replace(/[_]/g, ' ').normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+  const nameNorm = c.name.replace(/[_]/g, ' ').normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+  if (codeNorm === nameNorm || codeNorm.includes(nameNorm) || nameNorm.includes(codeNorm)) {
+    return c.name;
+  }
+  return `${c.code} - ${c.name}`;
+}
+
 export function AsignacionFormModal({
   isOpen,
   onClose,
@@ -97,7 +107,7 @@ export function AsignacionFormModal({
                 <option value="">Selecciona un curso</option>
                 {courses.map((course) => (
                   <option key={course.id} value={course.id}>
-                    {course.code} - {course.name}
+                    {formatCourseOption(course)}
                   </option>
                 ))}
               </select>
@@ -124,7 +134,7 @@ export function AsignacionFormModal({
                 <option value="">Selecciona un docente</option>
                 {teachers.map((teacher) => (
                   <option key={teacher.id} value={teacher.id}>
-                    {teacher.firstName} {teacher.lastName} ({teacher.type})
+                    {teacher.firstName} {teacher.lastName} - {teacher.email} ({teacher.type})
                   </option>
                 ))}
               </select>
