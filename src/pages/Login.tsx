@@ -35,6 +35,8 @@ export function Login() {
     } catch (err) {
       if (err instanceof ApiError && err.status === 401) {
         setError('Tu cuenta no está registrada en el sistema o fue desactivada.\nContacta a Administración.');
+      } else if (err instanceof ApiError && err.status === 403) {
+        setError('Tu cuenta está registrada, pero está desactivada en el sistema.\nContacta a Administración.');
       } else {
         setError('Error al iniciar sesión. Intenta nuevamente.');
       }
