@@ -1,4 +1,5 @@
 import { ApiError, ApiResponse } from './api';
+import { isAuthTokenExpired } from './authTokenService';
 
 const BASE_URL = import.meta.env.VITE_API_URL ?? '/api';
 
@@ -32,6 +33,11 @@ async function apiFetchMultipart<T>(
   token: string,
   body: FormData
 ): Promise<T> {
+  if (isAuthTokenExpired(token)) {
+    window.dispatchEvent(new CustomEvent('session-expired'));
+    throw new ApiError(401, 'Sesión expirada');
+  }
+
   const response = await fetch(`${BASE_URL}${path}`, {
     method: 'POST',
     headers: { Authorization: `Bearer ${token}` },
@@ -131,6 +137,11 @@ export async function getFileUrl(
   token: string,
   fileId: string
 ): Promise<StoredFileResponse> {
+  if (isAuthTokenExpired(token)) {
+    window.dispatchEvent(new CustomEvent('session-expired'));
+    throw new ApiError(401, 'Sesión expirada');
+  }
+
   const response = await fetch(`${BASE_URL}/v1/files/${fileId}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
@@ -149,6 +160,11 @@ export async function getFileUrl(
  * Elimina un archivo almacenado.
  */
 export async function deleteFile(token: string, id: string): Promise<void> {
+  if (isAuthTokenExpired(token)) {
+    window.dispatchEvent(new CustomEvent('session-expired'));
+    throw new ApiError(401, 'Sesión expirada');
+  }
+
   const response = await fetch(`${BASE_URL}/v1/files/${id}`, {
     method: 'DELETE',
     headers: { Authorization: `Bearer ${token}` },

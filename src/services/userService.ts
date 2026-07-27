@@ -1,4 +1,4 @@
-import { apiFetch, ApiResponse } from './api';
+import { ApiError, apiFetch, ApiResponse } from './api';
 import { AuthUser, UserRole } from '../types/auth';
 import type { StudentStatus } from './studentsApiService';
 
@@ -52,6 +52,10 @@ export async function getMe(token: string): Promise<UserResponse> {
 
 export async function buildAuthUser(token: string): Promise<AuthUser> {
   const user = await getMe(token);
+  if (!user.active) {
+    throw new ApiError(403, 'Tu cuenta está desactivada en el sistema. Contacta a Administración.');
+  }
+
   const base: AuthUser = {
     id: user.id,
     email: user.email,
