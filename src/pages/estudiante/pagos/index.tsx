@@ -5,7 +5,7 @@ import { StatusBadge } from '../../../components/StatusBadge';
 import { FileUpload } from '../../../components/FileUpload';
 import { Modal } from '../../../components/Modal';
 import { Toast } from '../../../components/Toast';
-import { ChevronDownIcon, CheckCircleIcon, Loader2Icon, ImageIcon, InfoIcon } from 'lucide-react';
+import { ChevronDownIcon, CheckCircleIcon, Loader2Icon, ImageIcon } from 'lucide-react';
 import { usePagos } from './hooks/usePagos';
 
 const formatDate = (iso: string) =>
@@ -36,6 +36,7 @@ export function EstudiantePagos() {
 
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
   const [guideOpen, setGuideOpen] = useState(false);
+  const [isZoomed, setIsZoomed] = useState(false);
 
   return (
     <EstudianteLayout>
@@ -188,7 +189,7 @@ export function EstudiantePagos() {
 
                 <button
                   type="button"
-                  onClick={() => setGuideOpen(true)}
+                  onClick={() => { setGuideOpen(true); setIsZoomed(false); }}
                   className="flex items-center gap-1.5 text-sm text-primary hover:text-primary-light transition-colors"
                 >
                   <ImageIcon className="w-4 h-4" />
@@ -226,20 +227,28 @@ export function EstudiantePagos() {
         </div>
       </div>
 
-      <Modal isOpen={guideOpen} onClose={() => setGuideOpen(false)} title="Guía de pago" size="lg">
-        <p className="text-sm text-text-muted mb-4">
-          Asegúrate de que tu comprobante sea legible y muestre claramente el monto, fecha y número de operación.
-        </p>
-        <div className="rounded-lg border border-border bg-surface-alt overflow-hidden">
-          <img src="/img/Guia_pagos.jpg.jpeg" alt="Guía de pago por banca y Yape" className="w-full object-contain" />
-        </div>
-        <div className="mt-4 flex items-start gap-2 px-4 py-3 bg-primary/5 border border-primary/20 rounded-lg">
-          <InfoIcon className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
-          <p className="text-sm text-text">
-            <strong>Pago por agente:</strong> Brinda tu código de pago al agente.
-            El comprobante que recibas debe mostrar tus datos y el monto pagado.
-            Tómale una foto clara y súbela como voucher.
-          </p>
+      <Modal isOpen={guideOpen} onClose={() => { setGuideOpen(false); setIsZoomed(false); }} title="" size={isZoomed ? "full" : "fit"}>
+        <div 
+          className={`transition-all duration-300 flex flex-col items-center justify-center bg-surface-alt ${
+            isZoomed 
+              ? 'max-h-[90vh] w-full overflow-auto cursor-zoom-out p-4' 
+              : 'max-h-[85vh] w-fit cursor-zoom-in'
+          }`}
+          onClick={() => setIsZoomed(!isZoomed)}
+          title={isZoomed ? "Haz clic para alejar el zoom" : "Haz clic para acercar el zoom aquí mismo"}
+        >
+          <img
+            src="/img/Guia_pagos.jpg.jpeg"
+            alt="Guía de pago"
+            className={`w-auto object-contain mx-auto transition-all duration-300 ${
+              isZoomed ? 'max-h-none w-full' : 'max-h-[82vh]'
+            }`}
+          />
+          {!isZoomed && (
+            <span className="text-[10px] text-primary/80 py-1.5 font-medium flex items-center gap-1 bg-surface/95 w-full justify-center border-t border-border/40">
+              🔍 Clic en la imagen para acercar aquí mismo
+            </span>
+          )}
         </div>
       </Modal>
 
