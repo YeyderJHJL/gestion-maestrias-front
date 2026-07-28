@@ -17,6 +17,8 @@ export function AdminVouchers() {
     setStateFilter,
     selectedVoucher,
     openReview,
+    canEditVoucher,
+    unvalidatedPreviousPayments,
     checkedPaymentIds,
     togglePayment,
     decision,
@@ -50,11 +52,13 @@ export function AdminVouchers() {
           onStateFilterChange={setStateFilter}
           onSelectVoucher={openReview}
           onDeleteVoucher={setDeletingVoucher}
+          canEditVoucher={canEditVoucher}
         />
       </div>
 
       <VoucherReviewModal
         voucher={selectedVoucher}
+        unvalidatedPreviousPayments={unvalidatedPreviousPayments}
         checkedPaymentIds={checkedPaymentIds}
         onTogglePayment={togglePayment}
         decision={decision}
@@ -63,6 +67,7 @@ export function AdminVouchers() {
         setMotivo={setMotivo}
         submitting={submitting}
         isCoordinator={isCoordinator}
+        readOnly={selectedVoucher ? !canEditVoucher(selectedVoucher) : false}
         onClose={closeDrawer}
         onConfirm={handleReview}
       />

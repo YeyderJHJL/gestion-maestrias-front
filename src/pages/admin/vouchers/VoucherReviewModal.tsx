@@ -1,12 +1,14 @@
 import { XIcon, CheckIcon, AlertTriangleIcon, Loader2Icon } from 'lucide-react';
 import { Modal } from '../../../components/Modal';
 import { VoucherResponse, voucherConceptSummary } from '../../../types/voucher';
+import { PaymentResponse } from '../../../services/paymentsApiService';
 import { useFilePreview } from '../../../hooks/useFilePreview';
 
 type Decision = 'validar' | 'observar' | 'rechazar';
 
 interface VoucherReviewModalProps {
   voucher: VoucherResponse | null;
+  unvalidatedPreviousPayments: PaymentResponse[];
   checkedPaymentIds: Set<string>;
   onTogglePayment: (paymentId: string) => void;
   decision: Decision | null;
@@ -15,6 +17,7 @@ interface VoucherReviewModalProps {
   setMotivo: (m: string) => void;
   submitting: boolean;
   isCoordinator: boolean;
+  readOnly?: boolean;
   onClose: () => void;
   onConfirm: () => void;
 }
@@ -26,6 +29,7 @@ const formatCurrency = (amount: number) => `S/ ${amount.toFixed(2)}`;
 
 export function VoucherReviewModal({
   voucher,
+  unvalidatedPreviousPayments,
   checkedPaymentIds,
   onTogglePayment,
   decision,
@@ -34,6 +38,7 @@ export function VoucherReviewModal({
   setMotivo,
   submitting,
   isCoordinator,
+  readOnly = false,
   onClose,
   onConfirm,
 }: VoucherReviewModalProps) {
@@ -42,13 +47,15 @@ export function VoucherReviewModal({
     voucher !== null
   );
 
-  const isChecklistEditable = decision === 'validar';
+  const disabledAction = isCoordinator || readOnly;
+  const isChecklistEditable = decision === 'validar' && !disabledAction;
+  const hasUnvalidatedPreviousPayments = unvalidatedPreviousPayments.length > 0;
   const confirmDisabled =
-    isCoordinator ||
+    disabledAction ||
     !decision ||
     submitting ||
     ((decision === 'observar' || decision === 'rechazar') && !motivo) ||
-    (decision === 'validar' && checkedPaymentIds.size === 0);
+    (decision === 'validar' && (checkedPaymentIds.size === 0 || hasUnvalidatedPreviousPayments));
 
   return (
     <Modal
@@ -170,13 +177,27 @@ export function VoucherReviewModal({
 
             {/* Decisión */}
             <div className="border-t border-border pt-4 space-y-3">
-              <p className="text-sm font-medium text-text">Decisión</p>
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-medium text-text">Decisión</p>
+                {readOnly && (
+                  <span className="text-xs font-medium text-accent bg-accent/10 px-2 py-1 rounded-md">
+                    Solo lectura
+                  </span>
+                )}
+              </div>
+
+              {readOnly && (
+                <p className="text-xs text-text-muted bg-surface-alt border border-border rounded-lg px-3 py-2 mb-2">
+                  No puedes modificar la decisión de este voucher porque el estudiante ya ha enviado un comprobante más reciente.
+                </p>
+              )}
 
               <button
-                disabled={isCoordinator}
+                disabled={disabledAction || hasUnvalidatedPreviousPayments}
                 onClick={() => setDecision('validar')}
+                title={hasUnvalidatedPreviousPayments ? 'No puede validar: hay pagos anteriores sin validar' : undefined}
                 className={`w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg transition-colors text-sm ${
-                  isCoordinator
+                  disabledAction || hasUnvalidatedPreviousPayments
                     ? 'opacity-50 cursor-not-allowed border border-border text-text-muted bg-surface-alt'
                     : decision === 'validar'
                     ? 'bg-success text-white'
@@ -187,11 +208,19 @@ export function VoucherReviewModal({
                 Validar
               </button>
 
+              {hasUnvalidatedPreviousPayments && (
+                <p className="text-xs text-accent bg-accent/10 border border-accent/30 rounded-lg px-3 py-2">
+                  No puede validar este voucher: el/los pago(s) N°{' '}
+                  {unvalidatedPreviousPayments.map((p) => p.paymentNumber).join(', N°')} de este estudiante
+                  aún no está(n) validado(s).
+                </p>
+              )}
+
               <button
-                disabled={isCoordinator}
+                disabled={disabledAction}
                 onClick={() => setDecision('observar')}
                 className={`w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg transition-colors text-sm ${
-                  isCoordinator
+                  disabledAction
                     ? 'opacity-50 cursor-not-allowed border border-border text-text-muted bg-surface-alt'
                     : decision === 'observar'
                     ? 'bg-warning text-white'
@@ -203,10 +232,10 @@ export function VoucherReviewModal({
               </button>
 
               <button
-                disabled={isCoordinator}
+                disabled={disabledAction}
                 onClick={() => setDecision('rechazar')}
                 className={`w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg transition-colors text-sm ${
-                  isCoordinator
+                  disabledAction
                     ? 'opacity-50 cursor-not-allowed border border-border text-text-muted bg-surface-alt'
                     : decision === 'rechazar'
                     ? 'bg-accent text-white'
@@ -223,13 +252,13 @@ export function VoucherReviewModal({
                     Motivo <span className="text-accent">*</span>
                   </label>
                   <textarea
-                    disabled={isCoordinator}
+                    disabled={disabledAction}
                     value={motivo}
                     onChange={(e) => setMotivo(e.target.value)}
                     placeholder="Describe el motivo"
                     rows={3}
                     className={`w-full px-3 py-2 text-sm border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary ${
-                      isCoordinator ? 'bg-surface-alt text-text-muted cursor-not-allowed' : ''
+                      disabledAction ? 'bg-surface-alt text-text-muted cursor-not-allowed' : ''
                     }`}
                   />
                 </div>
