@@ -1,11 +1,12 @@
 import { Fragment, useState } from 'react';
 import { EstudianteLayout } from '../../../layouts/EstudianteLayout';
 import { PageHeader } from '../../../components/PageHeader';
+import { useAuth } from '../../../context/AuthContext';
 import { StatusBadge } from '../../../components/StatusBadge';
 import { FileUpload } from '../../../components/FileUpload';
 import { Modal } from '../../../components/Modal';
 import { Toast } from '../../../components/Toast';
-import { ChevronDownIcon, CheckCircleIcon, Loader2Icon, ImageIcon } from 'lucide-react';
+import { ChevronDownIcon, CheckCircleIcon, Loader2Icon, ImageIcon, InfoIcon } from 'lucide-react';
 import { usePagos } from './hooks/usePagos';
 
 const formatDate = (iso: string) =>
@@ -26,6 +27,7 @@ const STATE_LABEL: Record<string, string> = {
 };
 
 export function EstudiantePagos() {
+  const { user } = useAuth();
   const {
     payments, loading, error,
     form, setForm, selectablePayments, togglePaymentSelection, selectedTotal,
@@ -42,6 +44,15 @@ export function EstudiantePagos() {
     <EstudianteLayout>
       <div className="space-y-6">
         <PageHeader title="Pagos y Vouchers" />
+
+        {user?.paymentCode && (
+          <div className="bg-primary/10 border border-primary text-text px-4 py-3 rounded-lg shadow-sm flex items-center gap-2">
+            <InfoIcon className="w-4 h-4 text-primary flex-shrink-0" />
+            <p className="text-sm">
+              Tu código de pago está en tu perfil, arriba a la derecha (haz clic en tu nombre).
+            </p>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 bg-surface border border-border rounded-lg shadow-sm overflow-hidden">
