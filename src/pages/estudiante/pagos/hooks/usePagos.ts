@@ -61,6 +61,23 @@ export function usePagos() {
   // Solo tiene sentido pagar cuotas que todavía no fueron validadas
   const selectablePayments = payments.filter((p) => p.latestVoucherStateCode !== 'VALIDATED');
 
+  // Devuelve el N° de la cuota anterior que bloquea a `payment` (nunca se subió comprobante y no está
+  // incluida en la selección actual), o null si no hay ningún hueco antes de esta cuota.
+  const blockingPaymentNumber = (payment: PaymentResponse): number | null => {
+    const blockers = payments.filter(
+      (p) =>
+        p.paymentNumber < payment.paymentNumber &&
+        p.latestVoucherStateCode === null &&
+        !form.paymentIds.includes(p.id)
+    );
+    if (blockers.length === 0) return null;
+    return Math.min(...blockers.map((p) => p.paymentNumber));
+  };
+
+  const blockedSelection = selectablePayments.find(
+    (p) => form.paymentIds.includes(p.id) && blockingPaymentNumber(p) !== null
+  );
+
   const togglePaymentSelection = (paymentId: string) => {
     setForm((prev) => ({
       ...prev,
@@ -75,7 +92,7 @@ export function usePagos() {
     .reduce((sum, p) => sum + (p.amount ?? 0), 0);
 
   const handleSubmit = async () => {
-    if (!token || form.paymentIds.length === 0 || !form.operationNumber.trim() || !form.file) return;
+    if (!token || form.paymentIds.length === 0 || !form.operationNumber.trim() || !form.file || blockedSelection) return;
     setSubmitting(true);
     setFormError(null);
     try {
@@ -114,6 +131,8 @@ export function usePagos() {
     form,
     setForm,
     selectablePayments,
+    blockingPaymentNumber,
+    blockedSelection,
     togglePaymentSelection,
     selectedTotal,
     submitting,

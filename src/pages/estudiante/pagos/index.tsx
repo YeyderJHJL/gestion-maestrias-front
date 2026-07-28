@@ -30,7 +30,7 @@ export function EstudiantePagos() {
   const { user } = useAuth();
   const {
     payments, loading, error,
-    form, setForm, selectablePayments, togglePaymentSelection, selectedTotal,
+    form, setForm, selectablePayments, blockingPaymentNumber, blockedSelection, togglePaymentSelection, selectedTotal,
     submitting, submitted, formError,
     handleSubmit, resetForm, vouchersForPayment,
     toast, setToast,
@@ -156,26 +156,40 @@ export function EstudiantePagos() {
                     <p className="text-sm text-text-muted">No tienes cuotas pendientes de validar.</p>
                   ) : (
                     <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
-                      {selectablePayments.map((p) => (
-                        <label
-                          key={p.id}
-                          className="flex items-center gap-2 px-3 py-2 border border-border rounded-lg text-sm cursor-pointer hover:bg-surface-alt"
-                        >
-                          <input
-                            type="checkbox"
-                            checked={form.paymentIds.includes(p.id)}
-                            onChange={() => togglePaymentSelection(p.id)}
-                            className="w-4 h-4"
-                          />
-                          <span className="flex-1 text-text">{p.concept || `Pago #${p.paymentNumber}`}</span>
-                          <span className="text-text-muted">S/ {p.amount?.toFixed(2) ?? '0.00'}</span>
-                        </label>
-                      ))}
+                      {selectablePayments.map((p) => {
+                        const isChecked = form.paymentIds.includes(p.id);
+                        const blockingNumber = blockingPaymentNumber(p);
+                        const isDisabled = !isChecked && blockingNumber !== null;
+                        return (
+                          <label
+                            key={p.id}
+                            title={isDisabled ? `Primero debes incluir el pago N° ${blockingNumber}` : undefined}
+                            className={`flex items-center gap-2 px-3 py-2 border border-border rounded-lg text-sm ${
+                              isDisabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:bg-surface-alt'
+                            }`}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={isChecked}
+                              disabled={isDisabled}
+                              onChange={() => togglePaymentSelection(p.id)}
+                              className="w-4 h-4"
+                            />
+                            <span className="flex-1 text-text">{p.concept || `Pago #${p.paymentNumber}`}</span>
+                            <span className="text-text-muted">S/ {p.amount?.toFixed(2) ?? '0.00'}</span>
+                          </label>
+                        );
+                      })}
                     </div>
                   )}
                   {form.paymentIds.length > 0 && (
                     <p className="text-sm font-medium text-text">
                       Total: S/ {selectedTotal.toFixed(2)}
+                    </p>
+                  )}
+                  {blockedSelection && (
+                    <p className="text-xs text-accent bg-accent/10 border border-accent/30 rounded-lg px-3 py-2">
+                      Debes incluir primero el pago N° {blockingPaymentNumber(blockedSelection)} de tus cuotas anteriores.
                     </p>
                   )}
                 </div>
@@ -215,7 +229,7 @@ export function EstudiantePagos() {
 
                 <button
                   type="button"
-                  disabled={submitting || form.paymentIds.length === 0 || !form.operationNumber.trim() || !form.file}
+                  disabled={submitting || form.paymentIds.length === 0 || !form.operationNumber.trim() || !form.file || !!blockedSelection}
                   onClick={handleSubmit}
                   className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-light transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
                 >

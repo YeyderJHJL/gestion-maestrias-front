@@ -1,12 +1,14 @@
 import { XIcon, CheckIcon, AlertTriangleIcon, Loader2Icon } from 'lucide-react';
 import { Modal } from '../../../components/Modal';
 import { VoucherResponse, voucherConceptSummary } from '../../../types/voucher';
+import { PaymentResponse } from '../../../services/paymentsApiService';
 import { useFilePreview } from '../../../hooks/useFilePreview';
 
 type Decision = 'validar' | 'observar' | 'rechazar';
 
 interface VoucherReviewModalProps {
   voucher: VoucherResponse | null;
+  unvalidatedPreviousPayments: PaymentResponse[];
   checkedPaymentIds: Set<string>;
   onTogglePayment: (paymentId: string) => void;
   decision: Decision | null;
@@ -26,6 +28,7 @@ const formatCurrency = (amount: number) => `S/ ${amount.toFixed(2)}`;
 
 export function VoucherReviewModal({
   voucher,
+  unvalidatedPreviousPayments,
   checkedPaymentIds,
   onTogglePayment,
   decision,
@@ -43,12 +46,13 @@ export function VoucherReviewModal({
   );
 
   const isChecklistEditable = decision === 'validar';
+  const hasUnvalidatedPreviousPayments = unvalidatedPreviousPayments.length > 0;
   const confirmDisabled =
     isCoordinator ||
     !decision ||
     submitting ||
     ((decision === 'observar' || decision === 'rechazar') && !motivo) ||
-    (decision === 'validar' && checkedPaymentIds.size === 0);
+    (decision === 'validar' && (checkedPaymentIds.size === 0 || hasUnvalidatedPreviousPayments));
 
   return (
     <Modal
@@ -173,10 +177,11 @@ export function VoucherReviewModal({
               <p className="text-sm font-medium text-text">Decisión</p>
 
               <button
-                disabled={isCoordinator}
+                disabled={isCoordinator || hasUnvalidatedPreviousPayments}
                 onClick={() => setDecision('validar')}
+                title={hasUnvalidatedPreviousPayments ? 'No puede validar: hay pagos anteriores sin validar' : undefined}
                 className={`w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg transition-colors text-sm ${
-                  isCoordinator
+                  isCoordinator || hasUnvalidatedPreviousPayments
                     ? 'opacity-50 cursor-not-allowed border border-border text-text-muted bg-surface-alt'
                     : decision === 'validar'
                     ? 'bg-success text-white'
@@ -186,6 +191,14 @@ export function VoucherReviewModal({
                 <CheckIcon className="w-4 h-4" />
                 Validar
               </button>
+
+              {hasUnvalidatedPreviousPayments && (
+                <p className="text-xs text-accent bg-accent/10 border border-accent/30 rounded-lg px-3 py-2">
+                  No puede validar este voucher: el/los pago(s) N°{' '}
+                  {unvalidatedPreviousPayments.map((p) => p.paymentNumber).join(', N°')} de este estudiante
+                  aún no está(n) validado(s).
+                </p>
+              )}
 
               <button
                 disabled={isCoordinator}

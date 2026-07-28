@@ -14,6 +14,7 @@ export interface VoucherResponse {
   id: string;
   declaredAmount: number;
   payments: VoucherPaymentResponse[];
+  studentId: string;
   studentName: string;
   studentEmail: string;
   studentPaymentCode: string;
