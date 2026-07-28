@@ -133,7 +133,11 @@ export function EstudianteHistorial() {
 
               <button
                 className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-primary text-white rounded-lg hover:bg-primary-light transition-colors font-semibold shadow-sm"
-                onClick={() => alert('La descarga de PDF aún no está implementada por RF-MA-31')}
+                onClick={() => {
+                  import('./utils/pdfGenerator').then(module => {
+                    module.generateAcademicRecordPDF(history);
+                  });
+                }}
               >
                 <DownloadIcon className="w-5 h-5" />
                 Descargar récord académico en PDF

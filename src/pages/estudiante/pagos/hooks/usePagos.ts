@@ -61,13 +61,13 @@ export function usePagos() {
   // Solo tiene sentido pagar cuotas que todavía no fueron validadas
   const selectablePayments = payments.filter((p) => p.latestVoucherStateCode !== 'VALIDATED');
 
-  // Devuelve el N° de la cuota anterior que bloquea a `payment` (nunca se subió comprobante y no está
+  // Devuelve el N° de la cuota anterior que bloquea a `payment` (no está validada y no está
   // incluida en la selección actual), o null si no hay ningún hueco antes de esta cuota.
   const blockingPaymentNumber = (payment: PaymentResponse): number | null => {
     const blockers = payments.filter(
       (p) =>
         p.paymentNumber < payment.paymentNumber &&
-        p.latestVoucherStateCode === null &&
+        p.latestVoucherStateCode !== 'VALIDATED' &&
         !form.paymentIds.includes(p.id)
     );
     if (blockers.length === 0) return null;
