@@ -14,6 +14,7 @@ interface VouchersTableProps {
   onStateFilterChange: (value: VoucherStateCode | '') => void;
   onSelectVoucher: (voucher: VoucherResponse) => void;
   onDeleteVoucher: (voucher: VoucherResponse) => void;
+  canEditVoucher?: (voucher: VoucherResponse) => boolean;
 }
 
 const formatDate = (iso: string) =>
@@ -38,6 +39,7 @@ export function VouchersTable({
   onStateFilterChange,
   onSelectVoucher,
   onDeleteVoucher,
+  canEditVoucher,
 }: VouchersTableProps) {
   return (
     <div>
@@ -132,12 +134,14 @@ export function VouchersTable({
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex gap-2">
-                        <IconButton
-                          icon={CheckIcon}
-                          onClick={() => onSelectVoucher(voucher)}
-                          title="Revisar voucher"
-                          variant="success"
-                        />
+                        {canEditVoucher && canEditVoucher(voucher) && (
+                          <IconButton
+                            icon={CheckIcon}
+                            onClick={() => onSelectVoucher(voucher)}
+                            title="Revisar voucher"
+                            variant="success"
+                          />
+                        )}
                         <IconButton
                           icon={Trash2Icon}
                           onClick={() => onDeleteVoucher(voucher)}

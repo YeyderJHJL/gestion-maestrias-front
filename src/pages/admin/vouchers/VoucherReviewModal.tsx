@@ -17,6 +17,7 @@ interface VoucherReviewModalProps {
   setMotivo: (m: string) => void;
   submitting: boolean;
   isCoordinator: boolean;
+  readOnly?: boolean;
   onClose: () => void;
   onConfirm: () => void;
 }
@@ -37,6 +38,7 @@ export function VoucherReviewModal({
   setMotivo,
   submitting,
   isCoordinator,
+  readOnly = false,
   onClose,
   onConfirm,
 }: VoucherReviewModalProps) {
@@ -45,10 +47,11 @@ export function VoucherReviewModal({
     voucher !== null
   );
 
-  const isChecklistEditable = decision === 'validar';
+  const disabledAction = isCoordinator || readOnly;
+  const isChecklistEditable = decision === 'validar' && !disabledAction;
   const hasUnvalidatedPreviousPayments = unvalidatedPreviousPayments.length > 0;
   const confirmDisabled =
-    isCoordinator ||
+    disabledAction ||
     !decision ||
     submitting ||
     ((decision === 'observar' || decision === 'rechazar') && !motivo) ||
@@ -174,14 +177,27 @@ export function VoucherReviewModal({
 
             {/* Decisión */}
             <div className="border-t border-border pt-4 space-y-3">
-              <p className="text-sm font-medium text-text">Decisión</p>
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-medium text-text">Decisión</p>
+                {readOnly && (
+                  <span className="text-xs font-medium text-accent bg-accent/10 px-2 py-1 rounded-md">
+                    Solo lectura
+                  </span>
+                )}
+              </div>
+
+              {readOnly && (
+                <p className="text-xs text-text-muted bg-surface-alt border border-border rounded-lg px-3 py-2 mb-2">
+                  No puedes modificar la decisión de este voucher porque el estudiante ya ha enviado un comprobante más reciente.
+                </p>
+              )}
 
               <button
-                disabled={isCoordinator || hasUnvalidatedPreviousPayments}
+                disabled={disabledAction || hasUnvalidatedPreviousPayments}
                 onClick={() => setDecision('validar')}
                 title={hasUnvalidatedPreviousPayments ? 'No puede validar: hay pagos anteriores sin validar' : undefined}
                 className={`w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg transition-colors text-sm ${
-                  isCoordinator || hasUnvalidatedPreviousPayments
+                  disabledAction || hasUnvalidatedPreviousPayments
                     ? 'opacity-50 cursor-not-allowed border border-border text-text-muted bg-surface-alt'
                     : decision === 'validar'
                     ? 'bg-success text-white'
@@ -201,10 +217,10 @@ export function VoucherReviewModal({
               )}
 
               <button
-                disabled={isCoordinator}
+                disabled={disabledAction}
                 onClick={() => setDecision('observar')}
                 className={`w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg transition-colors text-sm ${
-                  isCoordinator
+                  disabledAction
                     ? 'opacity-50 cursor-not-allowed border border-border text-text-muted bg-surface-alt'
                     : decision === 'observar'
                     ? 'bg-warning text-white'
@@ -216,10 +232,10 @@ export function VoucherReviewModal({
               </button>
 
               <button
-                disabled={isCoordinator}
+                disabled={disabledAction}
                 onClick={() => setDecision('rechazar')}
                 className={`w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg transition-colors text-sm ${
-                  isCoordinator
+                  disabledAction
                     ? 'opacity-50 cursor-not-allowed border border-border text-text-muted bg-surface-alt'
                     : decision === 'rechazar'
                     ? 'bg-accent text-white'
@@ -236,13 +252,13 @@ export function VoucherReviewModal({
                     Motivo <span className="text-accent">*</span>
                   </label>
                   <textarea
-                    disabled={isCoordinator}
+                    disabled={disabledAction}
                     value={motivo}
                     onChange={(e) => setMotivo(e.target.value)}
                     placeholder="Describe el motivo"
                     rows={3}
                     className={`w-full px-3 py-2 text-sm border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary ${
-                      isCoordinator ? 'bg-surface-alt text-text-muted cursor-not-allowed' : ''
+                      disabledAction ? 'bg-surface-alt text-text-muted cursor-not-allowed' : ''
                     }`}
                   />
                 </div>

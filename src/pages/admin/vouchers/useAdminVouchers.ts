@@ -150,6 +150,14 @@ export function useAdminVouchers() {
     }
   };
 
+  const canEditVoucher = useCallback((voucher: VoucherResponse) => {
+    return !allVouchers.some(v => 
+      v.studentId === voucher.studentId &&
+      new Date(v.createdAt).getTime() > new Date(voucher.createdAt).getTime() &&
+      v.payments.some(vp => voucher.payments.some(op => op.paymentId === vp.paymentId))
+    );
+  }, [allVouchers]);
+
   return {
     vouchers,
     loading,
@@ -160,6 +168,7 @@ export function useAdminVouchers() {
     setStateFilter,
     selectedVoucher,
     openReview,
+    canEditVoucher,
     unvalidatedPreviousPayments,
     checkedPaymentIds,
     togglePayment,
