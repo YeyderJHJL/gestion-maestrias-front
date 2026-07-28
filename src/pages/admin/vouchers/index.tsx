@@ -17,6 +17,7 @@ export function AdminVouchers() {
     setStateFilter,
     selectedVoucher,
     openReview,
+    unvalidatedPreviousPayments,
     checkedPaymentIds,
     togglePayment,
     decision,
@@ -55,6 +56,7 @@ export function AdminVouchers() {
 
       <VoucherReviewModal
         voucher={selectedVoucher}
+        unvalidatedPreviousPayments={unvalidatedPreviousPayments}
         checkedPaymentIds={checkedPaymentIds}
         onTogglePayment={togglePayment}
         decision={decision}

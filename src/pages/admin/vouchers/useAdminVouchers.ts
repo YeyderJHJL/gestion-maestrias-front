@@ -3,6 +3,7 @@ import { useAuth } from '../../../context/AuthContext';
 import { ApiError } from '../../../services/api';
 import { VOUCHER_STATE } from '../../../constants/stateIds';
 import { listVouchers, updateVoucher, deleteVoucher } from '../../../services/vouchersApiService';
+import { listPaymentsByStudent, PaymentResponse } from '../../../services/paymentsApiService';
 import { VoucherResponse, VoucherStateCode } from '../../../types/voucher';
 
 type Decision = 'validar' | 'observar' | 'rechazar';
@@ -26,6 +27,7 @@ export function useAdminVouchers() {
   const [stateFilter, setStateFilter] = useState<VoucherStateCode | ''>('');
 
   const [selectedVoucher, setSelectedVoucher] = useState<VoucherResponse | null>(null);
+  const [studentPayments, setStudentPayments] = useState<PaymentResponse[]>([]);
   const [checkedPaymentIds, setCheckedPaymentIds] = useState<Set<string>>(new Set());
   const [decision, setDecision] = useState<Decision | null>(null);
   const [motivo, setMotivo] = useState('');
@@ -71,7 +73,22 @@ export function useAdminVouchers() {
   const openReview = (voucher: VoucherResponse) => {
     setSelectedVoucher(voucher);
     setCheckedPaymentIds(new Set(voucher.payments.map((p) => p.paymentId)));
+    setStudentPayments([]);
+    if (token) {
+      listPaymentsByStudent(token, voucher.studentId)
+        .then(setStudentPayments)
+        .catch(() => setStudentPayments([]));
+    }
   };
+
+  // Pagos anteriores (por N° de pago) al mínimo de los incluidos en este voucher que aún no están validados
+  const unvalidatedPreviousPayments = (() => {
+    if (!selectedVoucher || selectedVoucher.payments.length === 0) return [];
+    const minPaymentNumber = Math.min(...selectedVoucher.payments.map((p) => p.paymentNumber));
+    return studentPayments
+      .filter((p) => p.paymentNumber < minPaymentNumber && p.latestVoucherStateCode !== 'VALIDATED')
+      .sort((a, b) => a.paymentNumber - b.paymentNumber);
+  })();
 
   const togglePayment = (paymentId: string) => {
     setCheckedPaymentIds((prev) => {
@@ -84,6 +101,7 @@ export function useAdminVouchers() {
 
   const closeDrawer = () => {
     setSelectedVoucher(null);
+    setStudentPayments([]);
     setCheckedPaymentIds(new Set());
     setDecision(null);
     setMotivo('');
@@ -142,6 +160,7 @@ export function useAdminVouchers() {
     setStateFilter,
     selectedVoucher,
     openReview,
+    unvalidatedPreviousPayments,
     checkedPaymentIds,
     togglePayment,
     decision,
